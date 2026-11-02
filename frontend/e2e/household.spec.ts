@@ -127,6 +127,7 @@ test('someone joins from an invite link, leaves, joins again and is removed', as
   await expect(page).toHaveURL(address);
   await expect(page.getByRole('heading', { level: 1, name: JOIN_SAMS_HEADING })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Members' }).getByRole('listitem')).toHaveText([/Sam$/]);
+  await accessibility.check();
 
   await page.getByRole('button', { name: 'Join household' }).click();
   await expect(page.getByRole('alertdialog', { name: "Join Sam's household?" })).toHaveAccessibleDescription(
