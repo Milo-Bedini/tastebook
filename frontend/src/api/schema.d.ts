@@ -88,6 +88,24 @@ export interface paths {
         patch: operations["household_partial_update"];
         trace?: never;
     };
+    "/api/household/invite/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description The signed-in account's household with a live invite link: the one it has, or a new one that works for 7 days when it has none or only an expired one. Any member may. */
+        post: operations["household_invite_create"];
+        /** @description Cancels the signed-in account's household's invite link, live or expired, and answers the household. Any member may; cancelling when there is none does nothing. */
+        delete: operations["household_invite_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/household/leave/": {
         parameters: {
             query?: never;
@@ -240,14 +258,20 @@ export interface components {
             name: string;
         };
         Health: {
-            status: components["schemas"]["StatusEnum"];
+            status: components["schemas"]["HealthStatusEnum"];
             database: components["schemas"]["DatabaseEnum"];
             version: string;
         };
+        /**
+         * @description * `ok` - ok
+         * @enum {string}
+         */
+        HealthStatusEnum: "ok";
         Household: {
             id: number;
             name: string;
             members: components["schemas"]["Member"][];
+            invite: components["schemas"]["Invite"] | null;
         };
         Ingredient: {
             slug: string;
@@ -304,6 +328,18 @@ export interface components {
             name: string;
             readonly synonyms: string[];
         };
+        Invite: {
+            token: string;
+            /** Format: date-time */
+            expires_at: string;
+            status: components["schemas"]["InviteStatusEnum"];
+        };
+        /**
+         * @description * `live` - Live
+         *     * `expired` - Expired
+         * @enum {string}
+         */
+        InviteStatusEnum: "live" | "expired";
         Member: {
             id: number;
             name: string;
@@ -382,11 +418,6 @@ export interface components {
         SignInCode: {
             code: string;
         };
-        /**
-         * @description * `ok` - ok
-         * @enum {string}
-         */
-        StatusEnum: "ok";
         Step: {
             readonly id: number;
             text: string;
@@ -603,6 +634,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description No response body */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    household_invite_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Household"];
+                };
+            };
+            /** @description No response body */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    household_invite_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Household"];
+                };
             };
             /** @description No response body */
             403: {

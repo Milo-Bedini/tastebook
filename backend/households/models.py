@@ -1,3 +1,5 @@
+import secrets
+from datetime import timedelta
 from typing import Any
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -36,6 +38,30 @@ class Household(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+INVITE_LIFETIME = timedelta(days=7)
+
+
+def new_invite_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+class InviteStatus(models.TextChoices):
+    LIVE = 'live', 'Live'
+    EXPIRED = 'expired', 'Expired'
+
+
+class Invite(models.Model):
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='invites')
+    # Whoever holds it can join the household, so it's long and random and never derived from an ID.
+    token = models.CharField(max_length=43, unique=True, default=new_invite_token)
+    expires_at = models.DateTimeField()
+    # Cancelled rows stay, so the join page can tell a cancelled link from one that never existed.
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'Invite to {self.household_id}'
 
 
 class User(AbstractBaseUser, PermissionsMixin):

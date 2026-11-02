@@ -16,7 +16,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from households.models import User
+from households.models import Household, User
 from households.serializers import (
     AccountChangesSerializer,
     AccountSerializer,
@@ -26,9 +26,13 @@ from households.serializers import (
     SignInCodeSerializer,
 )
 from households.services import (
+    cancel_invite,
+    current_invite,
+    invite_status,
     is_test_account,
     latest_sign_in_code,
     leave_household,
+    make_invite,
     members_seen_by,
     remove_member,
     rename_household,
@@ -97,8 +101,17 @@ class CurrentAccountView(APIView):
 
 
 def household_body(account: User) -> dict[str, Any]:
+    invite = current_invite(account.household_id)
     return HouseholdSerializer(
-        {'id': account.household_id, 'name': account.household.name, 'members': members_seen_by(account)}
+        {
+            'id': account.household_id,
+            'name': account.household.name,
+            'members': members_seen_by(account),
+            # The server decides the status, so a phone with the wrong clock still shows the right state.
+            'invite': None
+            if invite is None
+            else {'token': invite.token, 'expires_at': invite.expires_at, 'status': invite_status(invite)},
+        }
     ).data
 
 
@@ -160,6 +173,37 @@ class HouseholdMemberView(APIView):
             account = remove_member(signed_in_member(request), member_id)
         except User.DoesNotExist as missing:
             raise NotFound from missing
+        return Response(household_body(account))
+
+
+class InviteView(APIView):
+    @extend_schema(
+        operation_id='household_invite_create',
+        request=None,
+        responses={200: HouseholdSerializer, 403: None, 404: None},
+        description="The signed-in account's household with a live invite link: the one it has, or a new one that "
+        'works for 7 days when it has none or only an expired one. Any member may.',
+    )
+    def post(self, request: Request) -> Response:
+        account = signed_in_member(request)
+        try:
+            make_invite(account)
+        except Household.DoesNotExist as moved:
+            raise NotFound from moved
+        return Response(household_body(account))
+
+    @extend_schema(
+        operation_id='household_invite_destroy',
+        responses={200: HouseholdSerializer, 403: None, 404: None},
+        description="Cancels the signed-in account's household's invite link, live or expired, and answers the "
+        'household. Any member may; cancelling when there is none does nothing.',
+    )
+    def delete(self, request: Request) -> Response:
+        account = signed_in_member(request)
+        try:
+            cancel_invite(account)
+        except Household.DoesNotExist as moved:
+            raise NotFound from moved
         return Response(household_body(account))
 
 

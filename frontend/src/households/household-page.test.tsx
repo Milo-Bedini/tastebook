@@ -30,7 +30,7 @@ type Removal = { id: number; csrfToken: string | null };
 const MILO = { id: 1, name: 'Milo', is_you: true };
 const ANN = { id: 2, name: 'Ann', is_you: false };
 
-const BEDINIS: Household = { id: 10, name: 'The Bedinis', members: [MILO, ANN] };
+const BEDINIS: Household = { id: 10, name: 'The Bedinis', members: [MILO, ANN], invite: null };
 
 // The Bedinis (or the household given) until a DELETE drops a member or a POST to leave/ moves Milo out.
 const answerBedinis = (household: Household = BEDINIS) => {
@@ -47,7 +47,7 @@ const answerBedinis = (household: Household = BEDINIS) => {
     }),
     http.post(`${HOUSEHOLD}leave/`, () => {
       leaves.count += 1;
-      state.household = { id: 11, name: "Milo's household", members: [MILO] };
+      state.household = { id: 11, name: "Milo's household", members: [MILO], invite: null };
       return HttpResponse.json<Household>(state.household);
     })
   );
@@ -64,7 +64,8 @@ const answerHousehold = () => {
       members: [
         { id: 1, name: 'Milo', is_you: true },
         { id: 2, name: 'Ann', is_you: false }
-      ]
+      ],
+      invite: null
     }
   };
   server.use(
@@ -84,11 +85,11 @@ const AUTH = '/api/_allauth/browser/v1/auth';
 const accounts: Partial<Record<string, { name: string; household: Household }>> = {
   'milo@example.com': {
     name: 'Milo',
-    household: { id: 11, name: "Milo's household", members: [{ id: 1, name: 'Milo', is_you: true }] }
+    household: { id: 11, name: "Milo's household", members: [{ id: 1, name: 'Milo', is_you: true }], invite: null }
   },
   'jo@example.com': {
     name: 'Jo',
-    household: { id: 12, name: "Jo's household", members: [{ id: 3, name: 'Jo', is_you: true }] }
+    household: { id: 12, name: "Jo's household", members: [{ id: 3, name: 'Jo', is_you: true }], invite: null }
   }
 };
 
@@ -191,7 +192,8 @@ describe('HouseholdPage', () => {
         return HttpResponse.json<Household>({
           id: 10,
           name: "Milo's household",
-          members: [{ id: 1, name: 'Milo', is_you: true }]
+          members: [{ id: 1, name: 'Milo', is_you: true }],
+          invite: null
         });
       })
     );
@@ -275,7 +277,7 @@ describe('HouseholdPage', () => {
 
   it('offers the only member neither Remove nor Leave', async () => {
     answerSignedIn();
-    answerBedinis({ id: 10, name: "Milo's household", members: [MILO] });
+    answerBedinis({ id: 10, name: "Milo's household", members: [MILO], invite: null });
     renderRoute('/household');
 
     expect(await screen.findByRole('textbox', { name: 'Household name' })).toHaveValue("Milo's household");
