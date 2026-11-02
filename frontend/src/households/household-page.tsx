@@ -1,3 +1,4 @@
+import { Copy, Link as LinkIcon } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { Navigate } from 'react-router';
 
@@ -12,6 +13,7 @@ import {
   useRemoveMember,
   useRenameHousehold
 } from './household-api';
+import { type Invite, inviteAddress, useCancelInvite, useMakeInvite } from './invite-api';
 import { useSession } from './session-api';
 
 const HouseholdNameForm = ({ name: savedName }: { name: string }) => {
@@ -144,6 +146,133 @@ const Members = ({ household }: { household: Household }) => {
   );
 };
 
+const dayAndMonth = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' });
+
+const expiryDate = (invite: Invite) => dayAndMonth.format(new Date(invite.expires_at));
+
+type MakeLinkProps = { label: string; making: boolean; takesFocus: boolean; onMake: () => void };
+
+const MakeLink = ({ label, making, takesFocus, onMake }: MakeLinkProps) => (
+  <div className="flex flex-wrap items-start gap-2">
+    <Button
+      ref={takesFocus ? takeFocus : undefined}
+      variant="secondary"
+      loading={making}
+      loadingLabel="Making…"
+      onClick={onMake}
+    >
+      <LinkIcon aria-hidden="true" strokeWidth={2.5} />
+      {label}
+    </Button>
+  </div>
+);
+
+const copy = async (address: string) => {
+  try {
+    await navigator.clipboard.writeText(address);
+    toast.success('Link copied');
+  } catch {
+    toast.error("Couldn't copy the link. Select it and copy it yourself.");
+  }
+};
+
+type LiveLinkProps = { invite: Invite; takesFocus: boolean; onCancel: () => void };
+
+const LiveLink = ({ invite, takesFocus, onCancel }: LiveLinkProps) => {
+  const address = inviteAddress(invite.token);
+  return (
+    <>
+      <Field label="Invite link" help={`Anyone with this link can join until ${expiryDate(invite)}.`}>
+        {(control) => (
+          <Input
+            {...control}
+            ref={takesFocus ? takeFocus : undefined}
+            readOnly
+            value={address}
+            // The whole address, so "Select it and copy it yourself" is one tap and a copy.
+            onFocus={(event) => event.currentTarget.select()}
+          />
+        )}
+      </Field>
+      <div className="flex flex-wrap items-start gap-2">
+        <Button variant="secondary" onClick={() => copy(address)}>
+          <Copy aria-hidden="true" strokeWidth={2.5} />
+          Copy link
+        </Button>
+        <ConfirmDialog
+          trigger={<Button variant="ghost">Cancel link</Button>}
+          title="Cancel this invite link?"
+          description="Anyone who opens it will be told it no longer works. You can make a new link afterwards."
+          confirmLabel="Cancel link"
+          cancelLabel="Keep link"
+          onConfirm={onCancel}
+        />
+      </div>
+    </>
+  );
+};
+
+type InviteStateProps = {
+  invite: Invite | null;
+  making: boolean;
+  lastDone: 'made' | 'cancelled' | undefined;
+  onMake: () => void;
+  onCancel: () => void;
+};
+
+const InviteState = ({ invite, making, lastDone, onMake, onCancel }: InviteStateProps) => {
+  if (invite === null) {
+    return (
+      <>
+        <p>Make a link to invite someone. It works for 7 days, for anyone you send it to.</p>
+        <MakeLink label="Make invite link" making={making} takesFocus={lastDone === 'cancelled'} onMake={onMake} />
+      </>
+    );
+  }
+  if (invite.status === 'expired') {
+    return (
+      <>
+        <p>This invite link expired on {expiryDate(invite)}.</p>
+        <MakeLink label="Make a new link" making={making} takesFocus={false} onMake={onMake} />
+      </>
+    );
+  }
+  return <LiveLink invite={invite} takesFocus={lastDone === 'made'} onCancel={onCancel} />;
+};
+
+const InviteSomeone = ({ invite }: { invite: Invite | null }) => {
+  const makeInvite = useMakeInvite();
+  const cancelInvite = useCancelInvite();
+  // The pressed button goes with the state it belonged to, so focus moves to the next state's control as it appears.
+  const [lastDone, setLastDone] = useState<'made' | 'cancelled'>();
+
+  const make = async () => {
+    try {
+      await makeInvite.mutateAsync();
+      setLastDone('made');
+    } catch {
+      toast.error("Couldn't make a link. Check your connection and try again.");
+    }
+  };
+
+  const cancel = async () => {
+    try {
+      await cancelInvite.mutateAsync();
+      setLastDone('cancelled');
+      toast.success('Link cancelled');
+    } catch {
+      toast.error("Couldn't cancel the link. Check your connection and try again.");
+    }
+  };
+
+  return (
+    <section aria-labelledby="household-invite" className="flex flex-col gap-4">
+      <h2 id="household-invite">Invite someone</h2>
+      <InviteState invite={invite} making={makeInvite.isPending} lastDone={lastDone} onMake={make} onCancel={cancel} />
+    </section>
+  );
+};
+
 const names = new Intl.ListFormat('en-GB', { type: 'conjunction' });
 
 const whoStays = (household: Household) => {
@@ -197,6 +326,7 @@ const HouseholdSettings = ({ household }: { household: Household }) => {
       {/* Keyed on the household, so after leaving the field shows the new one's name rather than the old. */}
       <HouseholdNameForm key={household.id} name={household.name} />
       <Members household={household} />
+      <InviteSomeone invite={household.invite} />
       {household.members.length > 1 ? (
         <LeaveHousehold household={household} onLeft={() => setLeft(household.id)} />
       ) : null}
