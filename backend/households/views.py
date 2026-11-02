@@ -28,7 +28,9 @@ from households.serializers import (
 from households.services import (
     is_test_account,
     latest_sign_in_code,
+    leave_household,
     members_seen_by,
+    remove_member,
     rename_household,
     seconds_until_allowed,
     update_account,
@@ -95,18 +97,21 @@ class CurrentAccountView(APIView):
 
 
 def household_body(account: User) -> dict[str, Any]:
-    return HouseholdSerializer({'name': account.household.name, 'members': members_seen_by(account)}).data
+    return HouseholdSerializer(
+        {'id': account.household_id, 'name': account.household.name, 'members': members_seen_by(account)}
+    ).data
+
+
+def signed_in_member(request: Request) -> User:
+    if not request.user.is_authenticated:
+        raise NotAuthenticated
+    # A nameless account has no household yet; the name page gives it one.
+    if request.user.household_id is None:
+        raise NotFound
+    return request.user
 
 
 class HouseholdView(APIView):
-    def signed_in_member(self, request: Request) -> User:
-        if not request.user.is_authenticated:
-            raise NotAuthenticated
-        # A nameless account has no household yet; the name page gives it one.
-        if request.user.household_id is None:
-            raise NotFound
-        return request.user
-
     @extend_schema(
         operation_id='household_retrieve',
         responses={200: HouseholdSerializer, 403: None, 404: None},
@@ -114,7 +119,7 @@ class HouseholdView(APIView):
         'account with no household yet.',
     )
     def get(self, request: Request) -> Response:
-        return Response(household_body(self.signed_in_member(request)))
+        return Response(household_body(signed_in_member(request)))
 
     @extend_schema(
         operation_id='household_partial_update',
@@ -123,10 +128,38 @@ class HouseholdView(APIView):
         description="Renames the signed-in account's household. Any member may.",
     )
     def patch(self, request: Request) -> Response:
-        account = self.signed_in_member(request)
+        account = signed_in_member(request)
         changes = HouseholdChangesSerializer(data=request.data)
         changes.is_valid(raise_exception=True)
         rename_household(account, changes.validated_data['name'])
+        return Response(household_body(account))
+
+
+class LeaveHouseholdView(APIView):
+    @extend_schema(
+        operation_id='household_leave_create',
+        request=None,
+        responses={200: HouseholdSerializer, 403: None, 404: None},
+        description='Moves the signed-in account into a new household of one, named after it. A household left with '
+        'nobody in it is deleted.',
+    )
+    def post(self, request: Request) -> Response:
+        return Response(household_body(leave_household(signed_in_member(request))))
+
+
+class HouseholdMemberView(APIView):
+    @extend_schema(
+        operation_id='household_members_destroy',
+        parameters=[OpenApiParameter('member_id', int, OpenApiParameter.PATH)],
+        responses={200: HouseholdSerializer, 403: None, 404: None},
+        description="Removes another member of the signed-in account's household into a new household of one, and "
+        "emails them. Any member may. 404 for anyone who isn't another member of it.",
+    )
+    def delete(self, request: Request, member_id: int) -> Response:
+        try:
+            account = remove_member(signed_in_member(request), member_id)
+        except User.DoesNotExist as missing:
+            raise NotFound from missing
         return Response(household_body(account))
 
 

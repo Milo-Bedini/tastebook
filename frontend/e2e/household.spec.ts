@@ -43,6 +43,9 @@ test('a new test account renames its household', async ({ page, accessibility })
   const name = page.getByRole('textbox', { name: 'Household name' });
   await expect(name).toHaveValue("Sam's household");
   await expect(page.getByRole('list', { name: 'Members' }).getByRole('listitem')).toHaveText([/Sam \(you\)$/]);
+  // The only member is offered neither Leave nor Remove.
+  await expect(page.getByRole('button', { name: 'Leave household' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Remove/ })).toHaveCount(0);
 
   await name.fill('The Jones');
   await page.getByRole('button', { name: 'Save name' }).click();

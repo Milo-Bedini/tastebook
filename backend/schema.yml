@@ -149,6 +149,57 @@ paths:
           description: No response body
         '404':
           description: No response body
+  /api/household/leave/:
+    post:
+      operationId: household_leave_create
+      description: Moves the signed-in account into a new household of one, named
+        after it. A household left with nobody in it is deleted.
+      tags:
+      - household
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Household'
+          description: ''
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+  /api/household/members/{member_id}/:
+    delete:
+      operationId: household_members_destroy
+      description: Removes another member of the signed-in account's household into
+        a new household of one, and emails them. Any member may. 404 for anyone who
+        isn't another member of it.
+      parameters:
+      - in: path
+        name: member_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - household
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Household'
+          description: ''
+        '403':
+          description: No response body
+        '404':
+          description: No response body
   /api/ingredients/:
     get:
       operationId: ingredients_list
@@ -468,6 +519,8 @@ components:
     Household:
       type: object
       properties:
+        id:
+          type: integer
         name:
           type: string
         members:
@@ -475,6 +528,7 @@ components:
           items:
             $ref: '#/components/schemas/Member'
       required:
+      - id
       - members
       - name
     Ingredient:
