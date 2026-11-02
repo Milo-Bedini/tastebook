@@ -51,6 +51,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Household | The people who cook together. Every account belongs to exactly one, once it has a name; a new one starts as "<name>'s household". It owns private recipes, the plan, the shopping list, the pantry and the household's equipment. | `Household` |
 | Member | An account in a household. Members are equal: any of them can rename it, remove another member or leave; whoever goes lands in a household of their own. | `User.household`, `Household.members` |
 | Invite | A link that lets anyone who has it join a household, for 7 days, until a member cancels it. A household has at most one live invite; removing a member cancels it too. | `Invite`, `make_invite()`, `cancel_invite()` |
+| Join | Moving into a household from its invite link. You leave your current household, which is deleted if nobody's left in it. | `join_household()` |
 | Staff | An account that can use the admin pages (moderation, fixing data). Needs two-factor sign-in. | `User.is_staff`, `make_staff` |
 | Two-factor sign-in | Signing in with an email code or Google and then a 6-digit code from an authenticator app. Staff only; asked at every sign-in. | `allauth.mfa`, `passed_two_factors()` |
 | Recovery code | One of ten 8-digit codes shown once when two-factor sign-in is set up. Each signs in once in place of the app's code. | `allauth`'s recovery codes |
