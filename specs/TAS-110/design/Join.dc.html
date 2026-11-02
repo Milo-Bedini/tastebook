@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Joining a household, phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:780px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:400px}
+.lead{display:flex;flex-direction:column;gap:16px}
+.lead p,.sec p{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.sec{display:flex;flex-direction:column;gap:16px}
+.form{display:flex;flex-direction:column;gap:20px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.mem{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mem li{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;box-sizing:border-box;border-top:1px solid var(--color-line);font-size:16px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
+.mem li:first-child{border-top:0}
+.nm{flex:1 1 auto;min-width:0}
+.you{color:var(--color-muted)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.hf{align-self:flex-start;outline:3px solid var(--color-ink);outline-offset:2px;border-radius:4px}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 18px 4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.boards{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2400px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-110 · /join/&lt;token&gt; · phone, 390 px · Jo Mensah joins The Bedinis</span>
+    <h1 class="ttl">Joining</h1>
+    <span class="cap">Join asks first, naming the household you’d leave and what becomes of it. Joined, you land on the household page in your new household with a toast. A link that dies meanwhile shows the dead link; a failure keeps the offer.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Asks first</b> · others stay in yours: “Kim Lee and Sam Reid stay” (one: “Kim Lee stays”); focus on Cancel</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis</h1>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span>Ann Okafor</span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span>Milo Bedini</span></li>
+            </ul>
+          </section>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Join household</x-import></div>
+        </div></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="a-t" aria-describedby="a-d">
+          <h2 id="a-t">Join The Bedinis?</h2>
+          <p id="a-d">You’ll leave Jo’s household. Kim Lee and Sam Reid stay in it.</p>
+          <div class="btns">
+            <span class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></span>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Join household</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>The only member</b> · your household goes when you do</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis</h1>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span>Ann Okafor</span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span>Milo Bedini</span></li>
+            </ul>
+          </section>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Join household</x-import></div>
+        </div></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="b-t" aria-describedby="b-d">
+          <h2 id="b-t">Join The Bedinis?</h2>
+          <p id="b-d">You’ll leave Jo’s household. You’re its only member, so it will be deleted.</p>
+          <div class="btns">
+            <span class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></span>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Join household</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Joining</b> · the dialog has closed; “Joining…” keeps its size and ignores presses</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis</h1>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span>Ann Okafor</span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span>Milo Bedini</span></li>
+            </ul>
+          </section>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button" loading="{{yes}}" loading-label="Joining…">Join household</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Joined</b> · /household, in The Bedinis; the toast names it</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">household</x-import></h1>
+          <section class="sec">
+            <h2>Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="d-name" class="text-label">Household name</label>
+                <x-import component-from-global-scope="Dino.Input" id="d-name" type="text" max-length="{{hundred}}" default-value="The Bedinis"></x-import>
+                <p class="help">Everyone in the household sees it.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Jo Mensah"></x-import><span class="nm">Jo Mensah <span class="you">(you)</span></span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span class="nm">Ann Okafor</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Ann Okafor</span></x-import></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Milo Bedini</span></x-import></li>
+            </ul>
+          </section>
+        </div></main>
+        <div class="toast" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg><span>You joined The Bedinis</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Stopped working</b> · cancelled while the dialog was open (409 or 404): nobody moves; focus on the title</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="lead">
+            <h1 class="hf" tabindex="-1">This invite link was cancelled</h1>
+            <p>Someone in the household cancelled it. Ask them for a new one if you’d still like to join.</p>
+          </div>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Back to Tastebook</x-import></div>
+        </div></main>
+        <div class="toast" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg><span>This invite link stopped working before you joined.</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t join</b> · offline or a 5xx; the offer stays and focus goes back to Join household</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis</h1>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span>Ann Okafor</span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span>Milo Bedini</span></li>
+            </ul>
+          </section>
+          <div class="acts"><span class="fr"><x-import component-from-global-scope="Dino.Button">Join household</x-import></span></div>
+        </div></main>
+        <div class="toast" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg><span>Couldn’t join the household. Check your connection and try again.</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>The dialog says exactly what happens to the household you leave</b>: who stays, by name, joined as a list with “stays” for one and “stay” for more, or that it will be deleted when you’re its only member. Its title names where you’re going. The confirm is the danger “Join household”, the same words as the button that opened it (Button never wraps, so not the household’s name); the way out stays “Cancel”, with focus on it when it opens.</p>
+    <p><b>Joined, you’re somewhere new</b>: the page replaces the link in history and lands on /household, which shows The Bedinis with you first, Remove beside the others, and Invite someone and Leave below (off the bottom of this frame). The toast says where you went; focus starts at the top of the page, as for any move between pages.</p>
+    <p><b>A link that dies on the way</b> (cancelled, expired, or its household gone) moves nobody: an info toast says why and the page redraws as that dead link, with focus on its title (tabindex −1, the in-text ring), so a screen reader hears what changed.</p>
+    <p><b>A failure is an alert toast</b> worded like Leave’s, and nothing changes: “Join household” keeps focus, so pressing it again is the retry, and the dialog asks again.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, no: false, sw: 2.5, hundred: 100 };
+  }
+}
+</script>
+</body>
+</html>

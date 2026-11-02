@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The join page, phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:780px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:400px}
+.lead{display:flex;flex-direction:column;gap:16px}
+.lead p{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.sec{display:flex;flex-direction:column;gap:16px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.mem{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mem li{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;box-sizing:border-box;border-top:1px solid var(--color-line);font-size:16px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
+.mem li:first-child{border-top:0}
+.boards{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2200px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-110 · /join/&lt;token&gt; · phone, 390 px · Jo Mensah opens Milo’s link to The Bedinis (Milo Bedini, Ann Okafor)</span>
+    <h1 class="ttl">The join page</h1>
+    <span class="cap">One page, six answers. The household page’s 400 px column and voice: a Display XL title, one line or two of Body saying what’s true and what to do, then one peach button. Only the join offer shows the household.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Join offer</b> · signed in, a live link: the household’s name and who’s in it</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis</h1>
+          <section class="sec" aria-labelledby="a-h-mem">
+            <h2 id="a-h-mem">Members</h2>
+            <ul class="mem" aria-labelledby="a-h-mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span>Ann Okafor</span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span>Milo Bedini</span></li>
+            </ul>
+          </section>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button" loading="{{no}}" loading-label="Joining…">Join household</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Sign in to join</b> · signed out, a live link: nothing about the household</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="lead">
+            <h1>You’ve been <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">invited</x-import> to a household</h1>
+            <p>Sign in to see who’s in it and join them. New to Tastebook? Signing in makes your account.</p>
+          </div>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Sign in to join</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Already a member</b> · your own household’s link, whatever its state</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Ann Okafor" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">A</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="lead">
+            <h1>You’re already in The Bedinis</h1>
+            <p>This is your household’s invite link. Send it to anyone you’d like to join you.</p>
+          </div>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Go to your household</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Doesn’t work</b> · a token that was never an invite (404), signed in or out</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="lead">
+            <h1>This invite link doesn’t work</h1>
+            <p>Check you have the whole link: it can get cut short when it’s copied. If it still doesn’t work, ask whoever sent it for a new one.</p>
+          </div>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Back to Tastebook</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Expired</b> · 7 days on, signed in or out</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="lead">
+            <h1>This invite link has expired</h1>
+            <p>Invite links work for 7 days. Ask whoever sent it for a new one.</p>
+          </div>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Back to Tastebook</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Cancelled</b> · a member cancelled it, or removed someone</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="lead">
+            <h1>This invite link was cancelled</h1>
+            <p>Someone in the household cancelled it. Ask them for a new one if you’d still like to join.</p>
+          </div>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Back to Tastebook</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>One squiggle, only where there’s good news.</b> The offer squiggles “Join” and the signed-out page “invited”; docs/design.md allows the squiggle under one word and one italic word in Display XL, and a household’s name can be many words, so it never goes under the name. Already-a-member and the three dead links are plain titles, like the not-found page.</p>
+    <p><b>The offer is the household page’s Members list, read-only</b>: Avatar and name in Body, 56 px rows with a Line hairline, in the API’s order (by name, since you’re not in it), with no “(you)” and no Remove. “Join household” comes after the list, so you see who you’d join before the button: it’s the screen’s one peach button, with the press shadow.</p>
+    <p><b>Signed out, the page only says a link works.</b> No name, no members, no count (UK GDPR: anyone holding a forwarded link would see them). “Sign in to join” is the peach button; the bar’s own Sign in stays as on every signed-out page and goes to the same place.</p>
+    <p><b>Each dead link says which and what to do</b>, with “Back to Tastebook” as its one button, as the not-found page. Signed in or out they look the same apart from the bar’s end; being a member wins, so Ann opening her own expired link sees “You’re already in The Bedinis”.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, no: false, sw: 2.5 };
+  }
+}
+</script>
+</body>
+</html>

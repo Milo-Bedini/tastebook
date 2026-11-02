@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The join page's waits, phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:600px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:400px}
+.boards{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1900px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-110 · /join/&lt;token&gt; · phone, 390 px</span>
+    <h1 class="ttl">Before the page</h1>
+    <span class="cap">Up to three waits, each with Loading and ErrorWithRetry as the household page has them: who’s signed in, then the link, then (for the offer only) your own household, so the dialog can say what happens to it. None shows a heading, as there’s nothing to name yet.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Checking your account</b> · the bar has no account end yet</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.Loading">Checking your account…</x-import>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t reach Tastebook</b> · the session failed</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t reach Tastebook" on-retry="{{retry}}">Check your connection and try again.</x-import>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Opening the invite link</b> · signed in or out; after half a second</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.Loading">Opening the invite link…</x-import>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t open this invite link</b> · Try again asks once more</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t open this invite link" on-retry="{{retry}}">Check your connection and try again.</x-import>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Getting your household</b> · a live link, signed in</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.Loading">Getting your household…</x-import>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t load your household</b> · the link opened; your own household didn’t</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load your household" on-retry="{{retry}}">Check your connection and try again.</x-import>
+        </div></main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>The same two components for every wait</b>, worded as “-ing” lines: “Checking your account…”, “Opening the invite link…”, “Getting your household…”. The blank polaroids don’t shimmer and appear after half a second, so a quick answer never flashes them.</p>
+    <p><b>Each failure says what didn’t load</b> and offers Try again beside it. Signed out, the session and the link are the only waits; your own household is asked for only when there’s an offer to make.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, retry: () => Promise.resolve() };
+  }
+}
+</script>
+</body>
+</html>
