@@ -84,10 +84,13 @@ class Member:
     is_you: bool
 
 
-def members_seen_by(account: User) -> list[Member]:
-    """The account's household's members: the account first, then the others by name."""
-    members = User.objects.filter(household_id=account.household_id).order_by(Lower('name'), 'pk')
-    seen = [Member(id=member.pk, name=member.name, is_you=member.pk == account.pk) for member in members]
+def members_of(household_id: int, seen_by: User | None) -> list[Member]:
+    """The household's members: whoever's looking first, if they're in it, then the others by name."""
+    members = User.objects.filter(household_id=household_id).order_by(Lower('name'), 'pk')
+    seen = [
+        Member(id=member.pk, name=member.name, is_you=seen_by is not None and member.pk == seen_by.pk)
+        for member in members
+    ]
     return sorted(seen, key=lambda member: not member.is_you)
 
 
@@ -160,6 +163,8 @@ def current_invite(household_id: int) -> Invite | None:
 
 
 def invite_status(invite: Invite) -> InviteStatus:
+    if invite.cancelled_at is not None:
+        return InviteStatus.CANCELLED
     return InviteStatus.LIVE if invite.expires_at > timezone.now() else InviteStatus.EXPIRED
 
 
@@ -197,6 +202,67 @@ def cancel_invite(account: User) -> None:
     Raises Household.DoesNotExist as locked_household_of does."""
     with transaction.atomic():
         cancel_current_invite(locked_household_of(account).pk)
+
+
+class InviteNotLiveError(Exception):
+    """The invite was cancelled or expired before the join could happen."""
+
+
+@dataclass(frozen=True)
+class InvitedHousehold:
+    name: str
+    members: list[Member]
+
+
+@dataclass(frozen=True)
+class InviteSeen:
+    status: InviteStatus
+    is_member: bool
+    household: InvitedHousehold | None
+
+
+def invite_seen_by(token: str, viewer: User | None) -> InviteSeen:
+    """What `viewer` (None when signed out) may see of the invite. Raises Invite.DoesNotExist for an unknown token."""
+    invite = Invite.objects.select_related('household').get(token=token)
+    status = invite_status(invite)
+    is_member = viewer is not None and viewer.household_id == invite.household_id
+    # A visitor, or someone holding a dead link, learns only its status: the members are personal data.
+    shows_household = viewer is not None and (is_member or status == InviteStatus.LIVE)
+    household = (
+        InvitedHousehold(name=invite.household.name, members=members_of(invite.household_id, viewer))
+        if shows_household
+        else None
+    )
+    return InviteSeen(status=status, is_member=is_member, household=household)
+
+
+def join_household(account: User, token: str) -> User:
+    """Moves the account into the invite's household and deletes the household it left if that's now empty.
+    Returns the account as saved. Raises Invite.DoesNotExist for an unknown token, InviteNotLiveError for a dead one."""
+    with transaction.atomic():
+        invite = Invite.objects.get(token=token)
+        # Every move locks households before accounts, and two households in pk order, so joins can't deadlock with
+        # each other, with leaving and removing, or with make_invite and cancel_invite.
+        list(
+            Household.objects.select_for_update()
+            .filter(pk__in={invite.household_id, account.household_id})
+            .order_by('pk')
+        )
+        account = User.objects.select_for_update().get(pk=account.pk)
+        # A cancel may have committed while this waited for the household's lock.
+        invite.refresh_from_db()
+        if invite_status(invite) != InviteStatus.LIVE:
+            raise InviteNotLiveError
+        if account.household_id == invite.household_id:
+            return account
+        # Removed while this waited: then it's in a new household of one that nobody else is in and that has no
+        # invite, so it goes on from there without that household's lock.
+        left = account.household_id
+        account.household_id = invite.household_id
+        account.save(update_fields=['household'])
+        if not User.objects.filter(household_id=left).exists():
+            Household.objects.filter(pk=left).delete()
+    return account
 
 
 def name_from_google(profile: dict[str, Any]) -> str:

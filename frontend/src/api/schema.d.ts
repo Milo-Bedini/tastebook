@@ -156,6 +156,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/invites/{token}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Whether an invite link works and, for someone signed in, the household it joins. 404 for a token that was never an invite. */
+        get: operations["invite_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invites/{token}/join/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Moves the signed-in account into the invite's household; a household left with nobody in it is deleted. 404 for an unknown token, 409 when the link is cancelled or expired. */
+        post: operations["invite_join_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recipes/": {
         parameters: {
             query?: never;
@@ -332,14 +366,24 @@ export interface components {
             token: string;
             /** Format: date-time */
             expires_at: string;
-            status: components["schemas"]["InviteStatusEnum"];
+            status: components["schemas"]["InviteStatus"];
         };
         /**
          * @description * `live` - Live
          *     * `expired` - Expired
+         *     * `cancelled` - Cancelled
          * @enum {string}
          */
-        InviteStatusEnum: "live" | "expired";
+        InviteStatus: "live" | "expired" | "cancelled";
+        InvitedHousehold: {
+            name: string;
+            members: components["schemas"]["Member"][];
+        };
+        JoinInvite: {
+            status: components["schemas"]["InviteStatus"];
+            is_member: boolean;
+            household: components["schemas"]["InvitedHousehold"] | null;
+        };
         Member: {
             id: number;
             name: string;
@@ -801,6 +845,76 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["IngredientOption"][];
                 };
+            };
+        };
+    };
+    invite_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinInvite"];
+                };
+            };
+            /** @description No response body */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    invite_join_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Household"];
+                };
+            };
+            /** @description No response body */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -50,3 +50,14 @@ class HouseholdSerializer(serializers.Serializer):
 
 class HouseholdChangesSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=HOUSEHOLD_NAME_MAX_LENGTH)
+
+
+class InvitedHouseholdSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    members = MemberSerializer(many=True)
+
+
+class JoinInviteSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=InviteStatus.choices)
+    is_member = serializers.BooleanField()
+    household = InvitedHouseholdSerializer(allow_null=True)

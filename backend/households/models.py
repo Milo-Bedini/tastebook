@@ -50,6 +50,7 @@ def new_invite_token() -> str:
 class InviteStatus(models.TextChoices):
     LIVE = 'live', 'Live'
     EXPIRED = 'expired', 'Expired'
+    CANCELLED = 'cancelled', 'Cancelled'
 
 
 class Invite(models.Model):

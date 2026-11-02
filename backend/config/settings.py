@@ -231,6 +231,7 @@ SPECTACULAR_SETTINGS = {
     # Named for the glossary's term rather than the field it first appears on.
     'ENUM_NAME_OVERRIDES': {
         'DietTag': 'recipes.models.DietTag',
+        'InviteStatus': 'households.models.InviteStatus',
         'UnitSystem': 'households.models.UnitSystem',
     },
 }
