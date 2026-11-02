@@ -36,6 +36,7 @@ class MemberSerializer(serializers.Serializer):
 
 
 class HouseholdSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     name = serializers.CharField()
     members = MemberSerializer(many=True)
 

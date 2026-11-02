@@ -1,12 +1,15 @@
+from collections.abc import Callable
 from typing import Any
 
 import pytest
+from django.core.mail import EmailMessage
 from django.http import HttpResponse
 
 from households.models import Household, User
 from tests.test_accounts import BrowserClient, save_name, sign_up
 
 HOUSEHOLD = '/api/household/'
+LEAVE = '/api/household/leave/'
 
 
 def signed_up(email: str, name: str) -> BrowserClient:
@@ -18,6 +21,22 @@ def signed_up(email: str, name: str) -> BrowserClient:
 
 def rename(browser: BrowserClient, body: dict[str, Any]) -> HttpResponse:
     return browser.client.patch(HOUSEHOLD, body, format='json', **browser.csrf_header())
+
+
+def member(email: str) -> str:
+    return f'/api/household/members/{User.objects.get(email=email).pk}/'
+
+
+def remove(browser: BrowserClient, path: str) -> HttpResponse:
+    return browser.client.delete(path, **browser.csrf_header())
+
+
+def leave(browser: BrowserClient) -> HttpResponse:
+    return browser.client.post(LEAVE, **browser.csrf_header())
+
+
+def household_id_of(email: str) -> int | None:
+    return User.objects.get(email=email).household_id
 
 
 def join(email: str, household_of: str) -> None:
@@ -34,6 +53,7 @@ def test_a_new_account_sees_its_household_of_one() -> None:
     assert (response.status_code, response.json()) == (
         200,
         {
+            'id': User.objects.get(email='sam@example.com').household_id,
             'name': "Milo's household",
             'members': [{'id': User.objects.get(email='sam@example.com').pk, 'name': 'Milo', 'is_you': True}],
         },
@@ -63,6 +83,7 @@ def test_each_account_sees_only_its_own_household() -> None:
     response = jo.client.get(HOUSEHOLD)
 
     assert response.json() == {
+        'id': User.objects.get(email='jo@example.com').household_id,
         'name': "Jo's household",
         'members': [{'id': User.objects.get(email='jo@example.com').pk, 'name': 'Jo', 'is_you': True}],
     }
@@ -130,3 +151,171 @@ def test_renaming_without_the_csrf_header_is_refused() -> None:
 
     assert response.status_code == 403
     assert Household.objects.get().name == "Milo's household"
+
+
+@pytest.mark.django_db
+def test_any_member_removes_another_into_a_household_of_their_own() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    ann = signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    rename(milo, {'name': 'The Bedinis'})
+    bedinis = household_id_of('milo@example.com')
+
+    response = remove(milo, member('ann@example.com'))
+    seen_by_ann = ann.client.get(HOUSEHOLD).json()
+
+    assert (response.status_code, response.json()) == (
+        200,
+        {
+            'id': bedinis,
+            'name': 'The Bedinis',
+            'members': [{'id': User.objects.get(email='milo@example.com').pk, 'name': 'Milo', 'is_you': True}],
+        },
+    )
+    assert seen_by_ann['name'] == "Ann's household"
+    assert seen_by_ann['members'] == [
+        {'id': User.objects.get(email='ann@example.com').pk, 'name': 'Ann', 'is_you': True}
+    ]
+    assert seen_by_ann['id'] != bedinis
+
+
+@pytest.mark.django_db
+def test_a_removed_member_is_emailed_who_removed_them_and_from_where(
+    mailoutbox: list[EmailMessage], django_capture_on_commit_callbacks: Callable[..., Any]
+) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    rename(milo, {'name': 'The Bedinis'})
+    mailoutbox.clear()
+
+    with django_capture_on_commit_callbacks(execute=True):
+        remove(milo, member('ann@example.com'))
+
+    assert len(mailoutbox) == 1
+    [email] = mailoutbox
+    assert email.to == ['ann@example.com']
+    assert email.subject == 'You were removed from The Bedinis'
+    assert 'Milo removed you from The Bedinis on Tastebook.' in email.body
+    assert "You're now in a household of your own, Ann's household." in email.body
+    assert 'milo@example.com' not in email.body
+
+
+@pytest.mark.django_db
+def test_an_apostrophe_in_the_household_name_survives_the_email(
+    mailoutbox: list[EmailMessage], django_capture_on_commit_callbacks: Callable[..., Any]
+) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    mailoutbox.clear()
+
+    with django_capture_on_commit_callbacks(execute=True):
+        remove(milo, member('ann@example.com'))
+
+    assert [email.subject for email in mailoutbox] == ["You were removed from Milo's household"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'path',
+    [
+        pytest.param(lambda: member('milo@example.com'), id='yourself'),
+        pytest.param(lambda: member('jo@example.com'), id='another household'),
+        pytest.param(lambda: '/api/household/members/999999/', id='nobody'),
+    ],
+)
+def test_removing_anyone_but_another_member_answers_404(
+    path: Callable[[], str],
+    mailoutbox: list[EmailMessage],
+    django_capture_on_commit_callbacks: Callable[..., Any],
+) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    signed_up('ann@example.com', 'Ann')
+    signed_up('jo@example.com', 'Jo')
+    join('ann@example.com', 'milo@example.com')
+    before = {email: household_id_of(email) for email in ['milo@example.com', 'ann@example.com', 'jo@example.com']}
+    mailoutbox.clear()
+
+    with django_capture_on_commit_callbacks(execute=True):
+        response = remove(milo, path())
+
+    assert response.status_code == 404
+    assert {email: household_id_of(email) for email in before} == before
+    assert mailoutbox == []
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('with_csrf_header', [False, True], ids=['no csrf header', 'signed out'])
+def test_removing_is_refused_signed_out_or_without_the_csrf_header(with_csrf_header: bool) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    browser = BrowserClient() if with_csrf_header else milo
+    headers = browser.csrf_header() if with_csrf_header else {}
+
+    response = browser.client.delete(member('ann@example.com'), **headers)
+
+    assert response.status_code == 403
+    assert household_id_of('ann@example.com') == household_id_of('milo@example.com')
+
+
+@pytest.mark.django_db
+def test_a_member_leaves_into_a_household_of_their_own(mailoutbox: list[EmailMessage]) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    ann = signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    households = Household.objects.count()
+    mailoutbox.clear()
+
+    response = leave(ann)
+    seen_by_milo = milo.client.get(HOUSEHOLD).json()
+
+    assert response.status_code == 200
+    assert response.json()['name'] == "Ann's household"
+    assert response.json()['members'] == [
+        {'id': User.objects.get(email='ann@example.com').pk, 'name': 'Ann', 'is_you': True}
+    ]
+    assert [person['name'] for person in seen_by_milo['members']] == ['Milo']
+    # Milo's household stays, since he's still in it; only Ann's new one is added.
+    assert seen_by_milo['id'] == household_id_of('milo@example.com')
+    assert Household.objects.count() == households + 1
+    assert mailoutbox == []
+
+
+@pytest.mark.django_db
+def test_the_last_member_leaving_deletes_the_household() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    old = household_id_of('milo@example.com')
+
+    response = leave(milo)
+
+    assert response.status_code == 200
+    assert response.json()['name'] == "Milo's household"
+    assert response.json()['id'] != old
+    assert Household.objects.filter(pk=old).exists() is False
+    assert Household.objects.count() == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('with_csrf_header', [False, True], ids=['no csrf header', 'signed out'])
+def test_leaving_is_refused_signed_out_or_without_the_csrf_header(with_csrf_header: bool) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    ann = signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    browser = BrowserClient() if with_csrf_header else ann
+    headers = browser.csrf_header() if with_csrf_header else {}
+
+    response = browser.client.post(LEAVE, **headers)
+
+    assert response.status_code == 403
+    assert household_id_of('ann@example.com') == household_id_of('milo@example.com')
+    assert milo.client.get(HOUSEHOLD).status_code == 200
+
+
+@pytest.mark.django_db
+def test_an_account_with_no_household_cannot_leave() -> None:
+    browser = BrowserClient()
+    sign_up(browser, 'sam@example.com')
+
+    assert leave(browser).status_code == 404

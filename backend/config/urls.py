@@ -6,7 +6,9 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from households.views import (
     ConfirmSignInCodeView,
     CurrentAccountView,
+    HouseholdMemberView,
     HouseholdView,
+    LeaveHouseholdView,
     RequestSignInCodeView,
     SignUpView,
     VerifyEmailCodeView,
@@ -18,6 +20,8 @@ urlpatterns = [
     path('api/health/', include('health.urls')),
     path('api/account/', CurrentAccountView.as_view(), name='current-account'),
     path('api/household/', HouseholdView.as_view(), name='household'),
+    path('api/household/leave/', LeaveHouseholdView.as_view(), name='household-leave'),
+    path('api/household/members/<int:member_id>/', HouseholdMemberView.as_view(), name='household-member'),
     path('api/test-accounts/', include('households.urls')),
     # Ours first, so they answer on allauth's own paths: see households.views.
     path('api/_allauth/browser/v1/auth/code/request', RequestSignInCodeView.as_api_view(client=Client.BROWSER)),

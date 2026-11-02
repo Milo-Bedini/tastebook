@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Leaving the household</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:940px}
+.frame.narrow{width:320px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:400px}
+.sec{display:flex;flex-direction:column;gap:16px}
+.sec p{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.form{display:flex;flex-direction:column;gap:20px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.mem{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mem li{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;box-sizing:border-box;border-top:1px solid var(--color-line);font-size:16px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
+.mem li:first-child{border-top:0}
+.nm{flex:1 1 auto;min-width:0}
+.you{color:var(--color-muted)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.hf{align-self:flex-start;outline:3px solid var(--color-ink);outline-offset:2px;border-radius:4px}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.boards{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2600px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-109 · /household · phone, 390 px · Milo leaves The Bedinis</span>
+    <h1 class="ttl">Leaving the household</h1>
+    <span class="cap">Leave asks first and names who stays. Afterwards the page stays at /household and shows Milo’s new household of one, with a toast naming the one he left and focus on the page title.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Asks first</b> · two others stay: “Ann Okafor and Jo Mensah stay”; focus on Cancel</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">household</x-import></h1>
+          <section class="sec">
+            <h2>Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="a-name" class="text-label">Household name</label>
+                <x-import component-from-global-scope="Dino.Input" id="a-name" type="text" max-length="{{hundred}}" default-value="The Bedinis"></x-import>
+                <p class="help">Everyone in the household sees it.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini <span class="you">(you)</span></span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span class="nm">Ann Okafor</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Ann Okafor</span></x-import></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Jo Mensah"></x-import><span class="nm">Jo Mensah</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Jo Mensah</span></x-import></li>
+            </ul>
+          </section>
+          <section class="sec">
+            <h2>Leave</h2>
+            <p>Move to a household of your own. Everyone else stays in The Bedinis.</p>
+            <div class="acts"><x-import component-from-global-scope="Dino.Button" variant="secondary">Leave household</x-import></div>
+          </section>
+        </div></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="a-t" aria-describedby="a-d">
+          <h2 id="a-t">Leave The Bedinis?</h2>
+          <p id="a-d">You’ll move to a household of your own. Ann Okafor and Jo Mensah stay in The Bedinis.</p>
+          <div class="btns">
+            <span class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></span>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Leave household</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>One other member</b> · “Ann Okafor stays”, singular</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">household</x-import></h1>
+          <section class="sec">
+            <h2>Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="b-name" class="text-label">Household name</label>
+                <x-import component-from-global-scope="Dino.Input" id="b-name" type="text" max-length="{{hundred}}" default-value="The Bedinis"></x-import>
+                <p class="help">Everyone in the household sees it.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini <span class="you">(you)</span></span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span class="nm">Ann Okafor</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Ann Okafor</span></x-import></li>
+            </ul>
+          </section>
+          <section class="sec">
+            <h2>Leave</h2>
+            <p>Move to a household of your own. Everyone else stays in The Bedinis.</p>
+            <div class="acts"><x-import component-from-global-scope="Dino.Button" variant="secondary">Leave household</x-import></div>
+          </section>
+        </div></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="b-t" aria-describedby="b-d">
+          <h2 id="b-t">Leave The Bedinis?</h2>
+          <p id="b-d">You’ll move to a household of your own. Ann Okafor stays in The Bedinis.</p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Leave household</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Leaving</b> · “Leaving…” keeps its size and ignores presses</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">household</x-import></h1>
+          <section class="sec">
+            <h2>Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="c-name" class="text-label">Household name</label>
+                <x-import component-from-global-scope="Dino.Input" id="c-name" type="text" max-length="{{hundred}}" default-value="The Bedinis"></x-import>
+                <p class="help">Everyone in the household sees it.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini <span class="you">(you)</span></span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span class="nm">Ann Okafor</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Ann Okafor</span></x-import></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Jo Mensah"></x-import><span class="nm">Jo Mensah</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Jo Mensah</span></x-import></li>
+            </ul>
+          </section>
+          <section class="sec">
+            <h2>Leave</h2>
+            <p>Move to a household of your own. Everyone else stays in The Bedinis.</p>
+            <div class="acts"><x-import component-from-global-scope="Dino.Button" variant="secondary" loading="{{yes}}" loading-label="Leaving…">Leave household</x-import></div>
+          </section>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Left</b> · the new household of one; focus on the title; the toast names the one left</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1 class="hf" tabindex="-1">Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">household</x-import></h1>
+          <section class="sec">
+            <h2>Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="d-name" class="text-label">Household name</label>
+                <x-import component-from-global-scope="Dino.Input" id="d-name" type="text" max-length="{{hundred}}" default-value="Milo’s household"></x-import>
+                <p class="help">Everyone in the household sees it.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini <span class="you">(you)</span></span></li>
+            </ul>
+          </section>
+        </div></main>
+        <div class="toast" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg><span>You left The Bedinis</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t leave</b> · offline or a 5xx; the page is unchanged, so Leave again is the retry</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">household</x-import></h1>
+          <section class="sec">
+            <h2>Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="e-name" class="text-label">Household name</label>
+                <x-import component-from-global-scope="Dino.Input" id="e-name" type="text" max-length="{{hundred}}" default-value="The Bedinis"></x-import>
+                <p class="help">Everyone in the household sees it.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini <span class="you">(you)</span></span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span class="nm">Ann Okafor</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Ann Okafor</span></x-import></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Jo Mensah"></x-import><span class="nm">Jo Mensah</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Jo Mensah</span></x-import></li>
+            </ul>
+          </section>
+          <section class="sec">
+            <h2>Leave</h2>
+            <p>Move to a household of your own. Everyone else stays in The Bedinis.</p>
+            <div class="acts"><x-import component-from-global-scope="Dino.Button" variant="secondary">Leave household</x-import></div>
+          </section>
+        </div></main>
+        <div class="toast" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg><span>Couldn’t leave the household. Check your connection and try again.</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>At 320 px</b> · the buttons stack, the action last</span>
+      <div class="frame narrow">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">household</x-import></h1>
+          <section class="sec">
+            <h2>Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="f-name" class="text-label">Household name</label>
+                <x-import component-from-global-scope="Dino.Input" id="f-name" type="text" max-length="{{hundred}}" default-value="The Bedinis"></x-import>
+                <p class="help">Everyone in the household sees it.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini <span class="you">(you)</span></span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span class="nm">Ann Okafor</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Ann Okafor</span></x-import></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Jo Mensah"></x-import><span class="nm">Jo Mensah</span><x-import component-from-global-scope="Dino.Button" variant="secondary">Remove<span class="sr-only"> Jo Mensah</span></x-import></li>
+            </ul>
+          </section>
+        </div></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="f-t" aria-describedby="f-d">
+          <h2 id="f-t">Leave The Bedinis?</h2>
+          <p id="f-d">You’ll move to a household of your own. Ann Okafor and Jo Mensah stay in The Bedinis.</p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Leave household</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>The dialog names who stays</b>, with the real names joined as a list (“Ann Okafor, Jo Mensah and Sam Reid”), and “stays” for one name, “stay” for more. The confirm is the danger “Leave household”, the same words as the button that opened it; the way out stays “Cancel”.</p>
+    <p><b>After leaving, nothing navigates.</b> The page redraws as the new household of one: the field holds “Milo’s household”, the list is Milo alone, and the Leave section is gone (you’re now the only member). Focus moves to the “Your household” title (tabindex −1), drawn with the in-text ring hugging the heading, so a screen reader starts again at the top of what is now a different household.</p>
+    <p><b>The toast says where you came from</b>, “You left The Bedinis”, since the page now shows only where you are. A failure is an alert toast and the page doesn’t change.</p>
+    <p><b>The top bar doesn’t change</b>: it shows the person, not the household.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, no: false, sw: 2.5, hundred: 100 };
+  }
+}
+</script>
+</body>
+</html>

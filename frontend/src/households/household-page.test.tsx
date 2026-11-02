@@ -25,11 +25,41 @@ const answerSignedIn = () =>
 
 type Rename = { body: PatchedHouseholdChanges; csrfToken: string | null };
 
+type Removal = { id: number; csrfToken: string | null };
+
+const MILO = { id: 1, name: 'Milo', is_you: true };
+const ANN = { id: 2, name: 'Ann', is_you: false };
+
+const BEDINIS: Household = { id: 10, name: 'The Bedinis', members: [MILO, ANN] };
+
+// The Bedinis (or the household given) until a DELETE drops a member or a POST to leave/ moves Milo out.
+const answerBedinis = (household: Household = BEDINIS) => {
+  const removals: Removal[] = [];
+  const leaves: { count: number } = { count: 0 };
+  const state = { household };
+  server.use(
+    http.get(HOUSEHOLD, () => HttpResponse.json<Household>(state.household)),
+    http.delete(`${HOUSEHOLD}members/:id/`, ({ params, request }) => {
+      const id = Number(params.id);
+      removals.push({ id, csrfToken: request.headers.get('X-CSRFToken') });
+      state.household = { ...state.household, members: state.household.members.filter((member) => member.id !== id) };
+      return HttpResponse.json<Household>(state.household);
+    }),
+    http.post(`${HOUSEHOLD}leave/`, () => {
+      leaves.count += 1;
+      state.household = { id: 11, name: "Milo's household", members: [MILO] };
+      return HttpResponse.json<Household>(state.household);
+    })
+  );
+  return { removals, leaves };
+};
+
 // Milo's household with Ann in it, until a PATCH renames it; records each PATCH in the order it arrives.
 const answerHousehold = () => {
   const renames: Rename[] = [];
   const state: { household: Household } = {
     household: {
+      id: 10,
       name: "Milo's household",
       members: [
         { id: 1, name: 'Milo', is_you: true },
@@ -54,11 +84,11 @@ const AUTH = '/api/_allauth/browser/v1/auth';
 const accounts: Partial<Record<string, { name: string; household: Household }>> = {
   'milo@example.com': {
     name: 'Milo',
-    household: { name: "Milo's household", members: [{ id: 1, name: 'Milo', is_you: true }] }
+    household: { id: 11, name: "Milo's household", members: [{ id: 1, name: 'Milo', is_you: true }] }
   },
   'jo@example.com': {
     name: 'Jo',
-    household: { name: "Jo's household", members: [{ id: 3, name: 'Jo', is_you: true }] }
+    household: { id: 12, name: "Jo's household", members: [{ id: 3, name: 'Jo', is_you: true }] }
   }
 };
 
@@ -145,7 +175,8 @@ describe('HouseholdPage', () => {
     // The avatar's letter comes first but is hidden from screen readers.
     expect(members).toHaveLength(2);
     expect(members[0]).toHaveTextContent(/^M ?Milo \(you\)$/);
-    expect(members[1]).toHaveTextContent(/^A ?Ann$/);
+    expect(members[1]).toHaveTextContent(/^A ?Ann/);
+    expect(within(members[1] as HTMLElement).getByText('Ann', { ignore: '.sr-only' })).toBeInTheDocument();
   });
 
   it('shows that it is getting the household, then the household', async () => {
@@ -158,6 +189,7 @@ describe('HouseholdPage', () => {
       http.get(HOUSEHOLD, async () => {
         await released;
         return HttpResponse.json<Household>({
+          id: 10,
           name: "Milo's household",
           members: [{ id: 1, name: 'Milo', is_you: true }]
         });
@@ -225,6 +257,155 @@ describe('HouseholdPage', () => {
 
     expect(
       await screen.findByText("Couldn't save the household's name. Check your connection and try again.")
+    ).toBeInTheDocument();
+    expect(nameField()).toHaveValue('The Bedinis');
+  });
+
+  it('offers Remove beside each other member, and Leave', async () => {
+    answerSignedIn();
+    answerBedinis();
+    renderRoute('/household');
+
+    const [milo, ann] = within(await screen.findByRole('list', { name: 'Members' })).getAllByRole('listitem');
+    expect(milo).toHaveTextContent(/^M ?Milo \(you\)$/);
+    expect(ann).toHaveTextContent(/^A ?AnnRemove AnnRemoving…$/);
+    expect(within(ann as HTMLElement).getByRole('button', { name: 'Remove Ann' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Leave household' })).toBeInTheDocument();
+  });
+
+  it('offers the only member neither Remove nor Leave', async () => {
+    answerSignedIn();
+    answerBedinis({ id: 10, name: "Milo's household", members: [MILO] });
+    renderRoute('/household');
+
+    expect(await screen.findByRole('textbox', { name: 'Household name' })).toHaveValue("Milo's household");
+    expect(screen.queryByRole('button', { name: 'Leave household' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Remove/ })).not.toBeInTheDocument();
+  });
+
+  it('removes a member once asked, and says so', async () => {
+    answerSignedIn();
+    const { removals } = answerBedinis();
+    renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove Ann' }));
+    const asked = await screen.findByRole('alertdialog', { name: 'Remove Ann from The Bedinis?' });
+    expect(asked).toHaveAccessibleDescription(
+      "Ann will move to a household of their own, and we'll email them to say you removed them."
+    );
+    await userEvent.click(within(asked).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(removals).toEqual([]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Ann' }));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Remove member' })
+    );
+
+    expect(await screen.findByText('Removed Ann')).toBeInTheDocument();
+    expect(removals).toEqual([{ id: 2, csrfToken: 'abc' }]);
+    const members = within(screen.getByRole('list', { name: 'Members' })).getAllByRole('listitem');
+    expect(members).toHaveLength(1);
+    expect(members[0]).toHaveTextContent(/^M ?Milo \(you\)$/);
+    await waitFor(() => expect(screen.getByRole('heading', { level: 2, name: 'Members' })).toHaveFocus());
+  });
+
+  it('says so when the member had already gone, and redraws the list', async () => {
+    answerSignedIn();
+    answerBedinis();
+    renderRoute('/household');
+    await screen.findByRole('button', { name: 'Remove Ann' });
+    server.use(
+      http.delete(`${HOUSEHOLD}members/:id/`, () => new HttpResponse(null, { status: 404 })),
+      http.get(HOUSEHOLD, () => HttpResponse.json<Household>({ ...BEDINIS, members: [MILO] }))
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Ann' }));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Remove member' })
+    );
+
+    expect(await screen.findByText("Ann isn't in your household any more.")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(within(screen.getByRole('list', { name: 'Members' })).getAllByRole('listitem')).toHaveLength(1)
+    );
+    expect(screen.getByRole('list', { name: 'Members' })).toHaveTextContent(/^M ?Milo \(you\)$/);
+    await waitFor(() => expect(screen.getByRole('heading', { level: 2, name: 'Members' })).toHaveFocus());
+  });
+
+  it.each([
+    ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the network fails', () => HttpResponse.error()]
+  ])("says Ann couldn't be removed and keeps her listed when %s", async (_, answer) => {
+    answerSignedIn();
+    answerBedinis();
+    server.use(http.delete(`${HOUSEHOLD}members/:id/`, answer));
+    renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove Ann' }));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Remove member' })
+    );
+
+    expect(await screen.findByText("Couldn't remove Ann. Check your connection and try again.")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('list', { name: 'Members' })).getByText('Ann', { ignore: '.sr-only' })
+    ).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Remove Ann' })).toHaveFocus());
+  });
+
+  it('leaves once asked, and shows the new household of one', async () => {
+    answerSignedIn();
+    const { leaves } = answerBedinis();
+    const { router } = renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Leave household' }));
+    const asked = await screen.findByRole('alertdialog', { name: 'Leave The Bedinis?' });
+    expect(asked).toHaveAccessibleDescription("You'll move to a household of your own. Ann stays in The Bedinis.");
+    await userEvent.click(within(asked).getByRole('button', { name: 'Leave household' }));
+
+    expect(await screen.findByText('You left The Bedinis')).toBeInTheDocument();
+    expect(leaves.count).toBe(1);
+    expect(nameField()).toHaveValue("Milo's household");
+    const members = within(screen.getByRole('list', { name: 'Members' })).getAllByRole('listitem');
+    expect(members).toHaveLength(1);
+    expect(members[0]).toHaveTextContent(/^M ?Milo \(you\)$/);
+    expect(screen.queryByRole('button', { name: 'Leave household' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Your household' })).toHaveFocus());
+    expect(router.state.location.pathname).toBe('/household');
+  });
+
+  it('names everyone who stays', async () => {
+    answerSignedIn();
+    answerBedinis({
+      ...BEDINIS,
+      members: [MILO, ANN, { id: 3, name: 'Jo', is_you: false }, { id: 4, name: 'Sam', is_you: false }]
+    });
+    renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Leave household' }));
+
+    expect(await screen.findByRole('alertdialog', { name: 'Leave The Bedinis?' })).toHaveAccessibleDescription(
+      "You'll move to a household of your own. Ann, Jo and Sam stay in The Bedinis."
+    );
+  });
+
+  it.each([
+    ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the network fails', () => HttpResponse.error()]
+  ])("says the household couldn't be left and keeps it when %s", async (_, answer) => {
+    answerSignedIn();
+    answerBedinis();
+    server.use(http.post(`${HOUSEHOLD}leave/`, answer));
+    renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Leave household' }));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Leave household' })
+    );
+
+    expect(
+      await screen.findByText("Couldn't leave the household. Check your connection and try again.")
     ).toBeInTheDocument();
     expect(nameField()).toHaveValue('The Bedinis');
   });

@@ -1,0 +1,6 @@
+{% autoescape off %}Hi {{ name }},
+
+{{ removed_by }} removed you from {{ household }} on Tastebook.
+
+You're now in a household of your own, {{ new_household }}. You can rename it on your household page whenever you like.
+{% endautoescape %}
