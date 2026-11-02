@@ -24,7 +24,16 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from households.models import NAME_MAX_LENGTH, Household, StoredSignInCode, UnitSystem, User
+from households.models import (
+    INVITE_LIFETIME,
+    NAME_MAX_LENGTH,
+    Household,
+    Invite,
+    InviteStatus,
+    StoredSignInCode,
+    UnitSystem,
+    User,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +127,8 @@ def remove_member(account: User, member_id: int) -> User:
             raise User.DoesNotExist
         # One answer for yourself, another household's account and an unknown ID, so it never says who exists.
         member = User.objects.select_for_update().exclude(pk=account.pk).get(pk=member_id, household=household)
+        # Otherwise they could come straight back through a link they kept.
+        cancel_current_invite(household.pk)
         new_household = Household.objects.create(name=household_name_for(member.name))
         member.household = new_household
         member.save(update_fields=['household'])
@@ -141,6 +152,51 @@ def tell_removed_member(member: User, removed_by: str, household_name: str, new_
     except smtplib.SMTPException, OSError:
         # The exception carries the address, so it stays out of the log; the removal stands either way.
         logger.error("Couldn't send the removal email")
+
+
+def current_invite(household_id: int) -> Invite | None:
+    """The household's newest invite that nobody has cancelled, live or expired; None when there's none."""
+    return Invite.objects.filter(household_id=household_id, cancelled_at__isnull=True).order_by('-pk').first()
+
+
+def invite_status(invite: Invite) -> InviteStatus:
+    return InviteStatus.LIVE if invite.expires_at > timezone.now() else InviteStatus.EXPIRED
+
+
+def locked_household_of(account: User) -> Household:
+    """Locks the account's household and returns it. Raises Household.DoesNotExist when the account was moved out of it
+    (removed, or left in another tab) since the request began, so nothing is done to a household it has left."""
+    household = Household.objects.select_for_update().get(pk=account.household_id)
+    if not household.members.filter(pk=account.pk).exists():
+        raise Household.DoesNotExist
+    return household
+
+
+def make_invite(account: User) -> Invite:
+    """The household's live invite, made now if it has none (none at all, or only an expired one).
+    Raises Household.DoesNotExist as locked_household_of does."""
+    with transaction.atomic():
+        # Under the lock, two members pressing at once get the same link rather than two live ones.
+        household = locked_household_of(account)
+        invite = current_invite(household.pk)
+        if invite is not None and invite_status(invite) == InviteStatus.LIVE:
+            return invite
+        return Invite.objects.create(household=household, expires_at=timezone.now() + INVITE_LIFETIME)
+
+
+def cancel_current_invite(household_id: int) -> None:
+    # Callers hold the household's lock.
+    invite = current_invite(household_id)
+    if invite is not None:
+        invite.cancelled_at = timezone.now()
+        invite.save(update_fields=['cancelled_at'])
+
+
+def cancel_invite(account: User) -> None:
+    """Cancels the household's current invite, live or expired; does nothing when there's none.
+    Raises Household.DoesNotExist as locked_household_of does."""
+    with transaction.atomic():
+        cancel_current_invite(locked_household_of(account).pk)
 
 
 def name_from_google(profile: dict[str, Any]) -> str:

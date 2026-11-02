@@ -12,7 +12,7 @@ export const boardByTitle: Record<string, `docs/design/${string}.dc.png`> = {
   'Dino/Banner': 'docs/design/dino/feedback.dc.png',
   'Dino/Note': 'docs/design/dino/feedback.dc.png',
   'Dino/Toast': 'docs/design/dino/feedback.dc.png',
-  'Dino/ConfirmDialog': 'docs/design/dino/feedback.dc.png',
+  'Dino/ConfirmDialog': 'docs/design/dino/confirm-dialog.dc.png',
   'Dino/Sheet': 'docs/design/picnic/shopping-list.dc.png',
   'Dino/EmptyState': 'docs/design/dino/feedback.dc.png',
   'Dino/ErrorWithRetry': 'docs/design/dino/feedback.dc.png',
