@@ -189,13 +189,13 @@ def test_a_member_joining_their_own_household_stays_put() -> None:
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize('with_csrf_header', [False, True], ids=['no csrf header', 'signed out'])
-def test_joining_is_refused_signed_out_or_without_the_csrf_header(with_csrf_header: bool) -> None:
+@pytest.mark.parametrize('signed_out', [False, True], ids=['no csrf header', 'signed out'])
+def test_joining_is_refused_signed_out_or_without_the_csrf_header(signed_out: bool) -> None:
     bedinis = bedinis_link()
     jo = signed_up('jo@example.com', 'Jo')
     old = household_id_of('jo@example.com')
-    browser = BrowserClient() if with_csrf_header else jo
-    headers = browser.csrf_header() if with_csrf_header else {}
+    browser = BrowserClient() if signed_out else jo
+    headers = browser.csrf_header() if signed_out else {}
 
     response = browser.client.post(f'/api/invites/{bedinis.token}/join/', **headers)
 
