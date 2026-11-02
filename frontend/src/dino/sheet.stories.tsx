@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fireEvent, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '@/dino/button';
 import { CheckboxRow } from '@/dino/checkbox-row';
@@ -94,6 +94,58 @@ export const Open = {
 
       await userEvent.click(within(await openSheet()).getByRole('button', { name: 'Add 3 things' }));
       await expectClosed();
+    });
+
+    await step('Drag the header', async () => {
+      const sheet = await openSheet();
+      const settle = () => Promise.all(sheet.getAnimations().map((animation) => animation.finished));
+      await settle();
+      const grab = canvasElement.ownerDocument.querySelector('[data-slot="sheet-grab"]');
+      if (!(grab instanceof HTMLElement)) throw new Error('The grab handle is missing');
+      const close = body.getByRole('button', { name: 'Close' });
+      const top = grab.getBoundingClientRect().top + 12;
+      const closeY = close.getBoundingClientRect().top + close.offsetHeight / 2;
+      const closeX = close.getBoundingClientRect().left + close.offsetWidth / 2;
+      // One session, so a press in one call is still held in the next.
+      const user = userEvent.setup();
+      const press = (target: HTMLElement, clientX: number, clientY: number) =>
+        user.pointer({ keys: '[MouseLeft>]', target, coords: { clientX, clientY } });
+      const moveTo = (target: HTMLElement, clientX: number, clientY: number) =>
+        user.pointer({ target, coords: { clientX, clientY } });
+      const release = (target: HTMLElement, clientX: number, clientY: number) =>
+        user.pointer({ keys: '[/MouseLeft]', target, coords: { clientX, clientY } });
+
+      // A short drag by the handle: the sheet follows the pointer, then springs back open.
+      await press(grab, 100, top);
+      await moveTo(grab, 100, top + 40);
+      await expect(sheet).toHaveStyle({ transform: 'matrix(1, 0, 0, 1, 0, 40)' });
+      // A second finger lifted far down the header mid-drag neither moves nor closes the sheet.
+      const farDown = { pointerId: 99, isPrimary: false, clientX: 100, clientY: top + sheet.offsetHeight };
+      fireEvent.pointerMove(grab, farDown);
+      fireEvent.pointerUp(grab, farDown);
+      await expect(sheet).toHaveStyle({ transform: 'matrix(1, 0, 0, 1, 0, 40)' });
+      await release(grab, 100, top + 40);
+      await settle();
+      await expect(sheet).toHaveStyle({ transform: 'none' });
+      await expect(body.getByRole('dialog', { name: 'Add to the list' })).toBeVisible();
+
+      // A press on the Close button doesn't drag the sheet.
+      await press(close, closeX, closeY);
+      await moveTo(close, closeX, closeY + 40);
+      await expect(sheet).toHaveStyle({ transform: 'none' });
+      await release(close, closeX, closeY);
+      await expectClosed();
+
+      // Dragged by its title past a quarter of its height, it closes. The sheet is a new one once reopened.
+      const reopened = await openSheet();
+      await Promise.all(reopened.getAnimations().map((animation) => animation.finished));
+      const title = within(reopened).getByRole('heading', { name: 'Add to the list' });
+      const titleY = title.getBoundingClientRect().top + title.offsetHeight / 2;
+      await press(title, 100, titleY);
+      await moveTo(title, 100, titleY + reopened.offsetHeight / 2);
+      await release(title, 100, titleY + reopened.offsetHeight / 2);
+      await expectClosed();
+      await expect(trigger).toHaveFocus();
     });
 
     await step('Ends open', async () => {
