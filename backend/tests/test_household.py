@@ -1,15 +1,20 @@
 from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Any
 
 import pytest
 from django.core.mail import EmailMessage
 from django.http import HttpResponse
+from django.utils import timezone
 
-from households.models import Household, User
+from households.models import Household, Invite, User
+from households.services import make_invite
 from tests.test_accounts import BrowserClient, save_name, sign_up
 
 HOUSEHOLD = '/api/household/'
 LEAVE = '/api/household/leave/'
+INVITE = '/api/household/invite/'
 
 
 def signed_up(email: str, name: str) -> BrowserClient:
@@ -35,6 +40,26 @@ def leave(browser: BrowserClient) -> HttpResponse:
     return browser.client.post(LEAVE, **browser.csrf_header())
 
 
+def make_link(browser: BrowserClient) -> HttpResponse:
+    return browser.client.post(INVITE, **browser.csrf_header())
+
+
+def cancel_link(browser: BrowserClient) -> HttpResponse:
+    return browser.client.delete(INVITE, **browser.csrf_header())
+
+
+@dataclass
+class Clock:
+    now: datetime
+
+
+@pytest.fixture
+def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
+    frozen = Clock(timezone.now())
+    monkeypatch.setattr(timezone, 'now', lambda: frozen.now)
+    return frozen
+
+
 def household_id_of(email: str) -> int | None:
     return User.objects.get(email=email).household_id
 
@@ -56,6 +81,7 @@ def test_a_new_account_sees_its_household_of_one() -> None:
             'id': User.objects.get(email='sam@example.com').household_id,
             'name': "Milo's household",
             'members': [{'id': User.objects.get(email='sam@example.com').pk, 'name': 'Milo', 'is_you': True}],
+            'invite': None,
         },
     )
 
@@ -86,6 +112,7 @@ def test_each_account_sees_only_its_own_household() -> None:
         'id': User.objects.get(email='jo@example.com').household_id,
         'name': "Jo's household",
         'members': [{'id': User.objects.get(email='jo@example.com').pk, 'name': 'Jo', 'is_you': True}],
+        'invite': None,
     }
 
 
@@ -170,6 +197,7 @@ def test_any_member_removes_another_into_a_household_of_their_own() -> None:
             'id': bedinis,
             'name': 'The Bedinis',
             'members': [{'id': User.objects.get(email='milo@example.com').pk, 'name': 'Milo', 'is_you': True}],
+            'invite': None,
         },
     )
     assert seen_by_ann['name'] == "Ann's household"
@@ -319,3 +347,168 @@ def test_an_account_with_no_household_cannot_leave() -> None:
     sign_up(browser, 'sam@example.com')
 
     assert leave(browser).status_code == 404
+
+
+@pytest.mark.django_db
+def test_any_member_makes_an_invite_link_for_7_days(clock: Clock) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+
+    response = make_link(milo)
+    invite = response.json()['invite']
+
+    assert (response.status_code, invite['status'], len(invite['token'])) == (200, 'live', 43)
+    assert datetime.fromisoformat(invite['expires_at']) == clock.now + timedelta(days=7)
+    assert milo.client.get(HOUSEHOLD).json()['invite'] == invite
+
+
+@pytest.mark.django_db
+def test_making_a_link_while_one_is_live_answers_that_link() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    ann = signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+
+    first = make_link(milo).json()['invite']['token']
+    second = make_link(ann)
+
+    assert (second.status_code, second.json()['invite']['token']) == (200, first)
+    assert Invite.objects.count() == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ('after', 'status'),
+    [(timedelta(days=7, seconds=-1), 'live'), (timedelta(days=7, seconds=1), 'expired')],
+    ids=['a second before 7 days', 'a second after 7 days'],
+)
+def test_a_link_expires_after_7_days(clock: Clock, after: timedelta, status: str) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    token = make_link(milo).json()['invite']['token']
+
+    clock.now += after
+    invite = milo.client.get(HOUSEHOLD).json()['invite']
+
+    assert (invite['token'], invite['status']) == (token, status)
+
+
+@pytest.mark.django_db
+def test_making_a_link_after_one_expired_answers_a_new_live_link(clock: Clock) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    expired = make_link(milo).json()['invite']['token']
+
+    clock.now += timedelta(days=8)
+    invite = make_link(milo).json()['invite']
+
+    assert (invite['token'] != expired, invite['status']) == (True, 'live')
+    assert datetime.fromisoformat(invite['expires_at']) == clock.now + timedelta(days=7)
+
+
+@pytest.mark.django_db
+def test_any_member_cancels_the_link_and_cancelling_again_is_not_an_error() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    ann = signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    make_link(milo)
+
+    cancelled = cancel_link(ann)
+    again = cancel_link(milo)
+
+    assert (cancelled.status_code, cancelled.json()['invite']) == (200, None)
+    assert Invite.objects.get().cancelled_at is not None
+    assert (again.status_code, again.json()['invite']) == (200, None)
+    assert milo.client.get(HOUSEHOLD).json()['invite'] is None
+
+
+@pytest.mark.django_db
+def test_an_expired_link_can_be_cancelled(clock: Clock) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    make_link(milo)
+
+    clock.now += timedelta(days=8)
+    response = cancel_link(milo)
+
+    assert (response.status_code, response.json()['invite']) == (200, None)
+    assert Invite.objects.get().cancelled_at == clock.now
+
+
+@pytest.mark.django_db
+def test_making_a_link_after_cancelling_answers_a_new_live_link() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    cancelled = make_link(milo).json()['invite']['token']
+    cancel_link(milo)
+
+    invite = make_link(milo).json()['invite']
+
+    assert (invite['token'] != cancelled, invite['status']) == (True, 'live')
+    assert Invite.objects.count() == 2
+
+
+@pytest.mark.django_db
+def test_removing_a_member_cancels_the_link_but_leaving_does_not() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    ann = signed_up('ann@example.com', 'Ann')
+    signed_up('zoe@example.com', 'Zoe')
+    join('ann@example.com', 'milo@example.com')
+    join('zoe@example.com', 'milo@example.com')
+    token = make_link(milo).json()['invite']['token']
+
+    leave(ann)
+    after_leaving = milo.client.get(HOUSEHOLD).json()['invite']
+    removed = remove(milo, member('zoe@example.com'))
+
+    assert after_leaving['token'] == token
+    assert removed.json()['invite'] is None
+    assert milo.client.get(HOUSEHOLD).json()['invite'] is None
+
+
+@pytest.mark.django_db
+def test_each_household_sees_only_its_own_link() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    jo = signed_up('jo@example.com', 'Jo')
+    make_link(milo)
+
+    cancelled_by_jo = cancel_link(jo)
+
+    assert jo.client.get(HOUSEHOLD).json()['invite'] is None
+    assert cancelled_by_jo.json()['invite'] is None
+    assert milo.client.get(HOUSEHOLD).json()['invite']['status'] == 'live'
+
+
+@pytest.mark.django_db
+def test_a_member_moved_out_mid_request_cannot_make_a_link_for_the_household_they_left() -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    ann = signed_up('ann@example.com', 'Ann')
+    join('ann@example.com', 'milo@example.com')
+    milo_household = household_id_of('milo@example.com')
+    # As if Milo removed Ann after her request had loaded her account.
+    stale_ann = User.objects.get(email='ann@example.com')
+    remove(milo, member('ann@example.com'))
+
+    with pytest.raises(Household.DoesNotExist):
+        make_invite(stale_ann)
+
+    assert Invite.objects.filter(household_id=milo_household).exists() is False
+    assert ann.client.get(HOUSEHOLD).json()['invite'] is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('method', ['post', 'delete'])
+@pytest.mark.parametrize('with_csrf_header', [False, True], ids=['no csrf header', 'signed out'])
+def test_invite_links_are_refused_signed_out_or_without_the_csrf_header(method: str, with_csrf_header: bool) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    make_link(milo)
+    browser = BrowserClient() if with_csrf_header else milo
+    headers = browser.csrf_header() if with_csrf_header else {}
+
+    response = getattr(browser.client, method)(INVITE, **headers)
+
+    assert response.status_code == 403
+    assert list(Invite.objects.values_list('cancelled_at', flat=True)) == [None]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('method', ['post', 'delete'])
+def test_an_account_with_no_household_gets_404_for_invite_links(method: str) -> None:
+    browser = BrowserClient()
+    sign_up(browser, 'sam@example.com')
+
+    assert getattr(browser.client, method)(INVITE, **browser.csrf_header()).status_code == 404

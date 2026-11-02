@@ -195,7 +195,8 @@ describe('AppLayout', () => {
         HttpResponse.json<components['schemas']['Household']>({
           id: 1,
           name: "Sam's household",
-          members: [{ id: 1, name: 'Sam', is_you: true }]
+          members: [{ id: 1, name: 'Sam', is_you: true }],
+          invite: null
         })
       )
     );

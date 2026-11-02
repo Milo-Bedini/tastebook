@@ -48,3 +48,24 @@ export const Open = {
     await waitFor(() => expect(reopened).toBeVisible());
   }
 } satisfies Story;
+
+export const KeepLabel = {
+  args: {
+    trigger: <Button variant="ghost">Cancel link</Button>,
+    title: 'Cancel this invite link?',
+    description: 'Anyone who opens it will be told it no longer works. You can make a new link afterwards.',
+    confirmLabel: 'Cancel link',
+    cancelLabel: 'Keep link'
+  },
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Cancel link' }));
+    const dialog = body.getByRole('alertdialog', { name: 'Cancel this invite link?' });
+    await waitFor(() => expect(dialog).toBeVisible());
+    const buttons = within(dialog).getAllByRole('button');
+
+    await expect(buttons.map((button) => button.textContent)).toEqual(['Keep link', 'Cancel link']);
+    await expect(within(dialog).getByRole('button', { name: 'Keep link' })).toHaveFocus();
+  }
+} satisfies Story;

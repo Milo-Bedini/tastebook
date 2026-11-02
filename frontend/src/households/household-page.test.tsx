@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { components } from '../api/schema';
 import { toast } from '../dino';
@@ -10,6 +10,7 @@ import { server } from '../test/server';
 
 type CurrentAccount = components['schemas']['CurrentAccount'];
 type Household = components['schemas']['Household'];
+type Invite = components['schemas']['Invite'];
 type PatchedHouseholdChanges = components['schemas']['PatchedHouseholdChanges'];
 
 const HOUSEHOLD = '/api/household/';
@@ -30,7 +31,7 @@ type Removal = { id: number; csrfToken: string | null };
 const MILO = { id: 1, name: 'Milo', is_you: true };
 const ANN = { id: 2, name: 'Ann', is_you: false };
 
-const BEDINIS: Household = { id: 10, name: 'The Bedinis', members: [MILO, ANN] };
+const BEDINIS: Household = { id: 10, name: 'The Bedinis', members: [MILO, ANN], invite: null };
 
 // The Bedinis (or the household given) until a DELETE drops a member or a POST to leave/ moves Milo out.
 const answerBedinis = (household: Household = BEDINIS) => {
@@ -47,7 +48,7 @@ const answerBedinis = (household: Household = BEDINIS) => {
     }),
     http.post(`${HOUSEHOLD}leave/`, () => {
       leaves.count += 1;
-      state.household = { id: 11, name: "Milo's household", members: [MILO] };
+      state.household = { id: 11, name: "Milo's household", members: [MILO], invite: null };
       return HttpResponse.json<Household>(state.household);
     })
   );
@@ -64,7 +65,8 @@ const answerHousehold = () => {
       members: [
         { id: 1, name: 'Milo', is_you: true },
         { id: 2, name: 'Ann', is_you: false }
-      ]
+      ],
+      invite: null
     }
   };
   server.use(
@@ -79,16 +81,42 @@ const answerHousehold = () => {
   return renames;
 };
 
+const INVITE = `${HOUSEHOLD}invite/`;
+
+const LIVE: Invite = { token: 'tok-123', expires_at: '2026-11-07T12:00:00Z', status: 'live' };
+
+// The Bedinis with the invite given, until a POST makes the live link or a DELETE cancels it; counts each request.
+const answerInvite = (invite: Invite | null) => {
+  const sent = { makes: 0, cancels: 0, csrfTokens: [] as (string | null)[] };
+  const state = { household: { ...BEDINIS, invite } };
+  server.use(
+    http.get(HOUSEHOLD, () => HttpResponse.json<Household>(state.household)),
+    http.post(INVITE, ({ request }) => {
+      sent.makes += 1;
+      sent.csrfTokens.push(request.headers.get('X-CSRFToken'));
+      state.household = { ...state.household, invite: LIVE };
+      return HttpResponse.json<Household>(state.household);
+    }),
+    http.delete(INVITE, ({ request }) => {
+      sent.cancels += 1;
+      sent.csrfTokens.push(request.headers.get('X-CSRFToken'));
+      state.household = { ...state.household, invite: null };
+      return HttpResponse.json<Household>(state.household);
+    })
+  );
+  return sent;
+};
+
 const AUTH = '/api/_allauth/browser/v1/auth';
 
 const accounts: Partial<Record<string, { name: string; household: Household }>> = {
   'milo@example.com': {
     name: 'Milo',
-    household: { id: 11, name: "Milo's household", members: [{ id: 1, name: 'Milo', is_you: true }] }
+    household: { id: 11, name: "Milo's household", members: [{ id: 1, name: 'Milo', is_you: true }], invite: null }
   },
   'jo@example.com': {
     name: 'Jo',
-    household: { id: 12, name: "Jo's household", members: [{ id: 3, name: 'Jo', is_you: true }] }
+    household: { id: 12, name: "Jo's household", members: [{ id: 3, name: 'Jo', is_you: true }], invite: null }
   }
 };
 
@@ -191,7 +219,8 @@ describe('HouseholdPage', () => {
         return HttpResponse.json<Household>({
           id: 10,
           name: "Milo's household",
-          members: [{ id: 1, name: 'Milo', is_you: true }]
+          members: [{ id: 1, name: 'Milo', is_you: true }],
+          invite: null
         });
       })
     );
@@ -275,7 +304,7 @@ describe('HouseholdPage', () => {
 
   it('offers the only member neither Remove nor Leave', async () => {
     answerSignedIn();
-    answerBedinis({ id: 10, name: "Milo's household", members: [MILO] });
+    answerBedinis({ id: 10, name: "Milo's household", members: [MILO], invite: null });
     renderRoute('/household');
 
     expect(await screen.findByRole('textbox', { name: 'Household name' })).toHaveValue("Milo's household");
@@ -408,6 +437,204 @@ describe('HouseholdPage', () => {
       await screen.findByText("Couldn't leave the household. Check your connection and try again.")
     ).toBeInTheDocument();
     expect(nameField()).toHaveValue('The Bedinis');
+  });
+
+  it('makes an invite link and shows it with the day it stops working', async () => {
+    answerSignedIn();
+    const sent = answerInvite(null);
+    renderRoute('/household');
+
+    expect(
+      await screen.findByText('Make a link to invite someone. It works for 7 days, for anyone you send it to.')
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Make invite link' }));
+
+    const link = await screen.findByRole('textbox', { name: 'Invite link' });
+    expect(link).toHaveValue(`${window.location.origin}/join/tok-123`);
+    expect(link).toHaveAccessibleDescription('Anyone with this link can join until 7 November.');
+    expect(link).toHaveAttribute('readonly');
+    await waitFor(() => expect(link).toHaveFocus());
+    expect(sent).toEqual({ makes: 1, cancels: 0, csrfTokens: ['abc'] });
+    expect(screen.queryByRole('button', { name: 'Make invite link' })).not.toBeInTheDocument();
+  });
+
+  it('copies the link and says so', async () => {
+    const user = userEvent.setup();
+    answerSignedIn();
+    answerInvite(LIVE);
+    renderRoute('/household');
+
+    await user.click(await screen.findByRole('button', { name: 'Copy link' }));
+
+    expect(await screen.findByText('Link copied')).toBeInTheDocument();
+    expect(await navigator.clipboard.readText()).toBe(`${window.location.origin}/join/tok-123`);
+  });
+
+  it('says to copy the link by hand when the clipboard refuses it', async () => {
+    const user = userEvent.setup();
+    answerSignedIn();
+    answerInvite(LIVE);
+    renderRoute('/household');
+    const link = await screen.findByRole('textbox', { name: 'Invite link' });
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValueOnce(new DOMException('Denied', 'NotAllowedError'));
+
+    await user.click(screen.getByRole('button', { name: 'Copy link' }));
+
+    expect(await screen.findByText("Couldn't copy the link. Select it and copy it yourself.")).toBeInTheDocument();
+    expect(screen.queryByText('Link copied')).not.toBeInTheDocument();
+    expect(link).toHaveValue(`${window.location.origin}/join/tok-123`);
+  });
+
+  it('cancels the link only once asked, and says so', async () => {
+    answerSignedIn();
+    const sent = answerInvite(LIVE);
+    renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
+    const asked = await screen.findByRole('alertdialog', { name: 'Cancel this invite link?' });
+    expect(asked).toHaveAccessibleDescription(
+      'Anyone who opens it will be told it no longer works. You can make a new link afterwards.'
+    );
+    await userEvent.click(within(asked).getByRole('button', { name: 'Keep link' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(sent.cancels).toBe(0);
+    expect(screen.getByRole('textbox', { name: 'Invite link' })).toHaveValue(`${window.location.origin}/join/tok-123`);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel link' }));
+    await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' }));
+
+    expect(await screen.findByText('Link cancelled')).toBeInTheDocument();
+    const makeAgain = await screen.findByRole('button', { name: 'Make invite link' });
+    await waitFor(() => expect(makeAgain).toHaveFocus());
+    expect(screen.queryByRole('textbox', { name: 'Invite link' })).not.toBeInTheDocument();
+    expect(sent).toEqual({ makes: 0, cancels: 1, csrfTokens: ['abc'] });
+  });
+
+  it('says when the link expired, and offers only a new one', async () => {
+    answerSignedIn();
+    const sent = answerInvite({ ...LIVE, status: 'expired' });
+    renderRoute('/household');
+
+    expect(await screen.findByText('This invite link expired on 7 November.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy link' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel link' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Invite link' })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Make a new link' }));
+
+    expect(await screen.findByRole('textbox', { name: 'Invite link' })).toHaveValue(
+      `${window.location.origin}/join/tok-123`
+    );
+    expect(sent.makes).toBe(1);
+  });
+
+  it.each([
+    {
+      action: 'make',
+      invite: null,
+      press: async () => userEvent.click(await screen.findByRole('button', { name: 'Make invite link' })),
+      message: "Couldn't make a link. Check your connection and try again.",
+      unchanged: () => screen.getByRole('button', { name: 'Make invite link' }),
+      focused: () => screen.getByRole('button', { name: 'Make invite link' })
+    },
+    {
+      action: 'cancel',
+      invite: LIVE,
+      press: async () => {
+        await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
+        await userEvent.click(
+          within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' })
+        );
+      },
+      message: "Couldn't cancel the link. Check your connection and try again.",
+      unchanged: () => screen.getByRole('textbox', { name: 'Invite link' }),
+      focused: () => screen.getByRole('button', { name: 'Cancel link' })
+    }
+  ])(
+    "says it couldn't $action the link, and leaves it as it was",
+    async ({ invite, press, message, unchanged, focused }) => {
+      answerSignedIn();
+      answerInvite(invite);
+      server.use(
+        http.post(INVITE, () => new HttpResponse(null, { status: 500 })),
+        http.delete(INVITE, () => new HttpResponse(null, { status: 500 }))
+      );
+      renderRoute('/household');
+
+      await press();
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(unchanged()).toBeInTheDocument();
+      await waitFor(() => expect(focused()).toHaveFocus());
+    }
+  );
+
+  it('shows that it is cancelling the link until the server answers', async () => {
+    answerSignedIn();
+    answerInvite(LIVE);
+    const gate = { release: () => {} };
+    const released = new Promise<void>((resolve) => {
+      gate.release = resolve;
+    });
+    server.use(
+      http.delete(INVITE, async () => {
+        await released;
+        return HttpResponse.json<Household>({ ...BEDINIS, invite: null });
+      })
+    );
+    renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
+    await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' }));
+
+    const cancelling = await screen.findByRole('button', { name: 'Cancelling…' });
+    expect(cancelling).toHaveAttribute('aria-busy', 'true');
+    await userEvent.click(cancelling);
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+
+    gate.release();
+
+    expect(await screen.findByText('Link cancelled')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Make invite link' })).toBeInTheDocument();
+  });
+
+  it.each([
+    {
+      action: 'making',
+      invite: null,
+      press: async () => userEvent.click(await screen.findByRole('button', { name: 'Make invite link' }))
+    },
+    {
+      action: 'cancelling',
+      invite: LIVE,
+      press: async () => {
+        await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
+        await userEvent.click(
+          within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' })
+        );
+      }
+    }
+  ])('shows the household Milo was moved to when $action the link finds him gone', async ({ invite, press }) => {
+    answerSignedIn();
+    answerInvite(invite);
+    renderRoute('/household');
+    await screen.findByRole('heading', { level: 2, name: 'Invite someone' });
+    server.use(
+      http.post(INVITE, () => new HttpResponse(null, { status: 404 })),
+      http.delete(INVITE, () => new HttpResponse(null, { status: 404 })),
+      http.get(HOUSEHOLD, () =>
+        HttpResponse.json<Household>({ id: 11, name: "Milo's household", members: [MILO], invite: null })
+      )
+    );
+
+    await press();
+
+    await waitFor(() => expect(nameField()).toHaveValue("Milo's household"));
+    expect(within(screen.getByRole('list', { name: 'Members' })).getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Make invite link' })).toBeInTheDocument();
+    expect(screen.queryByText(/Check your connection/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Your household' })).toHaveFocus());
   });
 
   it("says the household couldn't be loaded, and tries again", async () => {

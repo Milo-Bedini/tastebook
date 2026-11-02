@@ -175,7 +175,7 @@ The set lives in `frontend/src/dino/` (Dino: shadcn/ui, restyled) and is exporte
 | Banner | A 2 px border in a status colour with its icon, on Surface: warning for an import's gaps, success for a clean import, danger for a failure. At most one action, under its text. |
 | Toast | Dock colours, pill, a short message and at most one action ("Saved to Favourites · Undo"). |
 | Sheet | Slides up over a scrim, Surface colour, 32 px top corners, a grab handle, a title in Display L, a close button. Full width on a phone; from tablets up, centred and at most 576 px wide. Escape, the close button and the scrim close it, and so does dragging its header (the grab handle, title and description, edge to edge; not the close button) down past a quarter of its height; a shorter drag springs back. For light tasks (adding a recipe to the list, filters). |
-| Dialog | For anything that can't be undone: says exactly what happens; the danger button names the action ("Delete account"), the other is "Cancel". |
+| Dialog | For anything that can't be undone: says exactly what happens; the danger button names the action ("Delete account"), the other is "Cancel", or names what it keeps when the action itself is a cancel ("Keep link"). |
 | Empty state | A dashed empty polaroid, what's empty and why, the way out ("Clear filters"), and perhaps the screen's one doodle. |
 | Error with retry | What failed, how to fix it, and Try again beside it: "Couldn't load recipes. Check your connection, then try again." One component for every place a load can fail. |
 | Loading | See [States](#states): blank polaroids and a line saying what's happening, after half a second. |

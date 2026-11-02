@@ -56,6 +56,27 @@ test('a new test account renames its household', async ({ page, accessibility })
   await accessibility.check();
 });
 
+test('a member makes an invite link and cancels it', async ({ page, accessibility }) => {
+  await signUpAs(page, 'Sam');
+  await openHouseholdPage(page, 'Sam', accessibility);
+
+  await page.getByRole('button', { name: 'Make invite link' }).click();
+  const link = page.getByRole('textbox', { name: 'Invite link' });
+  await expect(link).toHaveValue(/\/join\/[\w-]{43}$/);
+  await accessibility.check();
+
+  await page.getByRole('button', { name: 'Cancel link' }).click();
+  const asked = page.getByRole('alertdialog', { name: 'Cancel this invite link?' });
+  await expect(asked.getByRole('button', { name: 'Keep link' })).toBeFocused();
+  await accessibility.check();
+  await asked.getByRole('button', { name: 'Cancel link' }).click();
+
+  await expect(page.getByText('Link cancelled')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Make invite link' })).toBeFocused();
+  await expect(link).toHaveCount(0);
+  await accessibility.check();
+});
+
 test("a new test account's household page under forced colours", async ({ page, accessibility }, testInfo) => {
   await page.emulateMedia({ forcedColors: 'active' });
   await signUpAs(page, 'Sam');

@@ -149,6 +149,51 @@ paths:
           description: No response body
         '404':
           description: No response body
+  /api/household/invite/:
+    post:
+      operationId: household_invite_create
+      description: 'The signed-in account''s household with a live invite link: the
+        one it has, or a new one that works for 7 days when it has none or only an
+        expired one. Any member may.'
+      tags:
+      - household
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Household'
+          description: ''
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+    delete:
+      operationId: household_invite_destroy
+      description: Cancels the signed-in account's household's invite link, live or
+        expired, and answers the household. Any member may; cancelling when there
+        is none does nothing.
+      tags:
+      - household
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Household'
+          description: ''
+        '403':
+          description: No response body
+        '404':
+          description: No response body
   /api/household/leave/:
     post:
       operationId: household_leave_create
@@ -507,7 +552,7 @@ components:
       type: object
       properties:
         status:
-          $ref: '#/components/schemas/StatusEnum'
+          $ref: '#/components/schemas/HealthStatusEnum'
         database:
           $ref: '#/components/schemas/DatabaseEnum'
         version:
@@ -516,6 +561,11 @@ components:
       - database
       - status
       - version
+    HealthStatusEnum:
+      enum:
+      - ok
+      type: string
+      description: '* `ok` - ok'
     Household:
       type: object
       properties:
@@ -527,8 +577,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Member'
+        invite:
+          allOf:
+          - $ref: '#/components/schemas/Invite'
+          nullable: true
       required:
       - id
+      - invite
       - members
       - name
     Ingredient:
@@ -656,6 +711,28 @@ components:
       - name
       - slug
       - synonyms
+    Invite:
+      type: object
+      properties:
+        token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/InviteStatusEnum'
+      required:
+      - expires_at
+      - status
+      - token
+    InviteStatusEnum:
+      enum:
+      - live
+      - expired
+      type: string
+      description: |-
+        * `live` - Live
+        * `expired` - Expired
     Member:
       type: object
       properties:
@@ -915,11 +992,6 @@ components:
           type: string
       required:
       - code
-    StatusEnum:
-      enum:
-      - ok
-      type: string
-      description: '* `ok` - ok'
     Step:
       type: object
       properties:

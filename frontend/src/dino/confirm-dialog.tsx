@@ -9,10 +9,19 @@ type ConfirmDialogProps = {
   title: string;
   description: string;
   confirmLabel: string;
+  // Names what the way out keeps when the action is itself a cancel ("Keep link" beside "Cancel link").
+  cancelLabel?: string;
   onConfirm: () => void;
 };
 
-export const ConfirmDialog = ({ trigger, title, description, confirmLabel, onConfirm }: ConfirmDialogProps) => (
+export const ConfirmDialog = ({
+  trigger,
+  title,
+  description,
+  confirmLabel,
+  cancelLabel = 'Cancel',
+  onConfirm
+}: ConfirmDialogProps) => (
   <AlertDialog.Root>
     <AlertDialog.Trigger asChild>{trigger}</AlertDialog.Trigger>
     <AlertDialogContent>
@@ -20,7 +29,7 @@ export const ConfirmDialog = ({ trigger, title, description, confirmLabel, onCon
       <AlertDialogDescription>{description}</AlertDialogDescription>
       <div className="mt-2 flex flex-wrap justify-end gap-2.5">
         <AlertDialog.Cancel asChild>
-          <Button variant="secondary">Cancel</Button>
+          <Button variant="secondary">{cancelLabel}</Button>
         </AlertDialog.Cancel>
         <AlertDialog.Action asChild>
           <Button variant="danger" onClick={onConfirm}>
