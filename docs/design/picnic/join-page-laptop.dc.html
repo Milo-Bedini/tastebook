@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The join page, laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:1280px;height:940px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 32px;max-width:1200px;margin:0 auto;box-sizing:border-box}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.sf{width:360px}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:32px 32px 48px;max-width:1200px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:400px}
+.sec{display:flex;flex-direction:column;gap:16px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.mem{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mem li{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;box-sizing:border-box;border-top:1px solid var(--color-line);font-size:16px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
+.mem li:first-child{border-top:0}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:50%;top:50%;width:384px;transform:translate(-50%,-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px 40px;max-width:1280px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1392px; height: 1380px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-110 · /join/&lt;token&gt; · laptop, 1280 px</span>
+    <h1 class="ttl">The same column, on a laptop</h1>
+    <span class="cap">Nothing rearranges, as on the household page: the 400 px column sits at the page’s left edge, under the wordmark. Tablets (640 to 1024 px) look the same with the phone’s bar and 32 px gutters.</span>
+  </header>
+
+  <div class="col">
+    <span class="cap"><b>Asks first</b> · the dialog is 384 px wide and centred; focus on Cancel</span>
+    <div class="frame">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="sf"><x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import></div>
+        <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+      </div></header>
+      <main class="page"><div class="stack">
+        <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis</h1>
+        <section class="sec">
+          <h2>Members</h2>
+          <ul class="mem">
+            <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span>Ann Okafor</span></li>
+            <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span>Milo Bedini</span></li>
+          </ul>
+        </section>
+        <div class="acts"><x-import component-from-global-scope="Dino.Button">Join household</x-import></div>
+      </div></main>
+      <div class="scrim" aria-hidden="true"></div>
+      <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="l-t" aria-describedby="l-d">
+        <h2 id="l-t">Join The Bedinis?</h2>
+        <p id="l-d">You’ll leave Jo’s household. Kim Lee stays in it.</p>
+        <div class="btns">
+          <span class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></span>
+          <x-import component-from-global-scope="Dino.Button" variant="danger">Join household</x-import>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>One column at every width.</b> The page holds a title, a short list and a button, so it keeps the household page’s 400 px column rather than spreading out; reading lines stay well under 68 characters.</p>
+    <p><b>Toasts sit at the bottom right</b> from tablets up, 356 px wide, as on the household page’s laptop board.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1392,"height":1380}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, noop: () => {} };
+  }
+}
+</script>
+</body>
+</html>

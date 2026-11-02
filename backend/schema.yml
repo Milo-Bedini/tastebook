@@ -259,6 +259,63 @@ paths:
                 items:
                   $ref: '#/components/schemas/IngredientOption'
           description: ''
+  /api/invites/{token}/:
+    get:
+      operationId: invite_retrieve
+      description: Whether an invite link works and, for someone signed in, the household
+        it joins. 404 for a token that was never an invite.
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinInvite'
+          description: ''
+        '404':
+          description: No response body
+  /api/invites/{token}/join/:
+    post:
+      operationId: invite_join_create
+      description: Moves the signed-in account into the invite's household; a household
+        left with nobody in it is deleted. 404 for an unknown token, 409 when the
+        link is cancelled or expired.
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - invites
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Household'
+          description: ''
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+        '409':
+          description: No response body
   /api/recipes/:
     get:
       operationId: recipes_list
@@ -720,19 +777,48 @@ components:
           type: string
           format: date-time
         status:
-          $ref: '#/components/schemas/InviteStatusEnum'
+          $ref: '#/components/schemas/InviteStatus'
       required:
       - expires_at
       - status
       - token
-    InviteStatusEnum:
+    InviteStatus:
       enum:
       - live
       - expired
+      - cancelled
       type: string
       description: |-
         * `live` - Live
         * `expired` - Expired
+        * `cancelled` - Cancelled
+    InvitedHousehold:
+      type: object
+      properties:
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+      required:
+      - members
+      - name
+    JoinInvite:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/InviteStatus'
+        is_member:
+          type: boolean
+        household:
+          allOf:
+          - $ref: '#/components/schemas/InvitedHousehold'
+          nullable: true
+      required:
+      - household
+      - is_member
+      - status
     Member:
       type: object
       properties:

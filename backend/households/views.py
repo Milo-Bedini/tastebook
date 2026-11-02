@@ -11,29 +11,33 @@ from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework.exceptions import NotAuthenticated, NotFound
+from rest_framework.exceptions import APIException, NotAuthenticated, NotFound
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from households.models import Household, User
+from households.models import Household, Invite, User
 from households.serializers import (
     AccountChangesSerializer,
     AccountSerializer,
     CurrentAccountSerializer,
     HouseholdChangesSerializer,
     HouseholdSerializer,
+    JoinInviteSerializer,
     SignInCodeSerializer,
 )
 from households.services import (
+    InviteNotLiveError,
     cancel_invite,
     current_invite,
+    invite_seen_by,
     invite_status,
     is_test_account,
+    join_household,
     latest_sign_in_code,
     leave_household,
     make_invite,
-    members_seen_by,
+    members_of,
     remove_member,
     rename_household,
     seconds_until_allowed,
@@ -106,7 +110,7 @@ def household_body(account: User) -> dict[str, Any]:
         {
             'id': account.household_id,
             'name': account.household.name,
-            'members': members_seen_by(account),
+            'members': members_of(account.household_id, account),
             # The server decides the status, so a phone with the wrong clock still shows the right state.
             'invite': None
             if invite is None
@@ -205,6 +209,49 @@ class InviteView(APIView):
         except Household.DoesNotExist as moved:
             raise NotFound from moved
         return Response(household_body(account))
+
+
+class InviteLinkView(APIView):
+    @extend_schema(
+        operation_id='invite_retrieve',
+        parameters=[OpenApiParameter('token', str, OpenApiParameter.PATH)],
+        responses={200: JoinInviteSerializer, 404: None},
+        description='Whether an invite link works and, for someone signed in, the household it joins. 404 for a '
+        'token that was never an invite.',
+    )
+    def get(self, request: Request, token: str) -> Response:
+        viewer = request.user if request.user.is_authenticated else None
+        try:
+            seen = invite_seen_by(token, viewer)
+        except Invite.DoesNotExist as unknown:
+            raise NotFound from unknown
+        return Response(JoinInviteSerializer(seen).data)
+
+
+class DeadInviteError(APIException):
+    status_code = HTTPStatus.CONFLICT
+    default_detail = 'This invite link no longer works.'
+    default_code = 'invite_not_live'
+
+
+class JoinView(APIView):
+    @extend_schema(
+        operation_id='invite_join_create',
+        request=None,
+        parameters=[OpenApiParameter('token', str, OpenApiParameter.PATH)],
+        responses={200: HouseholdSerializer, 403: None, 404: None, 409: None},
+        description="Moves the signed-in account into the invite's household; a household left with nobody in it is "
+        'deleted. 404 for an unknown token, 409 when the link is cancelled or expired.',
+    )
+    def post(self, request: Request, token: str) -> Response:
+        account = signed_in_member(request)
+        try:
+            joined = join_household(account, token)
+        except Invite.DoesNotExist as unknown:
+            raise NotFound from unknown
+        except InviteNotLiveError as dead:
+            raise DeadInviteError from dead
+        return Response(household_body(joined))
 
 
 def rate_limited(request: HttpRequest, seconds: int) -> HttpResponse:

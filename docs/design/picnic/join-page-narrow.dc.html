@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The join page at 320 px</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:320px;height:860px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.page h1{overflow-wrap:anywhere}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:400px}
+.lead{display:flex;flex-direction:column;gap:16px}
+.lead p{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.sec{display:flex;flex-direction:column;gap:16px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.mem{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mem li{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;box-sizing:border-box;border-top:1px solid var(--color-line);font-size:16px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
+.mem li:first-child{border-top:0}
+.nm{flex:1 1 auto;min-width:0}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic;overflow-wrap:anywhere}
+.dlg p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted);overflow-wrap:anywhere}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.row{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:320px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:520px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1360px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-110 · /join/&lt;token&gt; · 320 px (WCAG 1.4.10 reflow) · long names</span>
+    <h1 class="ttl">At 320 px</h1>
+    <span class="cap">Nothing is cut off: long household and member names wrap, and the dialog’s buttons stack.</span>
+  </header>
+
+  <div class="row">
+
+    <div class="col">
+      <span class="cap"><b>A long household name</b> · the title wraps; the squiggle stays on “Join”</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis, the Okafors and the Sunday roast crowd</h1>
+          <section class="sec">
+            <h2>Members</h2>
+            <ul class="mem">
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Ann Okafor"></x-import><span class="nm">Ann Okafor</span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Bartholomew Featherstonehaugh-Whittington"></x-import><span class="nm">Bartholomew Featherstonehaugh-Whittington</span></li>
+              <li><x-import component-from-global-scope="Dino.Avatar" name="Milo Bedini"></x-import><span class="nm">Milo Bedini</span></li>
+            </ul>
+          </section>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Join household</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>The dialog</b> · the buttons stack, Cancel first; focus on Cancel</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Mensah" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Join</x-import> The Bedinis, the Okafors and the Sunday roast crowd</h1>
+        </div></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="b-t" aria-describedby="b-d">
+          <h2 id="b-t">Join The Bedinis, the Okafors and the Sunday roast crowd?</h2>
+          <p id="b-d">You’ll leave Jo’s household. Kim Lee stays in it.</p>
+          <div class="btns">
+            <span class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></span>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Join household</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Signed out</b> · the bar keeps Sign in; the page’s button is the one to press</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="lead">
+            <h1>You’ve been <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">invited</x-import> to a household</h1>
+            <p>Sign in to see who’s in it and join them. New to Tastebook? Signing in makes your account.</p>
+          </div>
+          <div class="acts"><x-import component-from-global-scope="Dino.Button">Sign in to join</x-import></div>
+        </div></main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes" style="max-width: 1040px">
+    <p><b>Names wrap, never truncate</b>, in the title, the dialog’s title and each member’s row (overflow-wrap: anywhere, so an unbroken name breaks too). The squiggle stays on “Join”, the one word that’s always there.</p>
+    <p><b>The dialog’s buttons wrap</b> when they don’t fit side by side, Cancel first and the action last, as on Leave’s board; each stays 44 px tall.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1360}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true };
+  }
+}
+</script>
+</body>
+</html>
