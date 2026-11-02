@@ -176,9 +176,9 @@ const copy = async (address: string) => {
   }
 };
 
-type LiveLinkProps = { invite: Invite; takesFocus: boolean; onCancel: () => void };
+type LiveLinkProps = { invite: Invite; takesFocus: boolean; cancelling: boolean; onCancel: () => void };
 
-const LiveLink = ({ invite, takesFocus, onCancel }: LiveLinkProps) => {
+const LiveLink = ({ invite, takesFocus, cancelling, onCancel }: LiveLinkProps) => {
   const address = inviteAddress(invite.token);
   return (
     <>
@@ -200,7 +200,11 @@ const LiveLink = ({ invite, takesFocus, onCancel }: LiveLinkProps) => {
           Copy link
         </Button>
         <ConfirmDialog
-          trigger={<Button variant="ghost">Cancel link</Button>}
+          trigger={
+            <Button variant="ghost" loading={cancelling} loadingLabel="Cancelling…">
+              Cancel link
+            </Button>
+          }
           title="Cancel this invite link?"
           description="Anyone who opens it will be told it no longer works. You can make a new link afterwards."
           confirmLabel="Cancel link"
@@ -215,12 +219,13 @@ const LiveLink = ({ invite, takesFocus, onCancel }: LiveLinkProps) => {
 type InviteStateProps = {
   invite: Invite | null;
   making: boolean;
+  cancelling: boolean;
   lastDone: 'made' | 'cancelled' | undefined;
   onMake: () => void;
   onCancel: () => void;
 };
 
-const InviteState = ({ invite, making, lastDone, onMake, onCancel }: InviteStateProps) => {
+const InviteState = ({ invite, making, cancelling, lastDone, onMake, onCancel }: InviteStateProps) => {
   if (invite === null) {
     return (
       <>
@@ -237,10 +242,11 @@ const InviteState = ({ invite, making, lastDone, onMake, onCancel }: InviteState
       </>
     );
   }
-  return <LiveLink invite={invite} takesFocus={lastDone === 'made'} onCancel={onCancel} />;
+  return <LiveLink invite={invite} takesFocus={lastDone === 'made'} cancelling={cancelling} onCancel={onCancel} />;
 };
 
-const InviteSomeone = ({ invite }: { invite: Invite | null }) => {
+// onMoved: the caller had been moved out of the household meanwhile, so the page is refetching their new one.
+const InviteSomeone = ({ invite, onMoved }: { invite: Invite | null; onMoved: () => void }) => {
   const makeInvite = useMakeInvite();
   const cancelInvite = useCancelInvite();
   // The pressed button goes with the state it belonged to, so focus moves to the next state's control as it appears.
@@ -248,7 +254,11 @@ const InviteSomeone = ({ invite }: { invite: Invite | null }) => {
 
   const make = async () => {
     try {
-      await makeInvite.mutateAsync();
+      const result = await makeInvite.mutateAsync();
+      if (result.kind === 'moved') {
+        onMoved();
+        return;
+      }
       setLastDone('made');
     } catch {
       toast.error("Couldn't make a link. Check your connection and try again.");
@@ -257,7 +267,11 @@ const InviteSomeone = ({ invite }: { invite: Invite | null }) => {
 
   const cancel = async () => {
     try {
-      await cancelInvite.mutateAsync();
+      const result = await cancelInvite.mutateAsync();
+      if (result.kind === 'moved') {
+        onMoved();
+        return;
+      }
       setLastDone('cancelled');
       toast.success('Link cancelled');
     } catch {
@@ -268,7 +282,14 @@ const InviteSomeone = ({ invite }: { invite: Invite | null }) => {
   return (
     <section aria-labelledby="household-invite" className="flex flex-col gap-4">
       <h2 id="household-invite">Invite someone</h2>
-      <InviteState invite={invite} making={makeInvite.isPending} lastDone={lastDone} onMake={make} onCancel={cancel} />
+      <InviteState
+        invite={invite}
+        making={makeInvite.isPending}
+        cancelling={cancelInvite.isPending}
+        lastDone={lastDone}
+        onMake={make}
+        onCancel={cancel}
+      />
     </section>
   );
 };
@@ -317,20 +338,20 @@ const LeaveHousehold = ({ household, onLeft }: { household: Household; onLeft: (
 };
 
 const HouseholdSettings = ({ household }: { household: Household }) => {
-  const [left, setLeft] = useState<number>();
+  // The household the caller left, or was moved out of meanwhile: the control that held focus went with it.
+  const [movedFrom, setMovedFrom] = useState<number>();
+  const moved = () => setMovedFrom(household.id);
   return (
     <div className="flex max-w-100 flex-col gap-8">
-      <h1 ref={left !== undefined && household.id !== left ? takeFocus : undefined} tabIndex={-1}>
+      <h1 ref={movedFrom !== undefined && household.id !== movedFrom ? takeFocus : undefined} tabIndex={-1}>
         Your <Squiggle emphasis>household</Squiggle>
       </h1>
       {/* Keyed on the household, so after leaving the field shows the new one's name rather than the old. */}
       <HouseholdNameForm key={household.id} name={household.name} />
       <Members household={household} />
       {/* Keyed on the household, so what was last done to the old one's link moves no focus after leaving. */}
-      <InviteSomeone key={`invite-${household.id}`} invite={household.invite} />
-      {household.members.length > 1 ? (
-        <LeaveHousehold household={household} onLeft={() => setLeft(household.id)} />
-      ) : null}
+      <InviteSomeone key={`invite-${household.id}`} invite={household.invite} onMoved={moved} />
+      {household.members.length > 1 ? <LeaveHousehold household={household} onLeft={moved} /> : null}
     </div>
   );
 };

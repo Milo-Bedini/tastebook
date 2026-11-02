@@ -535,7 +535,8 @@ describe('HouseholdPage', () => {
       invite: null,
       press: async () => userEvent.click(await screen.findByRole('button', { name: 'Make invite link' })),
       message: "Couldn't make a link. Check your connection and try again.",
-      unchanged: () => screen.getByRole('button', { name: 'Make invite link' })
+      unchanged: () => screen.getByRole('button', { name: 'Make invite link' }),
+      focused: () => screen.getByRole('button', { name: 'Make invite link' })
     },
     {
       action: 'cancel',
@@ -547,21 +548,93 @@ describe('HouseholdPage', () => {
         );
       },
       message: "Couldn't cancel the link. Check your connection and try again.",
-      unchanged: () => screen.getByRole('textbox', { name: 'Invite link' })
+      unchanged: () => screen.getByRole('textbox', { name: 'Invite link' }),
+      focused: () => screen.getByRole('button', { name: 'Cancel link' })
     }
-  ])("says it couldn't $action the link, and leaves it as it was", async ({ invite, press, message, unchanged }) => {
+  ])(
+    "says it couldn't $action the link, and leaves it as it was",
+    async ({ invite, press, message, unchanged, focused }) => {
+      answerSignedIn();
+      answerInvite(invite);
+      server.use(
+        http.post(INVITE, () => new HttpResponse(null, { status: 500 })),
+        http.delete(INVITE, () => new HttpResponse(null, { status: 500 }))
+      );
+      renderRoute('/household');
+
+      await press();
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(unchanged()).toBeInTheDocument();
+      await waitFor(() => expect(focused()).toHaveFocus());
+    }
+  );
+
+  it('shows that it is cancelling the link until the server answers', async () => {
     answerSignedIn();
-    answerInvite(invite);
+    answerInvite(LIVE);
+    const gate = { release: () => {} };
+    const released = new Promise<void>((resolve) => {
+      gate.release = resolve;
+    });
     server.use(
-      http.post(INVITE, () => new HttpResponse(null, { status: 500 })),
-      http.delete(INVITE, () => new HttpResponse(null, { status: 500 }))
+      http.delete(INVITE, async () => {
+        await released;
+        return HttpResponse.json<Household>({ ...BEDINIS, invite: null });
+      })
     );
     renderRoute('/household');
 
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
+    await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' }));
+
+    const cancelling = await screen.findByRole('button', { name: 'Cancelling…' });
+    expect(cancelling).toHaveAttribute('aria-busy', 'true');
+    await userEvent.click(cancelling);
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+
+    gate.release();
+
+    expect(await screen.findByText('Link cancelled')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Make invite link' })).toBeInTheDocument();
+  });
+
+  it.each([
+    {
+      action: 'making',
+      invite: null,
+      press: async () => userEvent.click(await screen.findByRole('button', { name: 'Make invite link' }))
+    },
+    {
+      action: 'cancelling',
+      invite: LIVE,
+      press: async () => {
+        await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
+        await userEvent.click(
+          within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' })
+        );
+      }
+    }
+  ])('shows the household Milo was moved to when $action the link finds him gone', async ({ invite, press }) => {
+    answerSignedIn();
+    answerInvite(invite);
+    renderRoute('/household');
+    await screen.findByRole('heading', { level: 2, name: 'Invite someone' });
+    server.use(
+      http.post(INVITE, () => new HttpResponse(null, { status: 404 })),
+      http.delete(INVITE, () => new HttpResponse(null, { status: 404 })),
+      http.get(HOUSEHOLD, () =>
+        HttpResponse.json<Household>({ id: 11, name: "Milo's household", members: [MILO], invite: null })
+      )
+    );
+
     await press();
 
-    expect(await screen.findByText(message)).toBeInTheDocument();
-    expect(unchanged()).toBeInTheDocument();
+    await waitFor(() => expect(nameField()).toHaveValue("Milo's household"));
+    expect(within(screen.getByRole('list', { name: 'Members' })).getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Make invite link' })).toBeInTheDocument();
+    expect(screen.queryByText(/Check your connection/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Your household' })).toHaveFocus());
   });
 
   it("says the household couldn't be loaded, and tries again", async () => {
