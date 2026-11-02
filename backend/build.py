@@ -3,16 +3,16 @@
 import os
 
 import django
-from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db import connection, transaction
 from django.db.backends.utils import CursorWrapper
 from django.db.migrations.recorder import MigrationRecorder
 
-PREVIEW_HOLDS_ACCOUNTS = (
-    "This preview's database holds accounts, so it was made from production's. "
-    'Previews must be made from the catalogue-only branch: see docs/architecture.md, Environments.'
+PREVIEW_NOT_BORN_EMPTY = (
+    "This preview's database wasn't empty at its first build, so it was copied from another branch, "
+    "most likely production's. Either Neon's default branch isn't previews-base, or this preview's branch "
+    'was made before it was. Check the default branch in Neon, then delete preview/<git branch> there and '
+    'redeploy: see docs/architecture.md, Environments.'
 )
 BORN_EMPTY = 'Tastebook preview database, born empty'
 SWITCH_REFUSED = (
@@ -37,14 +37,10 @@ def was_born_empty() -> bool:
         return cursor.fetchone()[0] == BORN_EMPTY
 
 
-def refuse_a_preview_with_accounts() -> None:
-    # Households and private recipes belong to accounts, so a database with no accounts holds none of them either.
-    # A preview born empty holds only its own accounts, made on the preview since. Production refuses test accounts,
-    # so one can't have come from it: the end-to-end tests make them on any preview, born empty or not.
-    # The build can't import households' services before django.setup(), so it matches test accounts' domain itself.
-    others = get_user_model().objects.exclude(email__iendswith=f'@{settings.TEST_ACCOUNT_DOMAIN}')
-    if not was_born_empty() and others.exists():
-        raise SystemExit(PREVIEW_HOLDS_ACCOUNTS)
+def refuse_a_preview_not_born_empty() -> None:
+    # Whatever a copy holds today, it came from a branch that isn't previews-base, so the setup is wrong.
+    if not was_born_empty():
+        raise SystemExit(PREVIEW_NOT_BORN_EMPTY)
 
 
 def holds_rows(cursor: CursorWrapper, table: str) -> bool:
@@ -77,12 +73,12 @@ def main() -> None:
     django.setup()
     is_preview = os.environ.get('VERCEL_ENV') == 'preview'
     # Marked before migrating, so a build that fails part-way still leaves the mark for the next push's build.
-    if is_preview and is_empty():
-        mark_born_empty()
+    if is_preview:
+        if is_empty():
+            mark_born_empty()
+        refuse_a_preview_not_born_empty()
     switch_to_the_custom_user()
     call_command('migrate', interactive=False)
-    if is_preview:
-        refuse_a_preview_with_accounts()
     # A catalogue file the database can't hold fails the build, so the deployment never goes live without it.
     call_command('load_catalogue')
 
