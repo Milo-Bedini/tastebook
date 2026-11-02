@@ -1,6 +1,9 @@
+import logging
 import math
+import smtplib
 import time
 from dataclasses import dataclass
+from functools import partial
 from typing import Any
 
 from allauth.account.authentication import get_authentication_records
@@ -14,12 +17,16 @@ from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
+from django.core.mail import send_mail
 from django.db import connection, transaction
 from django.db.models.functions import Lower
 from django.http import HttpRequest
+from django.template.loader import render_to_string
 from django.utils import timezone
 
 from households.models import NAME_MAX_LENGTH, Household, StoredSignInCode, UnitSystem, User
+
+logger = logging.getLogger(__name__)
 
 
 def is_test_account(email: str) -> bool:
@@ -81,6 +88,59 @@ def rename_household(account: User, name: str) -> Household:
     household.name = name
     household.save(update_fields=['name'])
     return household
+
+
+def leave_household(account: User) -> User:
+    """Moves the account into a new household of one, named after it; deletes the household it left if that's now empty.
+    Returns the account as saved."""
+    with transaction.atomic():
+        # Every move locks the household before any account, so moves in one household run in turn and can't deadlock.
+        household = Household.objects.select_for_update().filter(pk=account.household_id).first()
+        account = User.objects.select_for_update().get(pk=account.pk)
+        # Removed while this waited for the lock: already in a household of one, so there's nothing to leave.
+        if household is None or account.household_id != household.pk:
+            return account
+        account.household = Household.objects.create(name=household_name_for(account.name))
+        account.save(update_fields=['household'])
+        if not household.members.exists():
+            household.delete()
+    return account
+
+
+def remove_member(account: User, member_id: int) -> User:
+    """Moves another member of the account's household into a new household of one and emails them once that's saved.
+    Returns the account. Raises User.DoesNotExist when member_id isn't another member of the account's household."""
+    with transaction.atomic():
+        household = Household.objects.select_for_update().filter(pk=account.household_id).first()
+        account = User.objects.get(pk=account.pk)
+        # Removed while this waited for the lock, so they're no longer in a household to remove anyone from.
+        if household is None or account.household_id != household.pk:
+            raise User.DoesNotExist
+        # One answer for yourself, another household's account and an unknown ID, so it never says who exists.
+        member = User.objects.select_for_update().exclude(pk=account.pk).get(pk=member_id, household=household)
+        new_household = Household.objects.create(name=household_name_for(member.name))
+        member.household = new_household
+        member.save(update_fields=['household'])
+        transaction.on_commit(partial(tell_removed_member, member, account.name, household.name, new_household.name))
+    return account
+
+
+def tell_removed_member(member: User, removed_by: str, household_name: str, new_household_name: str) -> None:
+    """Emails a removed member who removed them, from which household, and the name of their new one."""
+    context = {
+        'name': member.name,
+        'removed_by': removed_by,
+        'household': household_name,
+        'new_household': new_household_name,
+    }
+    # As allauth does, so a household name can't break the header.
+    subject = ' '.join(render_to_string('households/email/member_removed_subject.txt', context).splitlines()).strip()
+    message = render_to_string('households/email/member_removed_message.txt', context)
+    try:
+        send_mail(subject, message, None, [member.email])
+    except smtplib.SMTPException, OSError:
+        # The exception carries the address, so it stays out of the log; the removal stands either way.
+        logger.error("Couldn't send the removal email")
 
 
 def name_from_google(profile: dict[str, Any]) -> str:

@@ -5,6 +5,8 @@ import type { components } from '../api/schema';
 
 export type Household = components['schemas']['Household'];
 
+export type Member = components['schemas']['Member'];
+
 export const HOUSEHOLD_KEY = ['households', 'household'];
 
 // The household belongs to whoever is signed in, so it goes whenever the session changes hands.
@@ -51,5 +53,44 @@ export const useRenameHousehold = () => {
     },
     onSuccess: (result) =>
       result.kind === 'saved' ? queryClient.setQueryData<Household>(HOUSEHOLD_KEY, result.household) : undefined
+  });
+};
+
+// A 404 means they'd already gone, or the caller had: either way the household has changed under the page.
+export type MemberRemoval = { kind: 'removed'; household: Household } | { kind: 'gone' };
+
+export const useRemoveMember = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (member: Member): Promise<MemberRemoval> => {
+      const { data, response } = await api.DELETE('/api/household/members/{member_id}/', {
+        params: { path: { member_id: member.id } }
+      });
+      if (data !== undefined) {
+        return { kind: 'removed', household: data };
+      }
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Removing a member failed with ${response.status}`);
+    },
+    onSuccess: (result) =>
+      result.kind === 'removed'
+        ? queryClient.setQueryData<Household>(HOUSEHOLD_KEY, result.household)
+        : queryClient.invalidateQueries({ queryKey: HOUSEHOLD_KEY })
+  });
+};
+
+export const useLeaveHousehold = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<Household> => {
+      const { data, response } = await api.POST('/api/household/leave/');
+      if (data === undefined) {
+        throw new Error(`Leaving the household failed with ${response.status}`);
+      }
+      return data;
+    },
+    onSuccess: (household) => queryClient.setQueryData<Household>(HOUSEHOLD_KEY, household)
   });
 };
