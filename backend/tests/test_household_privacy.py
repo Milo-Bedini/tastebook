@@ -7,11 +7,12 @@ the requests an outsider could try on it, so each slice that adds an endpoint ad
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlsplit
 
 import pytest
 from allauth.account.models import EmailAddress
 from django.http import HttpResponse
-from django.urls import URLPattern, URLResolver, get_resolver
+from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, resolve
 
 from households.models import Household, Invite, User
 from tests.test_accounts import BrowserClient
@@ -203,10 +204,35 @@ PROBES = [
 ]
 
 
+def resolved_route(probe: Probe) -> str:
+    stand_ins = {'member': 1, 'dead_token': 'a-dead-token', 'zebedee': ZEBEDEE}
+    try:
+        return resolve(urlsplit(probe.path.format(**stand_ins)).path).route
+    except Resolver404:
+        return 'no route'
+
+
+def lands_on(listed: str, route: str) -> bool:
+    return route == listed or (listed.endswith('*') and route.startswith(listed.removesuffix('*')))
+
+
+def probes_off_their_route() -> list[str]:
+    """Each probe the resolver sends somewhere other than the route ENDPOINTS lists it under, so that route's view is
+    never called by it."""
+    return [
+        f'{probe.method.upper()} {probe.path} under {listed} reaches {route}'
+        for listed, probes in ENDPOINTS.items()
+        for probe in probes
+        if not lands_on(listed, route := resolved_route(probe))
+    ]
+
+
 def test_every_endpoint_is_probed() -> None:
     assert routes(get_resolver().url_patterns) == set(ENDPOINTS), (
         'List each new route in ENDPOINTS with the requests an outsider could try on it'
     )
+    assert [listed for listed, probes in ENDPOINTS.items() if not probes] == []
+    assert probes_off_their_route() == []
 
 
 @pytest.mark.django_db
