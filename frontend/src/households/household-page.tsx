@@ -326,7 +326,8 @@ const HouseholdSettings = ({ household }: { household: Household }) => {
       {/* Keyed on the household, so after leaving the field shows the new one's name rather than the old. */}
       <HouseholdNameForm key={household.id} name={household.name} />
       <Members household={household} />
-      <InviteSomeone invite={household.invite} />
+      {/* Keyed on the household, so what was last done to the old one's link moves no focus after leaving. */}
+      <InviteSomeone key={`invite-${household.id}`} invite={household.invite} />
       {household.members.length > 1 ? (
         <LeaveHousehold household={household} onLeft={() => setLeft(household.id)} />
       ) : null}
