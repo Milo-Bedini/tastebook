@@ -17,7 +17,13 @@ import {
 import { useSession } from '../households';
 import type { UnitSystem } from './convert';
 import { dietTagLabels, stickerTags } from './diet-tags';
-import { canShowOriginal, hasIngredients, type Reading, RecipeIngredients } from './recipe-ingredients';
+import {
+  canCrossDimensions,
+  canShowOriginal,
+  hasIngredients,
+  type Reading,
+  RecipeIngredients
+} from './recipe-ingredients';
 import { RecipeIntro } from './recipe-intro';
 import { RecipeMethod } from './recipe-method';
 import { RecipePhotoCredit } from './recipe-photo-credit';
@@ -32,6 +38,8 @@ const unitSystems: { value: UnitSystem; label: string }[] = [
   { value: 'us', label: 'US' }
 ];
 
+const crossingLabels: Record<UnitSystem, string> = { metric: 'Cups to grams', us: 'Grams to cups' };
+
 // The model allows up to 32767; past this a stepper clicked one at a time stops being a way to get there.
 const maxServings = 99;
 
@@ -43,6 +51,7 @@ type RecipeControlsProps = {
   onScaledToChange: (scaledTo: number) => void;
   onSystemChange: (system: UnitSystem) => void;
   onShowOriginalChange: (showOriginal: boolean) => void;
+  onCrossesDimensionsChange: (crossesDimensions: boolean) => void;
 };
 
 const RecipeControls = ({
@@ -52,10 +61,12 @@ const RecipeControls = ({
   scaledTo,
   onScaledToChange,
   onSystemChange,
-  onShowOriginalChange
+  onShowOriginalChange,
+  onCrossesDimensionsChange
 }: RecipeControlsProps) => {
   const canScale = hasIngredients(recipe) && (recipe.servings !== null || recipe.yield_amount !== null);
   const canConvert = hasIngredients(recipe) || recipe.steps.length > 0;
+  const crossingShown = canCrossDimensions(recipe, reading);
   const showOriginalShown = canShowOriginal(recipe, reading);
   if (!canScale && !canConvert && !showOriginalShown) {
     return null;
@@ -74,6 +85,11 @@ const RecipeControls = ({
       {canConvert && (
         <SegmentedControl label="Units" options={unitSystems} value={reading.system} onValueChange={onSystemChange} />
       )}
+      {crossingShown && (
+        <FilterChip pressed={reading.crossesDimensions} onPressedChange={onCrossesDimensionsChange}>
+          {crossingLabels[reading.system]}
+        </FilterChip>
+      )}
       {showOriginalShown && (
         <FilterChip pressed={reading.showOriginal} onPressedChange={onShowOriginalChange}>
           Show original
@@ -83,9 +99,9 @@ const RecipeControls = ({
   );
 };
 
-// The servings and Show original aren't remembered, and the unit system opens as the account's, so every recipe opens
-// as written. The DOM keeps the phone's order at every width, so reading and focus order match; a laptop's grid places
-// the photo and ingredients on the left (5 parts) and the rest on the right (7).
+// The servings, Cups to grams and Show original aren't remembered, and the unit system opens as the account's, so every
+// recipe opens as written. The DOM keeps the phone's order at every width, so reading and focus order match; a laptop's
+// grid places the photo and ingredients on the left (5 parts) and the rest on the right (7).
 const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
   // The database holds exactly one of servings and a yield.
   const original = recipe.servings ?? recipe.yield_amount ?? 1;
@@ -98,7 +114,13 @@ const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
     setChosenSystem(chosen);
     setShowOriginal(false);
   };
-  const reading = { factor: scaledTo / original, system, showOriginal };
+  const [crossesDimensions, setCrossesDimensions] = useState(true);
+  // Turning Cups to grams on or off asks for the amounts, as choosing a unit system does.
+  const chooseCrossing = (crosses: boolean) => {
+    setCrossesDimensions(crosses);
+    setShowOriginal(false);
+  };
+  const reading = { factor: scaledTo / original, system, showOriginal, crossesDimensions };
   return (
     <div className="grid grid-cols-1 gap-8 max-lg:max-w-2xl lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-[auto_1fr] lg:gap-x-16 lg:gap-y-10">
       <div className="lg:col-start-1 lg:row-start-1 lg:px-6 lg:pt-2">
@@ -126,6 +148,7 @@ const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
           onScaledToChange={setScaledTo}
           onSystemChange={chooseSystem}
           onShowOriginalChange={setShowOriginal}
+          onCrossesDimensionsChange={chooseCrossing}
         />
       </div>
       <RecipeIngredients recipe={recipe} reading={reading} />

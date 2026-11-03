@@ -79,7 +79,7 @@ const line = (id: number, name: string, fields: Partial<IngredientLine> = {}): I
   amount: null,
   amount_max: null,
   unit: '',
-  ingredient: { slug: name.replaceAll(' ', '-'), name },
+  ingredient: { slug: name.replaceAll(' ', '-'), name, grams_per_cup: null },
   note: '',
   optional: false,
   original_text: '',
@@ -141,6 +141,9 @@ const holdRecipe = (respond: () => Response) => {
   );
   return () => gate.release();
 };
+
+// A dry good: what a US cup of it weighs, from USDA FoodData Central.
+const plainFlour = { slug: 'plain-flour', name: 'plain flour', grams_per_cup: 125 };
 
 const withFlour: Recipe = { ...shakshuka, ingredient_lines: [line(1, 'plain flour', { amount: 1, unit: 'cup' })] };
 
@@ -342,22 +345,25 @@ describe('RecipePage', () => {
     [[], [], [], []],
     [
       ['vegetarian', 'vegan', 'dairy_free'],
-      [{ ingredient: { slug: 'parmesan', name: 'parmesan' }, diet_tags: ['vegan', 'dairy_free'] }],
+      [{ ingredient: { slug: 'parmesan', name: 'parmesan', grams_per_cup: null }, diet_tags: ['vegan', 'dairy_free'] }],
       ['Vegan'],
       ['Leave out the parmesan to keep it vegan and dairy-free.']
     ],
     [
       ['vegetarian', 'gluten_free', 'dairy_free'],
-      [{ ingredient: { slug: 'butter', name: 'butter' }, diet_tags: ['dairy_free'] }],
+      [{ ingredient: { slug: 'butter', name: 'butter', grams_per_cup: null }, diet_tags: ['dairy_free'] }],
       ['Vegetarian', 'Gluten-free', 'Dairy-free'],
       ['Leave out the butter to keep it dairy-free.']
     ],
     [
       ['vegetarian', 'vegan', 'gluten_free', 'dairy_free'],
       [
-        { ingredient: { slug: 'bacon', name: 'bacon' }, diet_tags: ['vegetarian', 'vegan'] },
-        { ingredient: { slug: 'eggs', name: 'eggs' }, diet_tags: ['vegan'] },
-        { ingredient: { slug: 'croutons', name: 'butter croutons' }, diet_tags: ['vegan', 'gluten_free', 'dairy_free'] }
+        { ingredient: { slug: 'bacon', name: 'bacon', grams_per_cup: null }, diet_tags: ['vegetarian', 'vegan'] },
+        { ingredient: { slug: 'eggs', name: 'eggs', grams_per_cup: null }, diet_tags: ['vegan'] },
+        {
+          ingredient: { slug: 'croutons', name: 'butter croutons', grams_per_cup: null },
+          diet_tags: ['vegan', 'gluten_free', 'dairy_free']
+        }
       ],
       ['Vegan', 'Gluten-free'],
       [
@@ -706,6 +712,122 @@ describe('RecipePage', () => {
     expect(amounts()).toEqual(['Plain flour 1 cup', 'Eggs 2', 'Chives (optional)']);
     expect(steps()).toEqual(['Heat the oven to 350°F.']);
     expect(showOriginal()).not.toBeInTheDocument();
+  });
+
+  it('reads a dry good in cups as grams in metric, until Cups to grams is turned off', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', () =>
+        HttpResponse.json<Recipe>({
+          ...shakshuka,
+          ingredient_lines: [
+            line(1, 'plain flour', { amount: 1, unit: 'cup', ingredient: plainFlour }),
+            line(2, 'milk', { amount: 1, unit: 'cup' }),
+            line(3, 'caster sugar', {
+              amount: 2,
+              unit: 'tbsp',
+              ingredient: { slug: 'caster-sugar', name: 'caster sugar', grams_per_cup: 200 }
+            })
+          ]
+        })
+      )
+    );
+
+    renderRoute('/recipes/shakshuka');
+
+    const ingredients = await screen.findByRole('region', { name: 'Ingredients' });
+    const amounts = () => itemsOf(within(ingredients).getByRole('list'));
+    const crossing = () => screen.getByRole('button', { name: 'Cups to grams' });
+    expect(amounts()).toEqual(['Plain flour 125 g', 'Milk 240 ml', 'Caster sugar 2 tbsp']);
+    expect(crossing()).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(crossing());
+
+    expect(amounts()).toEqual(['Plain flour 240 ml', 'Milk 240 ml', 'Caster sugar 2 tbsp']);
+    expect(crossing()).toHaveAttribute('aria-pressed', 'false');
+
+    await userEvent.click(crossing());
+
+    expect(amounts()[0]).toBe('Plain flour 125 g');
+  });
+
+  it('reads a dry good in grams as cups in US customary, scaled with the servings', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', () =>
+        HttpResponse.json<Recipe>({
+          ...shakshuka,
+          ingredient_lines: [
+            line(1, 'plain flour', { amount: 125, unit: 'g', ingredient: plainFlour }),
+            line(2, 'milk', { amount: 1, unit: 'cup' })
+          ]
+        })
+      )
+    );
+
+    renderRoute('/recipes/shakshuka');
+
+    const ingredients = await screen.findByRole('region', { name: 'Ingredients' });
+    const amounts = () => itemsOf(within(ingredients).getByRole('list'));
+    await userEvent.click(screen.getByRole('radio', { name: 'US' }));
+
+    expect(screen.getByRole('button', { name: 'Grams to cups' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('button', { name: 'Cups to grams' })).not.toBeInTheDocument();
+    expect(amounts()[0]).toBe('Plain flour 1 cup');
+
+    await userEvent.click(screen.getByRole('button', { name: 'More servings' }));
+
+    expect(amounts()[0]).toBe('Plain flour 1.5 cups');
+  });
+
+  it('offers Cups to grams only while turning it off would change an amount', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', () =>
+        HttpResponse.json<Recipe>({
+          ...shakshuka,
+          ingredient_lines: [line(1, 'plain flour', { amount: 200, unit: 'g', ingredient: plainFlour })]
+        })
+      )
+    );
+    const { queryClient } = renderRoute('/recipes/shakshuka');
+
+    const ingredients = await screen.findByRole('region', { name: 'Ingredients' });
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(itemsOf(within(ingredients).getByRole('list'))).toEqual(['Plain flour 200 g']);
+    expect(screen.queryByRole('button', { name: 'Cups to grams' })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('radio', { name: 'US' }));
+
+    expect(screen.getByRole('button', { name: 'Grams to cups' })).toBeInTheDocument();
+  });
+
+  it('turns Show original off when Cups to grams is pressed', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', () =>
+        HttpResponse.json<Recipe>({
+          ...shakshuka,
+          ingredient_lines: [
+            line(1, 'plain flour', {
+              amount: 1,
+              unit: 'cup',
+              original_text: '1 cup plain flour',
+              ingredient: plainFlour
+            })
+          ]
+        })
+      )
+    );
+
+    renderRoute('/recipes/shakshuka');
+
+    const ingredients = await screen.findByRole('region', { name: 'Ingredients' });
+    const amounts = () => itemsOf(within(ingredients).getByRole('list'));
+    await userEvent.click(screen.getByRole('button', { name: 'Show original' }));
+
+    expect(amounts()).toEqual(['1 cup plain flour']);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cups to grams' }));
+
+    expect(screen.getByRole('button', { name: 'Show original' })).toHaveAttribute('aria-pressed', 'false');
+    expect(amounts()).toEqual(['Plain flour 240 ml']);
   });
 
   it.each([

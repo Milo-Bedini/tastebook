@@ -9,9 +9,10 @@ import { isLaptopQuery, useMediaQuery } from './use-media-query';
 type Recipe = components['schemas']['Recipe'];
 type IngredientLine = components['schemas']['IngredientLine'];
 
-export type Reading = { factor: number; system: UnitSystem; showOriginal: boolean };
+export type Reading = { factor: number; system: UnitSystem; showOriginal: boolean; crossesDimensions: boolean };
 
-const amountOf = (line: IngredientLine, { factor, system }: Reading) => formatQuantity(convert(line, factor, system));
+const amountOf = (line: IngredientLine, { factor, system, crossesDimensions }: Reading) =>
+  formatQuantity(convert(line, factor, system, crossesDimensions ? line.ingredient.grams_per_cup : null));
 
 // The line as Tastebook would write it, scaled and in the unit system, without the optional marker.
 const describeLine = (line: IngredientLine, reading: Reading) => {
@@ -61,6 +62,14 @@ const linesOf = (recipe: Recipe) => [
 export const canShowOriginal = (recipe: Recipe, reading: Reading) =>
   hasIngredients(recipe) &&
   (reading.showOriginal || linesOf(recipe).some((line) => differsFromOriginal(line, reading)));
+
+// Offered whatever its state, so it shows only while turning it off or on would change an amount.
+export const canCrossDimensions = (recipe: Recipe, reading: Reading) =>
+  linesOf(recipe).some(
+    (line) =>
+      amountOf(line, { ...reading, crossesDimensions: true }) !==
+      amountOf(line, { ...reading, crossesDimensions: false })
+  );
 
 type RecipeIngredientsProps = { recipe: Recipe; reading: Reading };
 

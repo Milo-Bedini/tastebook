@@ -62,8 +62,48 @@ describe('convert', () => {
     [null, null, 'cup', 2, 'metric', 'cup'],
     [null, null, '', 1, 'us', '']
   ] as const)('reads %s up to %s %s by %d in %s as "%s"', (amount, amount_max, unit, factor, system, text) => {
-    expect(formatQuantity(convert({ amount, amount_max, unit }, factor, system))).toBe(text);
+    expect(formatQuantity(convert({ amount, amount_max, unit }, factor, system, null))).toBe(text);
   });
+
+  it.each([
+    // Metric: a dry good's cups and millilitres read as grams.
+    [1, null, 'cup', 1, 'metric', 125, '125 g'],
+    [0.5, null, 'cup', 1, 'metric', 125, '65 g'],
+    [2, null, 'cup', 1, 'metric', 125, '250 g'],
+    [10, null, 'cup', 1, 'metric', 125, '1.25 kg'],
+    [100, null, 'ml', 1, 'metric', 125, '50 g'],
+    [4, null, 'fl_oz', 1, 'metric', 200, '100 g'],
+    // Metric: spoons stay spoons.
+    [2, null, 'tbsp', 1, 'metric', 125, '2 tbsp'],
+    [30, null, 'ml', 1, 'metric', 125, '2 tbsp'],
+    // Metric: weight stays weight.
+    [8, null, 'oz', 1, 'metric', 125, '225 g'],
+    // US customary: a dry good's grams read as spoons and cups.
+    [125, null, 'g', 1, 'us', 125, '1 cup'],
+    [200, null, 'g', 1, 'us', 125, '1.5 cups'],
+    [150, null, 'g', 1, 'us', 81, '1.75 cups'],
+    [10, null, 'g', 1, 'us', 86, '1.75 tbsp'],
+    [5, null, 'g', 1, 'us', 200, '1.25 tsp'],
+    [1, null, 'kg', 1, 'us', 125, '8 cups'],
+    // US customary keeps its own units and converts volume within volume.
+    [4, null, 'oz', 1, 'us', 125, '4 oz'],
+    [250, null, 'ml', 1, 'us', 125, '1 cup'],
+    // Converted amounts scale first, then round once.
+    [100, null, 'g', 1.5, 'us', 125, '1.25 cups'],
+    // A range picks its unit by its top end.
+    [1, 2, 'cup', 1, 'metric', 125, '125–250 g'],
+    [100, 150, 'g', 1, 'us', 200, '0.5–0.75 cup'],
+    // No weight per cup, count units and lines with no amount.
+    [200, null, 'g', 1, 'us', null, '7 oz'],
+    [1, null, 'cup', 1, 'metric', null, '240 ml'],
+    [2, null, '', 1, 'us', 125, '2'],
+    [null, null, 'cup', 2, 'metric', 125, 'cup']
+  ] as const)(
+    'reads %s up to %s %s by %d in %s at %s g a cup as "%s"',
+    (amount, amount_max, unit, factor, system, gramsPerCup, text) => {
+      expect(formatQuantity(convert({ amount, amount_max, unit }, factor, system, gramsPerCup))).toBe(text);
+    }
+  );
 });
 
 describe('convertTemperatures', () => {

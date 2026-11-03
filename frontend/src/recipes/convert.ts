@@ -32,6 +32,9 @@ type System = {
   keeps: ReadonlySet<Unit | ''>;
   // The unit an amount from the other system reads in, by its size in grams or millilitres.
   units: Record<Dimension, (size: number) => MeasuredUnit>;
+  // Units a dry good with a weight per cup reads in the other dimension instead: grams for metric's millilitres,
+  // spoons and cups for US customary's ounces.
+  crosses: ReadonlySet<MeasuredUnit>;
 };
 
 const systems: Record<UnitSystem, System> = {
@@ -49,7 +52,8 @@ const systems: Record<UnitSystem, System> = {
         }
         return millilitres < 1000 ? 'ml' : 'l';
       }
-    }
+    },
+    crosses: new Set(['ml', 'l'])
   },
   us: {
     keeps: new Set(['tsp', 'tbsp', 'cup', 'oz', 'lb', 'fl_oz']),
@@ -61,21 +65,37 @@ const systems: Record<UnitSystem, System> = {
         }
         return millilitres < measures.cup.size / 4 ? 'tbsp' : 'cup';
       }
-    }
+    },
+    crosses: new Set(['oz', 'lb'])
   }
 };
 
-// Scales a line's amount by factor and reads it in system, within its dimension: a cup of flour becomes 240 ml, never
-// grams. Count units and units the system keeps only scale, so they round as scale() rounds them.
-export const convert = <T extends Quantity>(quantity: T, factor: number, system: UnitSystem): T => {
+const otherDimension: Record<Dimension, Dimension> = { mass: 'volume', volume: 'mass' };
+
+// Grams in a millilitre of it, or millilitres in a gram, by the dimension converted from.
+const across = (from: Dimension, gramsPerCup: number) =>
+  from === 'volume' ? gramsPerCup / measures.cup.size : measures.cup.size / gramsPerCup;
+
+// Scales a line's amount by factor and reads it in system. An amount converts within its dimension, except a dry
+// good's (one with gramsPerCup): its millilitres read as grams in metric, its ounces as spoons and cups in US
+// customary. Count units and units the system keeps only scale, so they round as scale() rounds them.
+export const convert = <T extends Quantity>(
+  quantity: T,
+  factor: number,
+  system: UnitSystem,
+  gramsPerCup: number | null
+): T => {
   const { amount, amount_max, unit } = quantity;
-  const { keeps, units } = systems[system];
+  const { keeps, units, crosses } = systems[system];
   if (amount === null || !isMeasured(unit) || keeps.has(unit)) {
     return scale(quantity, factor);
   }
   const { dimension, size } = measures[unit];
-  const toBase = (value: number) => value * factor * size;
-  const target = units[dimension](toBase(amount_max ?? amount));
+  const top = amount_max ?? amount;
+  const within = units[dimension](top * factor * size);
+  const ratio = gramsPerCup !== null && crosses.has(within) ? across(dimension, gramsPerCup) : null;
+  const toBase = (value: number) => value * factor * size * (ratio ?? 1);
+  const target = ratio === null ? within : units[otherDimension[dimension]](toBase(top));
   if (target === unit) {
     return scale(quantity, factor);
   }
