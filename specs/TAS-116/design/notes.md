@@ -4,10 +4,12 @@ Canvas: https://claude.ai/artifact/JKz1LSodtcHYUX5PuRKDPm
 
 ## Boards
 
-- `Main.dc.html` — **Ingredients, phone** (390 px): the section as it opens, filled in with lines and a group, a line's sheet, a group's sheet and a just-picked line's sheet.
-- `Ingredients-states.dc.html` — **Reorder, checking and adding** (390 px): the Reorder mode after a move and at an end, Save refused with the sheet open and closed, a group with no name, picking (with the add option), adding, couldn't add, the list loading and failing, removed, and refused by Tastebook.
-- `Ingredients-laptop.dc.html` — **Ingredients, laptop** (1280 px): the phone's rows in the form's 640 px column, and the sheet centred at 576 px.
-- `Combobox-add-option.dc.html` — **Combobox, the add option**: every state of Combobox's new `addOption` item, how it works and what it may grow into.
+Moved into `docs/design/` when part 1 was built, as Biome lints board markup under `specs/`.
+
+- `docs/design/picnic/recipe-ingredients.dc.html` — **Ingredients, phone** (390 px): the section as it opens, filled in with lines and a group, a line's sheet, a group's sheet and a just-picked line's sheet.
+- `docs/design/picnic/recipe-ingredients-states.dc.html` — **Reorder, checking and adding** (390 px): the Reorder mode after a move and at an end, Save refused with the sheet open and closed, a group with no name, picking (with the add option), adding, couldn't add, the list loading and failing, removed, and refused by Tastebook.
+- `docs/design/picnic/recipe-ingredients-laptop.dc.html` — **Ingredients, laptop** (1280 px): the phone's rows in the form's 640 px column, and the sheet centred at 576 px.
+- `docs/design/dino/combobox-add-option.dc.html` — **Combobox, the add option**: every state of Combobox's new `addOption` item, how it works and what it may grow into.
 
 ## Decisions
 
