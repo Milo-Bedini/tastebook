@@ -1533,6 +1533,14 @@ components:
 
             * `metric` - Metric
             * `us` - US customary
+        added_ingredients:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+          description: Ingredients this member adds, awaiting review, before their
+            recipes are made; their recipes may name them.
+          maxItems: 20
         recipes:
           type: array
           items:

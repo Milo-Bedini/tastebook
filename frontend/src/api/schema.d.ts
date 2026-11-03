@@ -588,6 +588,8 @@ export interface components {
              *     * `us` - US customary
              */
             unit_system?: components["schemas"]["UnitSystem"];
+            /** @description Ingredients this member adds, awaiting review, before their recipes are made; their recipes may name them. */
+            added_ingredients?: string[];
             recipes?: {
                 [key: string]: unknown;
             }[];
