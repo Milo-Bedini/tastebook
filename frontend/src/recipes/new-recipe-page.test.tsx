@@ -576,6 +576,34 @@ describe('NewRecipePage', () => {
       expect(screen.getByRole('combobox', { name: 'Add an ingredient', hidden: true })).toHaveValue('');
     });
 
+    it('keeps a line picked while an added ingredient is on its way', async () => {
+      const { sent } = await openWithIngredients();
+      const gate = { release: () => {} };
+      const released = new Promise<void>((resolve) => {
+        gate.release = resolve;
+      });
+      server.use(
+        http.post('/api/ingredients/', async () => {
+          await released;
+          return HttpResponse.json<IngredientOption>(
+            { slug: 'chipotle-paste', name: 'chipotle paste', synonyms: [] },
+            { status: 201 }
+          );
+        })
+      );
+
+      await pick('chipotle paste', 'Add “chipotle paste”');
+      expect(await screen.findByText('Adding “chipotle paste”…')).toBeInTheDocument();
+      await userEvent.clear(screen.getByRole('combobox', { name: 'Add an ingredient' }));
+      await addLine('onion');
+      gate.release();
+      await screen.findByRole('dialog', { name: 'Chipotle paste' });
+      await done();
+
+      const body = await savedBody(sent);
+      expect(body?.ingredient_lines).toEqual([line('onion'), line('chipotle-paste')]);
+    });
+
     it.each<[string, () => Response, string]>([
       [
         'refuses the name',

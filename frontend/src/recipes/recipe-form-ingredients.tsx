@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, CircleAlert, Plus, Trash2 } from 'lucide-react';
-import { type ReactNode, type Ref, useMemo, useRef, useState } from 'react';
+import { type Dispatch, type ReactNode, type Ref, type SetStateAction, useMemo, useRef, useState } from 'react';
 
 import type { components } from '../api/schema';
 import {
@@ -478,7 +478,7 @@ const newKey = () => crypto.randomUUID();
 
 type IngredientsSectionProps = {
   entries: IngredientEntry[];
-  onChange: (entries: IngredientEntry[]) => void;
+  onChange: Dispatch<SetStateAction<IngredientEntry[]>>;
   view: IngredientsView;
   onViewChange: (view: IngredientsView) => void;
   errors: Record<string, string>;
@@ -543,10 +543,12 @@ export const IngredientsSection = ({
       optional: false,
       originalText: ''
     };
-    const groupAt = entries.findIndex(({ key }) => key === listKey);
-    const nextGroup = entries.findIndex((entry, index) => index > groupAt && entry.kind === 'group');
-    const at = nextGroup === -1 ? entries.length : nextGroup;
-    onChange(entries.toSpliced(at, 0, line));
+    // An added ingredient arrives after its request, so the line joins the entries as they are then.
+    onChange((current) => {
+      const groupAt = current.findIndex(({ key }) => key === listKey);
+      const nextGroup = current.findIndex((entry, index) => index > groupAt && entry.kind === 'group');
+      return current.toSpliced(nextGroup === -1 ? current.length : nextGroup, 0, line);
+    });
     edit(line);
   };
 

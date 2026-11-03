@@ -442,7 +442,12 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
 
       <IngredientsSection
         entries={draft.ingredients}
-        onChange={change('ingredients')}
+        onChange={(update) =>
+          setDraft((current) => ({
+            ...current,
+            ingredients: typeof update === 'function' ? update(current.ingredients) : update
+          }))
+        }
         view={ingredientsView}
         onViewChange={setIngredientsView}
         errors={ingredientErrors}
