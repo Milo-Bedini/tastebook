@@ -183,6 +183,18 @@ def with_recipe(**recipe: Any) -> list[dict[str, Any]]:
             ['Recipe "Curry" names no known ingredient: "unobtainium"'],
         ),
         (
+            with_recipe(title='Curry', ingredient_lines=['onion']),
+            ['Recipe "Curry": each ingredient line must be an object, but these are not: onion'],
+        ),
+        (
+            with_recipe(title='Curry', ingredient_groups=['For the sauce']),
+            ['Recipe "Curry": each ingredient group must be an object, but these are not: For the sauce'],
+        ),
+        (
+            with_recipe(title='Curry', ingredient_groups=[{'name': 'For the sauce', 'lines': ['onion']}]),
+            ['Recipe "Curry": each ingredient line must be an object, but these are not: onion'],
+        ),
+        (
             with_recipe(title='Curry', servings=4, yield_amount=12, yield_unit='biscuits'),
             ['Recipe "Curry": Give servings or a yield with its unit, not both.'],
         ),
@@ -195,7 +207,17 @@ def with_recipe(**recipe: Any) -> list[dict[str, Any]]:
             {'households': {'0': {'members': {'0': {'key': ['This value does not match the required pattern.']}}}}},
         ),
     ],
-    ids=['repeated-key', 'unknown-field', 'unknown-ingredient', 'servings-and-yield', 'no-members', 'capital-key'],
+    ids=[
+        'repeated-key',
+        'unknown-field',
+        'unknown-ingredient',
+        'line-not-an-object',
+        'group-not-an-object',
+        'group-line-not-an-object',
+        'servings-and-yield',
+        'no-members',
+        'capital-key',
+    ],
 )
 def test_a_description_the_seed_cannot_make_saves_nothing(
     test_accounts: Settings, households: list[dict[str, Any]], refusal: object

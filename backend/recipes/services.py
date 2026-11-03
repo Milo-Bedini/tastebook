@@ -118,7 +118,7 @@ def _add_described_recipe(author: User, record: Record, names: _Names) -> Recipe
         IngredientGroup(
             recipe=recipe, position=position, **_plain_fields(IngredientGroup, group, f'{where}, group', {'lines'})
         )
-        for position, group in enumerate(record.get('ingredient_groups', []))
+        for position, group in enumerate(_objects(record.get('ingredient_groups', []), where, 'ingredient group'))
     ]
     for group in groups:
         _save(group, f'{where}, group')
@@ -225,7 +225,7 @@ def _load_recipes(records: list[Record], names: _Names) -> list[Recipe]:
             IngredientGroup(
                 recipe=recipe, position=position, **_plain_fields(IngredientGroup, group, f'{where}, group', {'lines'})
             )
-            for position, group in enumerate(record.get('ingredient_groups', []))
+            for position, group in enumerate(_objects(record.get('ingredient_groups', []), where, 'ingredient group'))
         ]
         for recipe, record, where in loaded
     }
@@ -265,8 +265,15 @@ def _lines(
             **_plain_fields(IngredientLine, line, f'{where}, ingredient line', {'ingredient'}),
         )
         for group, group_lines in placed
-        for position, line in enumerate(group_lines)
+        for position, line in enumerate(_objects(group_lines, where, 'ingredient line'))
     ]
+
+
+def _objects(records: list[Any], where: str, kind: str) -> list[Record]:
+    unshaped = [str(record) for record in records if not isinstance(record, dict)]
+    if unshaped:
+        raise CatalogueError(f'{where}: each {kind} must be an object, but these are not: {", ".join(unshaped)}')
+    return records
 
 
 def _plain_fields(model: type[models.Model], record: Record, where: str, references: set[str]) -> Record:
