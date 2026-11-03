@@ -323,6 +323,10 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
         refuse(result.errors);
         return;
       }
+      // The recipe is cached as missing, so the page says it isn't found.
+      if (result.kind === 'gone') {
+        return;
+      }
       // Signed out meanwhile: the session's answer sends a visitor to sign-in, and back here after.
       const { data: account } = await checkSession();
       // Still signed in (a refused CSRF token, or the check failing), so nothing else says it wasn't saved.

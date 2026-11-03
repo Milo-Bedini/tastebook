@@ -7,12 +7,15 @@ type Recipe = components['schemas']['Recipe'];
 
 export type NewRecipe = components['schemas']['NewRecipe'];
 
+export type RecipeChanges = components['schemas']['PatchedRecipeChanges'];
+
 export type RecipeErrors = Partial<Record<keyof NewRecipe | 'non_field_errors', string>>;
 
 export type RecipeSaving =
   | { kind: 'saved'; recipe: Recipe }
   | { kind: 'refused'; errors: RecipeErrors }
-  | { kind: 'signed-out' };
+  | { kind: 'signed-out' }
+  | { kind: 'gone' };
 
 // DRF answers a refusal as {"<field>": ["…"], "non_field_errors": ["…"]}; the page shows each key's first message.
 const firstMessages = (body: unknown): RecipeErrors =>
@@ -50,6 +53,44 @@ export const useAddRecipe = () => {
       await queryClient.invalidateQueries({
         queryKey: ['recipes'],
         predicate: ({ queryKey }) => queryKey[1] !== result.recipe.slug
+      });
+    }
+  });
+};
+
+export const useEditRecipe = (slug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (changes: RecipeChanges): Promise<RecipeSaving> => {
+      const { data, error, response } = await api.PATCH('/api/recipes/{slug}/', {
+        params: { path: { slug } },
+        body: changes
+      });
+      if (data !== undefined) {
+        return { kind: 'saved', recipe: data };
+      }
+      if (response.status === 400) {
+        return { kind: 'refused', errors: firstMessages(error) };
+      }
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // Deleted, or the member has left its household meanwhile, so no retry can save it.
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Editing a recipe failed with ${response.status}`);
+    },
+    onSuccess: async (result) => {
+      if (result.kind !== 'saved' && result.kind !== 'gone') {
+        return;
+      }
+      // A recipe that's gone is cached as useRecipe caches a 404, so the page says it isn't found.
+      queryClient.setQueryData<Recipe | null>(['recipes', slug], result.kind === 'saved' ? result.recipe : null);
+      // Only the lists: the recipe just set is already current.
+      await queryClient.invalidateQueries({
+        queryKey: ['recipes'],
+        predicate: ({ queryKey }) => queryKey[1] !== slug
       });
     }
   });
