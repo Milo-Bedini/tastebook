@@ -7,15 +7,15 @@ type Recipe = components['schemas']['Recipe'];
 
 export type NewRecipe = components['schemas']['NewRecipe'];
 
-export type NewRecipeErrors = Partial<Record<keyof NewRecipe | 'non_field_errors', string>>;
+export type RecipeErrors = Partial<Record<keyof NewRecipe | 'non_field_errors', string>>;
 
-export type RecipeAdding =
-  | { kind: 'added'; recipe: Recipe }
-  | { kind: 'refused'; errors: NewRecipeErrors }
+export type RecipeSaving =
+  | { kind: 'saved'; recipe: Recipe }
+  | { kind: 'refused'; errors: RecipeErrors }
   | { kind: 'signed-out' };
 
 // DRF answers a refusal as {"<field>": ["…"], "non_field_errors": ["…"]}; the page shows each key's first message.
-const firstMessages = (body: unknown): NewRecipeErrors =>
+const firstMessages = (body: unknown): RecipeErrors =>
   typeof body === 'object' && body !== null
     ? Object.fromEntries(
         Object.entries(body).flatMap(([key, messages]) =>
@@ -27,10 +27,10 @@ const firstMessages = (body: unknown): NewRecipeErrors =>
 export const useAddRecipe = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (recipe: NewRecipe): Promise<RecipeAdding> => {
+    mutationFn: async (recipe: NewRecipe): Promise<RecipeSaving> => {
       const { data, error, response } = await api.POST('/api/recipes/', { body: recipe });
       if (data !== undefined) {
-        return { kind: 'added', recipe: data };
+        return { kind: 'saved', recipe: data };
       }
       if (response.status === 400) {
         return { kind: 'refused', errors: firstMessages(error) };
@@ -42,7 +42,7 @@ export const useAddRecipe = () => {
       throw new Error(`Adding a recipe failed with ${response.status}`);
     },
     onSuccess: async (result) => {
-      if (result.kind !== 'added') {
+      if (result.kind !== 'saved') {
         return;
       }
       queryClient.setQueryData<Recipe>(['recipes', result.recipe.slug], result.recipe);
