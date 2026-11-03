@@ -1,10 +1,11 @@
 import type { ComponentProps } from 'react';
 
 import type { components } from '../api/schema';
-import { Squiggle, TimeBlobs } from '../dino';
+import { PrivateMark, Squiggle, TimeBlobs } from '../dino';
 import { describeDietTagConflict } from './diet-tags';
 import { difficultyLabel } from './difficulty';
 import { formatMinutes } from './format-minutes';
+import { RecipeGaps } from './recipe-gaps';
 import { hasIngredients } from './recipe-ingredients';
 
 type Recipe = components['schemas']['Recipe'];
@@ -64,22 +65,23 @@ const SourceCredit = ({ source, sourceUrl }: SourceCreditProps) => {
   return <a href={sourceUrl}>{source}</a>;
 };
 
-// TimeBlobs shows two or three times, so a recipe missing its prep or cook time shows none.
-const timesOf = ({
-  prep_minutes,
-  cook_minutes,
-  extra_minutes,
-  extra_label
-}: Recipe): ComponentProps<typeof TimeBlobs>['times'] | null => {
-  if (prep_minutes === null || cook_minutes === null) {
+type Times = ComponentProps<typeof TimeBlobs>['times'];
+
+// Only the times the recipe has, in TimeBlobs' order: prep, cook, then the extra time.
+const timesOf = ({ prep_minutes, cook_minutes, extra_minutes, extra_label }: Recipe): Times | null => {
+  const times = [
+    prep_minutes === null ? null : { label: 'Prep', value: formatMinutes(prep_minutes) },
+    cook_minutes === null ? null : { label: 'Cook', value: formatMinutes(cook_minutes) },
+    extra_minutes === 0 ? null : { label: capitalise(extra_label), value: formatMinutes(extra_minutes) }
+  ].filter((time) => time !== null);
+  const [first, second, third] = times;
+  if (first === undefined) {
     return null;
   }
-  const prep = { label: 'Prep', value: formatMinutes(prep_minutes) };
-  const cook = { label: 'Cook', value: formatMinutes(cook_minutes) };
-  if (extra_minutes === 0) {
-    return [prep, cook];
+  if (second === undefined) {
+    return [first];
   }
-  return [prep, cook, { label: capitalise(extra_label), value: formatMinutes(extra_minutes) }];
+  return third === undefined ? [first, second] : [first, second, third];
 };
 
 const RecipeTimes = ({ recipe }: RecipeProps) => {
@@ -87,20 +89,25 @@ const RecipeTimes = ({ recipe }: RecipeProps) => {
   return times === null ? null : <TimeBlobs times={times} />;
 };
 
-export const RecipeIntro = ({ recipe }: RecipeProps) => (
-  <div className="flex flex-col gap-4">
-    <RecipeTitle title={recipe.title} />
-    {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
-    <p className="text-muted tabular-nums">{factsOf(recipe)}</p>
-    {recipe.equipment.length > 0 && <p className="text-muted">{`Equipment: ${namesOf(recipe.equipment)}`}</p>}
-    {recipe.source !== '' && (
-      <p className="min-w-0 break-words text-muted">
-        Source: <SourceCredit source={recipe.source} sourceUrl={recipe.source_url} />
-      </p>
-    )}
-    {recipe.diet_tag_conflicts.map((conflict) => (
-      <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
-    ))}
-    <RecipeTimes recipe={recipe} />
-  </div>
-);
+export const RecipeIntro = ({ recipe }: RecipeProps) => {
+  const facts = factsOf(recipe);
+  return (
+    <div className="flex flex-col gap-4">
+      <RecipeTitle title={recipe.title} />
+      {recipe.visibility === 'private' && <PrivateMark />}
+      {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
+      {facts !== '' && <p className="text-muted tabular-nums">{facts}</p>}
+      {recipe.equipment.length > 0 && <p className="text-muted">{`Equipment: ${namesOf(recipe.equipment)}`}</p>}
+      {recipe.source !== '' && (
+        <p className="min-w-0 break-words text-muted">
+          Source: <SourceCredit source={recipe.source} sourceUrl={recipe.source_url} />
+        </p>
+      )}
+      {recipe.diet_tag_conflicts.map((conflict) => (
+        <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
+      ))}
+      <RecipeTimes recipe={recipe} />
+      <RecipeGaps recipe={recipe} />
+    </div>
+  );
+};

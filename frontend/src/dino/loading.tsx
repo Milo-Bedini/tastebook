@@ -1,5 +1,6 @@
 import { cn } from '@/dino/cn';
 import type { Lean } from '@/dino/polaroid';
+import { Spinner } from '@/dino/spinner';
 
 const leanStyles: Record<Lean, string> = { left: '-rotate-3', right: 'rotate-3' };
 
@@ -18,13 +19,6 @@ const BlankPolaroid = ({ lean }: BlankPolaroidProps) => (
   </span>
 );
 
-const Spinner = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4.5 animate-spin motion-reduce:animate-none">
-    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-    <path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-  </svg>
-);
-
 type LoadingProps = {
   // What's happening, as an "-ing" line: "Finding recipes…".
   children: string;
@@ -37,7 +31,7 @@ export const Loading = ({ children }: LoadingProps) => (
       <BlankPolaroid lean="right" />
     </div>
     <p role="status" className="flex items-center gap-2.5 text-label">
-      <Spinner />
+      <Spinner className="size-4.5" />
       {children}
     </p>
   </div>
