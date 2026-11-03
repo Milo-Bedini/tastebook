@@ -214,6 +214,7 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
     recipe = recipe_json('shakshuka')
     assert {key: value for key, value in recipe.items() if key not in {'id', 'ingredient_groups', 'steps'}} == {
         'slug': 'shakshuka',
+        'visibility': 'public',
         'title': 'Shakshuka',
         'description': 'Eggs in spiced tomatoes.',
         'cuisines': [{'slug': 'spanish', 'name': 'Spanish'}],

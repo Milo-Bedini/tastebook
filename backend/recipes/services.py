@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
 
+from households.models import User
 from recipes.models import (
     RULED_OUT_BY,
     Course,
@@ -66,6 +67,23 @@ def load_catalogue(path: Path = CATALOGUE_PATH) -> LoadedCatalogue:
         Equipment.objects.exclude(pk__in=[row.pk for row in names.equipment.values()]).delete()
         Ingredient.objects.exclude(pk__in=[row.pk for row in names.ingredients.values()]).delete()
     return LoadedCatalogue(recipes=len(recipes), ingredients=len(names.ingredients), equipment=len(names.equipment))
+
+
+def add_recipe(author: User, details: Record, cuisines: list[Cuisine], courses: list[Course]) -> Recipe:
+    """Saves a private recipe in the author's household. Raises ValidationError when a pair is half given
+    (servings or a yield, extra time and its label)."""
+    with transaction.atomic():
+        recipe = Recipe(
+            household_id=author.household_id,
+            created_by=author,
+            slug=Recipe.objects.private_slug_for(details['title']),
+            **details,
+        )
+        recipe.full_clean()
+        recipe.save()
+        recipe.cuisines.set(cuisines)
+        recipe.courses.set(courses)
+    return recipe
 
 
 def _read(path: Path) -> Record:

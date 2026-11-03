@@ -13,6 +13,7 @@ from recipes.models import (
     IngredientLine,
     Recipe,
     Step,
+    Visibility,
 )
 
 
@@ -204,17 +205,33 @@ class RecipeFiltersSerializer(serializers.Serializer):
 
 
 class RecipeSummarySerializer(serializers.ModelSerializer):
+    visibility = serializers.ChoiceField(choices=Visibility.choices, read_only=True)
     cuisines = CuisineSerializer(many=True, read_only=True)
-    total_minutes = serializers.IntegerField(read_only=True)
+    # null unless prep and cook times are both given.
+    total_minutes = serializers.IntegerField(read_only=True, allow_null=True)
     # null when the recipe has no photo, so the card shows its cuisine plate.
     photo = RecipePhotoSerializer(read_only=True, allow_null=True)
     diet_tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = ['id', 'slug', 'title', 'description', 'cuisines', 'difficulty', 'total_minutes', 'photo', 'diet_tags']
-        # The API always sends description, as '' when there is none, so the schema marks it required.
-        extra_kwargs = {'description': {'required': True, 'allow_blank': True}}
+        fields = [
+            'id',
+            'slug',
+            'visibility',
+            'title',
+            'description',
+            'cuisines',
+            'difficulty',
+            'total_minutes',
+            'photo',
+            'diet_tags',
+        ]
+        # The API always sends these, as '' when there is none, so the schema marks them required.
+        extra_kwargs = {
+            'description': {'required': True, 'allow_blank': True},
+            'difficulty': {'required': True, 'allow_blank': True},
+        }
 
     @extend_schema_field(DietTagsField(read_only=True))
     def get_diet_tags(self, recipe: Recipe) -> list[DietTag]:
@@ -254,12 +271,15 @@ class RecipeSerializer(RecipeSummarySerializer):
         # The API always sends these, even when they're '', null or their default, so the schema marks them required.
         extra_kwargs = {
             **RecipeSummarySerializer.Meta.extra_kwargs,
+            'prep_minutes': {'required': True, 'allow_null': True},
+            'cook_minutes': {'required': True, 'allow_null': True},
             'extra_minutes': {'required': True},
             'extra_label': {'required': True, 'allow_blank': True},
             'yield_unit': {'required': True, 'allow_blank': True},
             'servings': {'required': True, 'allow_null': True},
             'yield_amount': {'required': True, 'allow_null': True},
             'one_pot': {'required': True},
+            'source': {'required': True, 'allow_blank': True},
             'source_url': {'required': True, 'allow_blank': True},
         }
 
@@ -277,3 +297,38 @@ class RecipeSerializer(RecipeSummarySerializer):
     @extend_schema_field(DietTagConflictSerializer(many=True))
     def get_diet_tag_conflicts(self, recipe: Recipe) -> list[dict[str, object]]:
         return DietTagConflictSerializer(services.diet_tag_conflicts(self._all_lines(recipe)), many=True).data
+
+
+BLANK_TITLE = "Give the recipe a title, like Grandma's curry."
+
+
+class NewRecipeSerializer(serializers.ModelSerializer):
+    """What the form sends to add a recipe. Only the title is required."""
+
+    title = serializers.CharField(max_length=200, error_messages={'blank': BLANK_TITLE, 'required': BLANK_TITLE})
+    cuisines = serializers.SlugRelatedField(
+        many=True, slug_field='slug', queryset=Cuisine.objects.all(), required=False, default=list
+    )
+    courses = serializers.SlugRelatedField(
+        many=True, slug_field='slug', queryset=Course.objects.all(), required=False, default=list
+    )
+
+    class Meta:
+        model = Recipe
+        fields = [
+            'title',
+            'description',
+            'cuisines',
+            'courses',
+            'difficulty',
+            'prep_minutes',
+            'cook_minutes',
+            'extra_minutes',
+            'extra_label',
+            'servings',
+            'yield_amount',
+            'yield_unit',
+            'one_pot',
+            'source',
+            'source_url',
+        ]

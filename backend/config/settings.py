@@ -233,5 +233,6 @@ SPECTACULAR_SETTINGS = {
         'DietTag': 'recipes.models.DietTag',
         'InviteStatus': 'households.models.InviteStatus',
         'UnitSystem': 'households.models.UnitSystem',
+        'Visibility': 'recipes.models.Visibility',
     },
 }
