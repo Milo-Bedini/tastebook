@@ -99,9 +99,9 @@ const RecipeControls = ({
   );
 };
 
-// The servings, Cups to grams and Show original aren't remembered, and the unit system opens as the account's, so every recipe opens
-// as written. The DOM keeps the phone's order at every width, so reading and focus order match; a laptop's grid places
-// the photo and ingredients on the left (5 parts) and the rest on the right (7).
+// The servings, Cups to grams and Show original aren't remembered, and the unit system opens as the account's, so every
+// recipe opens as written. The DOM keeps the phone's order at every width, so reading and focus order match; a laptop's
+// grid places the photo and ingredients on the left (5 parts) and the rest on the right (7).
 const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
   // The database holds exactly one of servings and a yield.
   const original = recipe.servings ?? recipe.yield_amount ?? 1;
