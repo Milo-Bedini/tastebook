@@ -187,6 +187,7 @@ describe('NewRecipePage', () => {
     });
   });
 
+  // Takes each half of every pair the model constrains alone: a yield and its unit, extra time and its label.
   it.each<[string, () => Promise<unknown>, string, string, () => Promise<unknown>]>([
     [
       'an empty title',
@@ -220,6 +221,17 @@ describe('NewRecipePage', () => {
       () => typeInto('What it makes', 'cookies')
     ],
     [
+      'what it makes with no yield',
+      async () => {
+        await typeInto('Title', 'Cookies');
+        await userEvent.click(screen.getByRole('radio', { name: 'Makes' }));
+        await typeInto('What it makes', 'cookies');
+      },
+      'How many',
+      'Enter a number, like 4.',
+      () => typeInto('How many', '12')
+    ],
+    [
       "extra time with nothing it's for",
       async () => {
         await typeInto('Title', 'Curry');
@@ -228,6 +240,16 @@ describe('NewRecipePage', () => {
       "What it's for",
       'Say what the extra time is for, like marinating.',
       () => typeInto("What it's for", 'marinating')
+    ],
+    [
+      'what the extra time is for with no extra time',
+      async () => {
+        await typeInto('Title', 'Curry');
+        await typeInto("What it's for", 'marinating');
+      },
+      'Extra time',
+      'Enter whole minutes, like 20.',
+      () => typeInto('Extra time', '30')
     ]
   ])('refuses %s before sending, under its field, then sends once fixed', async (_, fill, field, message, fix) => {
     const sent = answerAdding();

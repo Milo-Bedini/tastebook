@@ -110,9 +110,11 @@ const checkDraft = (draft: Draft): NewRecipeErrors => {
     ['prep_minutes', !isMinutes(draft.prep), NOT_MINUTES],
     ['cook_minutes', !isMinutes(draft.cook), NOT_MINUTES],
     ['extra_minutes', !isMinutes(draft.extra), NOT_MINUTES],
+    ['extra_minutes', (isBlank(draft.extra) || Number(draft.extra) === 0) && !isBlank(draft.extraLabel), NOT_MINUTES],
     ['extra_label', !isBlank(draft.extra) && Number(draft.extra) !== 0 && isBlank(draft.extraLabel), NO_EXTRA_LABEL],
     ['servings', serves && !isCount(draft.servings), NOT_A_COUNT],
     ['yield_amount', makes && !isCount(draft.yieldAmount), NOT_A_COUNT],
+    ['yield_amount', makes && isBlank(draft.yieldAmount) && !isBlank(draft.yieldUnit), NOT_A_COUNT],
     ['yield_unit', makes && !isBlank(draft.yieldAmount) && isBlank(draft.yieldUnit), NO_YIELD_UNIT]
   ];
   return Object.fromEntries(checks.filter(([, fails]) => fails).map(([field, , message]) => [field, message]));
