@@ -9,7 +9,8 @@ from django.core.management import CommandError, call_command
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from recipes.models import Equipment, Ingredient, Recipe
+from households.models import Household
+from recipes.models import Course, Cuisine, Equipment, Ingredient, Recipe
 
 HAND_WRITTEN = [
     'Chicken tikka masala',
@@ -648,6 +649,18 @@ def with_line(**line: Any) -> dict[str, Any]:
             with_line(unit='handfuls'),
             "Recipe flapjacks: Value 'handfuls' is not a valid choice.",
         ),
+        *(
+            (
+                catalogue({key: value for key, value in FLAPJACKS.items() if key not in left_out}),
+                'Recipe flapjacks: A catalogue recipe needs a difficulty, prep and cook times, servings or a yield, '
+                'and a source credit.',
+            )
+            for left_out in [{'difficulty'}, {'prep_minutes'}, {'source'}, {'yield_amount', 'yield_unit'}]
+        ),
+        (
+            catalogue({**FLAPJACKS, 'slug': 'new'}),
+            'The recipe slug "new" is the address of the form for adding a recipe; give the recipe another slug',
+        ),
         (
             catalogue({key: value for key, value in FLAPJACKS.items() if key != 'slug'}),
             'Every recipe needs a slug: it keeps the recipe the same recipe from one load to the next',
@@ -702,3 +715,38 @@ def test_a_file_the_database_cant_hold_fails_and_changes_nothing(
 
     assert str(error.value) == message
     assert titles() == ['Shakshuka']
+
+
+def household_recipe() -> Recipe:
+    recipe = Recipe.objects.create(
+        household=Household.objects.create(name='The Quillfeathers'), title="Grandma's curry", slug='grandmas-curry'
+    )
+    recipe.cuisines.set(Cuisine.objects.filter(name='Italian'))
+    recipe.courses.set(Course.objects.filter(name='Main'))
+    return recipe
+
+
+@pytest.mark.django_db
+def test_loading_leaves_a_households_recipe_its_cuisines_and_its_courses_alone(tmp_path: Path) -> None:
+    household_recipe()
+
+    call_command('load_catalogue', write(tmp_path / 'catalogue.json', catalogue(SHAKSHUKA)))
+
+    recipe = Recipe.objects.get(household__isnull=False)
+    assert (recipe.slug, recipe.title) == ('grandmas-curry', "Grandma's curry")
+    assert [cuisine.name for cuisine in recipe.cuisines.all()] == ['Italian']
+    assert [course.name for course in recipe.courses.all()] == ['Main']
+
+
+@pytest.mark.django_db
+def test_a_file_recipe_with_a_households_recipes_slug_fails_and_leaves_it_alone(tmp_path: Path) -> None:
+    household_recipe()
+
+    with pytest.raises(CommandError) as error:
+        call_command(
+            'load_catalogue',
+            write(tmp_path / 'catalogue.json', catalogue({**SHAKSHUKA, 'slug': 'grandmas-curry'})),
+        )
+
+    assert str(error.value) == 'Recipe grandmas-curry: Recipe with this Slug already exists.'
+    assert Recipe.objects.get(slug='grandmas-curry').title == "Grandma's curry"
