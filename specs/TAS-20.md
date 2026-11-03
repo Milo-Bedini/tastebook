@@ -1,8 +1,8 @@
 ---
 issue: TAS-20
-status: draft # draft | approved | building | done
+status: done # draft | approved | building | done
 branch: tastebook/tas-20-convert-volume-to-weight-for-dry-ingredients
-pr:
+pr: 117
 ---
 
 # Convert volume to weight for dry ingredients
