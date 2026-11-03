@@ -90,9 +90,22 @@ const whatHappensTo = (yours: Household) => {
   return `You'll leave ${yours.name}. ${names.format(others.map((member) => member.name))} ${others.length === 1 ? 'stays' : 'stay'} in it.`;
 };
 
-type JoinDialogProps = { household: InvitedHousehold; yours: Household; joining: boolean; onJoin: () => void };
+const whatComesWithYou = (recipesToCopy: number, household: InvitedHousehold) => {
+  if (recipesToCopy === 0) {
+    return '';
+  }
+  return ` Your ${recipesToCopy} private ${recipesToCopy === 1 ? 'recipe' : 'recipes'} will be copied into ${household.name}.`;
+};
 
-const JoinDialog = ({ household, yours, joining, onJoin }: JoinDialogProps) => (
+type JoinDialogProps = {
+  household: InvitedHousehold;
+  recipesToCopy: number;
+  yours: Household;
+  joining: boolean;
+  onJoin: () => void;
+};
+
+const JoinDialog = ({ household, recipesToCopy, yours, joining, onJoin }: JoinDialogProps) => (
   <ConfirmDialog
     trigger={
       <Button loading={joining} loadingLabel="Joining…">
@@ -100,15 +113,15 @@ const JoinDialog = ({ household, yours, joining, onJoin }: JoinDialogProps) => (
       </Button>
     }
     title={`Join ${household.name}?`}
-    description={whatHappensTo(yours)}
+    description={whatHappensTo(yours) + whatComesWithYou(recipesToCopy, household)}
     confirmLabel="Join household"
     onConfirm={onJoin}
   />
 );
 
-type JoinOfferProps = { household: InvitedHousehold; token: string; onDead: () => void };
+type JoinOfferProps = { household: InvitedHousehold; recipesToCopy: number; token: string; onDead: () => void };
 
-const JoinOffer = ({ household, token, onDead }: JoinOfferProps) => {
+const JoinOffer = ({ household, recipesToCopy, token, onDead }: JoinOfferProps) => {
   const { household: yours, errorUpdatedAt, refetch } = useHousehold();
   const joinHousehold = useJoinHousehold(token);
   const navigate = useNavigate();
@@ -161,7 +174,13 @@ const JoinOffer = ({ household, token, onDead }: JoinOfferProps) => {
         </ul>
       </section>
       <div className="flex flex-wrap items-start gap-2">
-        <JoinDialog household={household} yours={yours} joining={joinHousehold.isPending} onJoin={join} />
+        <JoinDialog
+          household={household}
+          recipesToCopy={recipesToCopy}
+          yours={yours}
+          joining={joinHousehold.isPending}
+          onJoin={join}
+        />
       </div>
     </div>
   );
@@ -195,7 +214,14 @@ const InviteDetails = ({ token, signedIn }: { token: string; signedIn: boolean }
   if (!signedIn || invite.household === null) {
     return <SignInToJoin token={token} />;
   }
-  return <JoinOffer household={invite.household} token={token} onDead={() => setWentDead(true)} />;
+  return (
+    <JoinOffer
+      household={invite.household}
+      recipesToCopy={invite.recipes_to_copy}
+      token={token}
+      onDead={() => setWentDead(true)}
+    />
+  );
 };
 
 const JoinContent = () => {
