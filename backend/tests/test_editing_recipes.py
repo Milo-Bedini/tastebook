@@ -142,6 +142,20 @@ def test_an_edit_the_recipe_cant_hold_is_refused(body: dict[str, Any], key: str,
     assert title_of(slug) == CURRY
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize('body', ['ingredient_lines', 42, ['ingredient_lines'], []])
+def test_an_edit_that_isnt_a_json_object_is_refused(body: object) -> None:
+    milo, slug = milos_curry()
+
+    response = milo.client.patch(f'{RECIPES}{slug}/', body, format='json', **milo.csrf_header())
+
+    assert (response.status_code, response.json()) == (
+        400,
+        {'non_field_errors': ['Send the changes as a JSON object.']},
+    )
+    assert title_of(slug) == CURRY
+
+
 def signed_out(slug: str) -> HttpResponse:
     return change(BrowserClient(), slug, {'title': 'Taken'})
 

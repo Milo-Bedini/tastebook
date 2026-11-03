@@ -129,6 +129,9 @@ class RecipeDetailView(RetrieveAPIView):
         if not request.user.is_authenticated or request.user.household_id is None:
             raise PermissionDenied
         recipe = get_object_or_404(Recipe.objects.editable_by(request.user), slug=slug)
+        # The body is split before a serializer sees it, so its shape is checked here; a form's QueryDict is a dict.
+        if not isinstance(request.data, dict):
+            raise ValidationError({'non_field_errors': ['Send the changes as a JSON object.']})
         changes = request.data.copy()
         sent = {name: changes.pop(name) for name in INGREDIENT_FIELDS if name in changes}
         given = RecipeChangesSerializer(data=changes, partial=True)
