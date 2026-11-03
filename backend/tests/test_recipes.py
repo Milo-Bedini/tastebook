@@ -383,6 +383,16 @@ def test_the_catalogue_pages_in_the_admin_show_each_row_read_only_and_say_where_
 
 
 @pytest.mark.django_db
+def test_the_recipe_list_in_the_admin_shows_catalogue_recipes_only(admin_client: Client) -> None:
+    make_recipe(title='Shakshuka')
+    make_recipe(title="Grandma's curry", household=Household.objects.create(name='The Quillfeathers'))
+
+    page = admin_client.get(reverse('admin:recipes_recipe_changelist')).content.decode()
+
+    assert ('Shakshuka' in page, 'Grandma&#x27;s curry' in page) == (True, False)
+
+
+@pytest.mark.django_db
 def test_the_recipe_page_in_the_admin_shows_its_ingredients_and_method_read_only(admin_client: Client) -> None:
     recipe = make_recipe(title='Shakshuka', source_url='https://en.wikibooks.org/wiki/Cookbook:Shakshouka')
     sauce = IngredientGroup.objects.create(recipe=recipe, name='For the sauce')
