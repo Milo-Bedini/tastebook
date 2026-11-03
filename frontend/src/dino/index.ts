@@ -20,6 +20,7 @@ export { Note } from './note';
 export { Page } from './page';
 export { type Lean, Polaroid } from './polaroid';
 export { PolaroidCard } from './polaroid-card';
+export { PrivateMark } from './private-mark';
 export { RecipePhoto } from './recipe-photo';
 export { RemovableChip } from './removable-chip';
 export { SegmentedControl } from './segmented-control';

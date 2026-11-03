@@ -109,7 +109,7 @@ Both faces are under the SIL Open Font License and are **bundled with the app**:
 ## Space and shape
 
 - **Spacing:** a 4 px base: 4, 8, 12, 16, 20, 24, 32, 48. Space siblings with `gap`, not margins. Side gutters are 20 px on phones and 32 px from tablets up ([Layout](#layout)).
-- **Corners:** pill (999 px) for controls (buttons, chips, one-line fields, steppers) and the dock; 32 px for a sheet's top corners; 28 px for the timer card; 24 px for cards, panels and a text area; 20 px for notes and banners; 10 px for checkboxes; 14 px for a checkbox row's hover fill and focus ring; 16 px for a list's options (the panel's corner less its border and padding); the three blob shapes for a recipe's times; square for polaroids. Something inside a rounded panel takes the panel's corner less its border and padding, never a pill inside a rounded box.
+- **Corners:** pill (999 px) for controls (buttons, chips, one-line fields, steppers) and the dock; 32 px for a sheet's top corners; 28 px for the timer card; 24 px for cards, panels and a text area; 20 px for notes and banners; 10 px for checkboxes and a mark (the private mark); 14 px for a checkbox row's hover fill and focus ring; 16 px for a list's options (the panel's corner less its border and padding); the three blob shapes for a recipe's times; square for polaroids. Something inside a rounded panel takes the panel's corner less its border and padding, never a pill inside a rounded box.
 - **Shadows:** the **press shadow** (`0 5px 0` in On pastel) sits under the screen's main action and the timer card, so they look pressable; pressed, they sink 3 px and the shadow shrinks to match (the sunk shadow, `0 2px 0` in On pastel). The **lift** (`0 12px 28px rgb(0 0 0 / 0.35)`) sits under polaroids, the dock and sheets. On a polaroid card the lift rises under the pointer (`0 18px 36px rgb(0 0 0 / 0.42)`) and settles while pressed (`0 6px 14px rgb(0 0 0 / 0.35)`). Nothing else has a shadow.
 - **Photos:** in a polaroid (below), 4:3 in lists and 7:5 at the top of a recipe, always with the credit. **No photo:** the polaroid keeps its frame and caption, and the photo's place shows one of two fillers: a hand-drawn place setting (a plate, fork and knife in On pastel on Paper, inside a dashed edge) or the rug (On pastel gingham on Paper with an empty plate). A recipe always gets the same one, picked from its ID, so neighbours tend to differ. Neither uses a pastel, which would claim a meaning. Enamel's cuisine plate goes.
 - **Motion:** 120 ms ease-out for a control's state changes; 150 ms ease-out fades and slides for sheets, dialogs and toasts; never over 200 ms. Nothing moves on its own except a running timer and the spinner of something that's working. `prefers-reduced-motion` turns it all off, the spinner included.
@@ -166,6 +166,7 @@ The set lives in `frontend/src/dino/` (Dino: shadcn/ui, restyled) and is exporte
 | Combobox | The ingredient picker: a field over a list on Surface with a 2 px field border and no shadow. The active option (the one Enter picks) has a Line fill and the focus outline on its own edge; matched letters are bold. Chosen items show as removable chips above. |
 | Filter chip | A toggle (`aria-pressed`), pill. Off: field outline. On: mint fill with a check icon, so the state never rests on colour alone. A removable chip names what it removes in its label. |
 | Sticker | Replaces Tag: describes a recipe (Vegan, Gluten-free) on its photo. Not interactive. |
+| Private mark | A Lucide lock and "Private" in Small Ink, on Surface with a 2 px transparent border and 10 px corners ([`design/dino/private-mark.dc.html`](design/dino/private-mark.dc.html)). On a private recipe's card, above its meta, and under its title on its page; a public recipe has none. It describes and is never a control: no hover, no tilt, never a pastel. |
 | Stepper | Servings: minus (outlined), "Serves 4", plus (mint), or a yield: "Makes 16 cookies"; the count is announced (`aria-live="polite"`). |
 | Segmented control | Two to four options, one chosen, as native radios in a Surface track: the chosen one is mint with a check. One tab stop; arrow keys move the choice. |
 | Checkbox row | Shopping list rows: 48 px tall, a 28 px box with 10 px corners; ticked, the box fills mint with a check and the row is struck through in muted and moves to the end of its group. |
@@ -198,7 +199,7 @@ Review checks new UI against these.
 
 **Shape**
 
-- Pills for controls (one-line fields among them), 24 px for cards and text areas, 32 px for sheets, 10 px for checkboxes, square for polaroids.
+- Pills for controls (one-line fields among them), 24 px for cards and text areas, 32 px for sheets, 10 px for checkboxes and marks, square for polaroids.
 - The press shadow only under the main action and the timer; the lift only under polaroids, the dock and sheets.
 - Every pastel control, every filled panel (notes, toasts, sheets, dialogs) and the dock's current tab has a 2 px transparent border, which forced colours draws.
 
