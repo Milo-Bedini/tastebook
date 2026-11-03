@@ -389,6 +389,34 @@ describe('RecipePage', () => {
     expect(screen.queryByRole('term')).not.toBeInTheDocument();
   });
 
+  it('says a private recipe has no diet tags until an ingredient someone added is checked', async () => {
+    const beans: Recipe = {
+      ...withIngredientsAndMethod,
+      slug: 'chipotle-beans-k7m2qx',
+      visibility: 'private',
+      title: 'Chipotle beans',
+      ingredient_lines: [
+        ...withIngredientsAndMethod.ingredient_lines,
+        {
+          ...line(9, 'chipotle paste'),
+          ingredient: { slug: 'chipotle-paste', name: 'chipotle paste', grams_per_cup: null, awaiting_review: true }
+        }
+      ]
+    };
+    server.use(http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>(beans)));
+
+    renderRoute('/recipes/chipotle-beans-k7m2qx');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Chipotle beans' })).toBeInTheDocument();
+    const missing = screen.getByText("What's missing").closest<HTMLElement>('[role="status"]');
+    expect(missing).not.toBeNull();
+    expect(
+      within(missing as HTMLElement)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent)
+    ).toEqual(["No diet tags until we've checked chipotle paste"]);
+  });
+
   it('lists what a private recipe is missing, and nothing for a public one missing the same', async () => {
     server.use(
       http.get('/api/recipes/:slug/', ({ params }) =>
