@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'health',
     'recipes',
+    'seed',
 ]
 
 MIDDLEWARE = [

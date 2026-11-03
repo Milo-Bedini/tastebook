@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/household/members/<int:member_id>/', HouseholdMemberView.as_view(), name='household-member'),
     path('api/invites/<str:token>/', InviteLinkView.as_view(), name='invite'),
     path('api/invites/<str:token>/join/', JoinView.as_view(), name='invite-join'),
+    path('api/test-accounts/seed/', include('seed.urls')),
     path('api/test-accounts/', include('households.urls')),
     # Ours first, so they answer on allauth's own paths: see households.views.
     path('api/_allauth/browser/v1/auth/code/request', RequestSignInCodeView.as_api_view(client=Client.BROWSER)),

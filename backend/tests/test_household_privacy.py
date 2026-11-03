@@ -72,6 +72,7 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         post('/api/invites/never-an-invite/join/'),
     ),
     'api/test-accounts/code/': (get('/api/test-accounts/code/?email={zebedee}'),),
+    'api/test-accounts/seed/': (post('/api/test-accounts/seed/'),),
     'api/_allauth/browser/v1/config': (get('/api/_allauth/browser/v1/config'),),
     'api/_allauth/browser/v1/auth/session': (get(f'{AUTH}/session'),),
     'api/_allauth/browser/v1/auth/reauthenticate': (post(f'{AUTH}/reauthenticate', {'password': 'guess'}),),

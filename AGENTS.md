@@ -69,6 +69,8 @@ Tests are black box: they go through a public interface and assert what a user o
 - [a] when a page shows nothing new once a request settles, wait for it to settle (`queryClient.isFetching()` from `renderRoute`) before asserting something is absent; an absence checked earlier passes whatever the response.
 - [a] when a change alters a story's look on purpose, commit its updated baselines (`frontend/visual/baselines/`) in the same PR, so the diff shows the old and new images.
 - [n] make baselines anywhere but a GitHub Actions Linux runner: fonts and anti-aliasing differ, and every shot would fail.
+- [a] start an e2e test or a verify walk that needs someone signed in from `seed()` (`frontend/e2e/fixtures.ts`), with a setup from `frontend/e2e/setups.ts` when one fits; go through the sign-in screens only when signing in or up is what's tested. A combination used by a second spec or walk becomes a named setup.
+- [a] when a PR adds a model, a field or a state the seed can't make, extend the seed (`backend/seed/` and the area's service it calls) in the same PR.
 
 ## Domain areas
 
@@ -100,11 +102,12 @@ frontend/
   src/dino/         Dino, the design-system components: shadcn/ui restyled, Picnic's tokens in picnic.css; add one with pnpm --filter frontend ui:add <name>; each component's stories sit beside it (`*.stories.tsx`)
   src/lib/          shared code with at least three users (none yet)
   src/test/         MSW server and default handlers, render helpers
-  e2e/              Playwright specs (run against the real backend)
+  e2e/              Playwright specs (run against the real backend); fixtures.ts's seed() gives signed-in accounts, setups.ts the named setups
   visual/           Playwright screenshot of every story, as it looks and under forced colours (visual/baselines/ and visual/baselines/forced-colours/), run against storybook-static
 backend/
   config/           settings, root URLs
   <app>/            one Django app per domain area (health/ is the example)
+  seed/             test-only endpoint that makes signed-in test accounts, households and recipes (POST /api/test-accounts/seed/); not an area: it calls every area's services.py and nothing imports it
   tests/            pytest suites
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts

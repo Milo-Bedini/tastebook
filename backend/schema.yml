@@ -535,6 +535,38 @@ paths:
           description: ''
         '404':
           description: No response body
+  /api/test-accounts/seed/:
+    post:
+      operationId: test_account_seed_create
+      description: Makes test accounts at tastebook.test in new households, with the
+        private recipes each wrote, and answers a signed-in session for each. Local
+        runs and previews only; 404 on production.
+      tags:
+      - test-accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Seed'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Seed'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Seed'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Seeded'
+          description: ''
+        '400':
+          description: A field, a repeated key, or a recipe the database cannot hold;
+            nothing is saved.
+        '404':
+          description: No response body
 components:
   schemas:
     Account:
@@ -1219,6 +1251,94 @@ components:
       - title
       - total_minutes
       - visibility
+    Seed:
+      type: object
+      properties:
+        households:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeedHousehold'
+      required:
+      - households
+    SeedHousehold:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeedMember'
+      required:
+      - members
+    SeedMember:
+      type: object
+      properties:
+        key:
+          type: string
+          pattern: ^[a-z][a-z0-9-]{0,19}$
+        name:
+          type: string
+          maxLength: 50
+        unit_system:
+          allOf:
+          - $ref: '#/components/schemas/UnitSystem'
+          description: |-
+            metric when not given.
+
+            * `metric` - Metric
+            * `us` - US customary
+        recipes:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          maxItems: 20
+      required:
+      - key
+      - name
+    Seeded:
+      type: object
+      properties:
+        session_cookie:
+          type: string
+        accounts:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SeededAccount'
+      required:
+      - accounts
+      - session_cookie
+    SeededAccount:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        session:
+          type: string
+        recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeededRecipe'
+      required:
+      - email
+      - name
+      - recipes
+      - session
+    SeededRecipe:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+      required:
+      - slug
+      - title
     SignInCode:
       type: object
       properties:
