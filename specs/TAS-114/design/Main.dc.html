@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Add a recipe, phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px}
+.head{display:flex;flex-direction:column;gap:12px}
+.lede{margin:0;color:var(--color-muted)}
+.form{display:flex;flex-direction:column;gap:40px}
+.grp{display:flex;flex-direction:column;gap:24px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.chips{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.chips legend{padding:0;margin:0 0 8px;font-size:15px;line-height:20px;font-weight:800}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.num{display:flex;align-items:center;gap:10px}
+.num .box{width:96px;flex-shrink:0}
+.unit{color:var(--color-muted)}
+.wait{margin:0;display:flex;align-items:center;gap:10px;font-size:15px;line-height:20px;font-weight:800}
+.wait svg{width:18px;height:18px}
+.boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 3060px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-114 part 2 · /recipes/new · phone, 390 px · signed in as Milo Bedini</span>
+    <h1 class="ttl">Add a recipe</h1>
+    <span class="cap">One column, in the spec’s field order, grouped under three section headings so the long form scans. Only the title is required; “Save recipe” is the screen’s one peach button, at the foot.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>As it opens</b> · from “Add a recipe” on the list; nothing chosen, Serves picked</span>
+      <div class="frame" style="height: 2420px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="head">
+            <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+            <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+          </div>
+          <form class="form" novalidate>
+            <div class="grp">
+              <div class="fld">
+                <label for="a-title" class="lbl">Title</label>
+                <x-import component-from-global-scope="Dino.Input" id="a-title" type="text" required="{{yes}}" max-length="{{t200}}" default-value=""></x-import>
+              </div>
+              <div class="fld">
+                <label for="a-desc" class="lbl">Description</label>
+                <x-import component-from-global-scope="Dino.TextArea" id="a-desc" max-length="{{t300}}" default-value="" aria-describedby="a-desc-help"></x-import>
+                <p id="a-desc-help" class="help">A line or two about it.</p>
+              </div>
+              <fieldset class="chips">
+                <legend>Cuisines</legend>
+                <div class="wrap">
+                  <sc-for list="{{cuisines}}" as="c" hint-placeholder-count="18">
+                    <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                  </sc-for>
+                </div>
+              </fieldset>
+              <fieldset class="chips">
+                <legend>Courses</legend>
+                <div class="wrap">
+                  <sc-for list="{{courses}}" as="c" hint-placeholder-count="5">
+                    <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                  </sc-for>
+                </div>
+              </fieldset>
+              <div class="fld">
+                <span class="lbl" aria-hidden="true">Difficulty</span>
+                <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Difficulty" options="{{difficulties}}" value="" on-value-change="{{noop}}"></x-import></div>
+              </div>
+              <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">One-pot</x-import>
+            </div>
+
+            <section class="grp" aria-labelledby="a-h-times">
+              <h2 id="a-h-times">Times</h2>
+              <div class="pair">
+                <div class="fld">
+                  <label for="a-prep" class="lbl">Prep time</label>
+                  <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="a-prep" type="text" input-mode="numeric" default-value="" aria-describedby="a-prep-unit"></x-import></div><span id="a-prep-unit" class="unit">minutes</span></div>
+                </div>
+                <div class="fld">
+                  <label for="a-cook" class="lbl">Cook time</label>
+                  <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="a-cook" type="text" input-mode="numeric" default-value="" aria-describedby="a-cook-unit"></x-import></div><span id="a-cook-unit" class="unit">minutes</span></div>
+                </div>
+              </div>
+              <div class="fld">
+                <label for="a-extra" class="lbl">Extra time</label>
+                <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="a-extra" type="text" input-mode="numeric" default-value="" aria-describedby="a-extra-unit"></x-import></div><span id="a-extra-unit" class="unit">minutes</span></div>
+              </div>
+              <div class="fld">
+                <label for="a-extra-for" class="lbl">What it’s for</label>
+                <x-import component-from-global-scope="Dino.Input" id="a-extra-for" type="text" default-value="" aria-describedby="a-extra-help"></x-import>
+                <p id="a-extra-help" class="help">Marinating, resting or proving.</p>
+              </div>
+            </section>
+
+            <section class="grp" aria-labelledby="a-h-serves">
+              <h2 id="a-h-serves">Serves or makes</h2>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="serves" on-value-change="{{noop}}"></x-import></div>
+              <div class="fld">
+                <label for="a-serves" class="lbl">How many people</label>
+                <div class="box" style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="a-serves" type="text" input-mode="numeric" default-value=""></x-import></div>
+              </div>
+            </section>
+
+            <section class="grp" aria-labelledby="a-h-source">
+              <h2 id="a-h-source">Where it’s from</h2>
+              <div class="fld">
+                <label for="a-source" class="lbl">Source credit</label>
+                <x-import component-from-global-scope="Dino.Input" id="a-source" type="text" default-value="" aria-describedby="a-source-help"></x-import>
+                <p id="a-source-help" class="help">Who wrote it: a book, a website or a person.</p>
+              </div>
+              <div class="fld">
+                <label for="a-url" class="lbl">Source address</label>
+                <x-import component-from-global-scope="Dino.Input" id="a-url" type="url" default-value=""></x-import>
+              </div>
+            </section>
+
+            <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save recipe</x-import></div>
+          </form>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Filled in</b> · Middle Eastern, Baking and Side chosen, Medium, Makes picked; every field but the address</span>
+      <div class="frame" style="height: 2420px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="head">
+            <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+            <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+          </div>
+          <form class="form" novalidate>
+            <div class="grp">
+              <div class="fld">
+                <label for="b-title" class="lbl">Title</label>
+                <x-import component-from-global-scope="Dino.Input" id="b-title" type="text" required="{{yes}}" max-length="{{t200}}" default-value="Za’atar flatbreads"></x-import>
+              </div>
+              <div class="fld">
+                <label for="b-desc" class="lbl">Description</label>
+                <x-import component-from-global-scope="Dino.TextArea" id="b-desc" max-length="{{t300}}" default-value="Soft, blistered flatbreads brushed with za’atar oil. Make the dough the night before." aria-describedby="b-desc-help"></x-import>
+                <p id="b-desc-help" class="help">A line or two about it.</p>
+              </div>
+              <fieldset class="chips">
+                <legend>Cuisines</legend>
+                <div class="wrap">
+                  <sc-for list="{{cuisinesChosen}}" as="c" hint-placeholder-count="18">
+                    <x-import component-from-global-scope="Dino.FilterChip" pressed="{{c.on}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                  </sc-for>
+                </div>
+              </fieldset>
+              <fieldset class="chips">
+                <legend>Courses</legend>
+                <div class="wrap">
+                  <sc-for list="{{coursesChosen}}" as="c" hint-placeholder-count="5">
+                    <x-import component-from-global-scope="Dino.FilterChip" pressed="{{c.on}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                  </sc-for>
+                </div>
+              </fieldset>
+              <div class="fld">
+                <span class="lbl" aria-hidden="true">Difficulty</span>
+                <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Difficulty" options="{{difficulties}}" value="medium" on-value-change="{{noop}}"></x-import></div>
+              </div>
+              <x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">One-pot</x-import>
+            </div>
+
+            <section class="grp" aria-labelledby="b-h-times">
+              <h2 id="b-h-times">Times</h2>
+              <div class="pair">
+                <div class="fld">
+                  <label for="b-prep" class="lbl">Prep time</label>
+                  <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="b-prep" type="text" input-mode="numeric" default-value="15" aria-describedby="b-prep-unit"></x-import></div><span id="b-prep-unit" class="unit">minutes</span></div>
+                </div>
+                <div class="fld">
+                  <label for="b-cook" class="lbl">Cook time</label>
+                  <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="b-cook" type="text" input-mode="numeric" default-value="30" aria-describedby="b-cook-unit"></x-import></div><span id="b-cook-unit" class="unit">minutes</span></div>
+                </div>
+              </div>
+              <div class="fld">
+                <label for="b-extra" class="lbl">Extra time</label>
+                <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="b-extra" type="text" input-mode="numeric" default-value="60" aria-describedby="b-extra-unit"></x-import></div><span id="b-extra-unit" class="unit">minutes</span></div>
+              </div>
+              <div class="fld">
+                <label for="b-extra-for" class="lbl">What it’s for</label>
+                <x-import component-from-global-scope="Dino.Input" id="b-extra-for" type="text" default-value="Proving" aria-describedby="b-extra-help"></x-import>
+                <p id="b-extra-help" class="help">Marinating, resting or proving.</p>
+              </div>
+            </section>
+
+            <section class="grp" aria-labelledby="b-h-serves">
+              <h2 id="b-h-serves">Serves or makes</h2>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="makes" on-value-change="{{noop}}"></x-import></div>
+              <div class="fld">
+                <label for="b-amount" class="lbl">How many</label>
+                <div class="box" style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="b-amount" type="text" input-mode="numeric" default-value="12"></x-import></div>
+              </div>
+              <div class="fld">
+                <label for="b-unit" class="lbl">What it makes</label>
+                <x-import component-from-global-scope="Dino.Input" id="b-unit" type="text" default-value="flatbreads" aria-describedby="b-unit-help"></x-import>
+                <p id="b-unit-help" class="help">Cookies, flatbreads or jars.</p>
+              </div>
+            </section>
+
+            <section class="grp" aria-labelledby="b-h-source">
+              <h2 id="b-h-source">Where it’s from</h2>
+              <div class="fld">
+                <label for="b-source" class="lbl">Source credit</label>
+                <x-import component-from-global-scope="Dino.Input" id="b-source" type="text" default-value="Grandma Bedini" aria-describedby="b-source-help"></x-import>
+                <p id="b-source-help" class="help">Who wrote it: a book, a website or a person.</p>
+              </div>
+              <div class="fld">
+                <label for="b-url" class="lbl">Source address</label>
+                <x-import component-from-global-scope="Dino.Input" id="b-url" type="url" default-value=""></x-import>
+              </div>
+            </section>
+
+            <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save recipe</x-import></div>
+          </form>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col" style="gap: 40px">
+      <div class="col">
+        <span class="cap"><b>The chips still loading</b> · the rest of the form already works</span>
+        <div class="frame" style="height: 700px">
+          <header class="bar"><div class="in">
+            <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+            <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+            <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+          </div></header>
+          <main class="page"><div class="stack">
+            <div class="head">
+              <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+              <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+            </div>
+            <form class="form" novalidate>
+              <div class="grp">
+                <div class="fld">
+                  <label for="c-title" class="lbl">Title</label>
+                  <x-import component-from-global-scope="Dino.Input" id="c-title" type="text" required="{{yes}}" max-length="{{t200}}" default-value="Grandma’s cu"></x-import>
+                </div>
+                <fieldset class="chips" aria-busy="true">
+                  <legend>Cuisines</legend>
+                  <p class="wait" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"></circle><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path></svg>Loading cuisines…</p>
+                </fieldset>
+                <fieldset class="chips" aria-busy="true">
+                  <legend>Courses</legend>
+                  <p class="wait" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"></circle><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path></svg>Loading courses…</p>
+                </fieldset>
+              </div>
+            </form>
+          </div></main>
+        </div>
+      </div>
+
+      <div class="col">
+        <span class="cap"><b>The cuisines couldn’t load</b> · the courses did; Try again reloads only the cuisines</span>
+        <div class="frame" style="height: 860px">
+          <header class="bar"><div class="in">
+            <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+            <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+            <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+          </div></header>
+          <main class="page"><div class="stack">
+            <div class="head">
+              <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+              <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+            </div>
+            <form class="form" novalidate>
+              <div class="grp">
+                <div class="fld">
+                  <label for="d-title" class="lbl">Title</label>
+                  <x-import component-from-global-scope="Dino.Input" id="d-title" type="text" required="{{yes}}" max-length="{{t200}}" default-value="Grandma’s curry"></x-import>
+                </div>
+                <fieldset class="chips">
+                  <legend>Cuisines</legend>
+                  <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load the cuisines" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+                </fieldset>
+                <fieldset class="chips">
+                  <legend>Courses</legend>
+                  <div class="wrap">
+                    <sc-for list="{{courses}}" as="c" hint-placeholder-count="5">
+                      <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                    </sc-for>
+                  </div>
+                </fieldset>
+              </div>
+            </form>
+          </div></main>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>One column at every width, in the spec’s order.</b> The title, description, cuisines, courses, difficulty and one-pot sit first with no heading; then three Title section headings, “Times”, “Serves or makes” and “Where it’s from”, so a long form scans and a screen reader can jump between its parts. One-pot moved up beside difficulty, since it describes the dish rather than its timing; it’s still the spec’s Switch.</p>
+    <p><b>Short numbers get short fields.</b> Times and amounts are 96 px pills with “minutes” after them in Muted (tied to the field with <code>aria-describedby</code>), so the field’s width says “a number goes here” (NN/g 5). Prep and cook share a row; extra time and what it’s for stack, with the spec’s help under “What it’s for”.</p>
+    <p><b>Serves or makes</b> is the spec’s segmented control. Serves shows “How many people”; Makes shows “How many” and “What it makes”, with help “Cookies, flatbreads or jars.” Switching keeps what was typed in each, and only the chosen one is sent.</p>
+    <p><b>Difficulty</b> has a fourth option, “None”, chosen as the form opens, so “no difficulty” is a choice you can see and go back to. The spec’s “Not set” wraps onto two lines in the segmented control at 390 px; “None” fits. The word above the control is decorative; the control’s own legend names it for screen readers, as on the account page.</p>
+    <p><b>The chip groups wait on their own.</b> While they load, each group shows a spinner and “Loading cuisines…” in place of the chips (not Loading’s blank polaroids, which mean a list of recipes). A failure is ErrorWithRetry inside that group alone; Title and everything else keep working.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":3060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var names = ['American', 'British', 'Caribbean', 'Chinese', 'French', 'German', 'Greek', 'Indian', 'Italian', 'Japanese', 'Korean', 'Mexican', 'Middle Eastern', 'Moroccan', 'Spanish', 'Thai', 'Turkish', 'Vietnamese'];
+    var courseNames = ['Baking', 'Breakfast', 'Dessert', 'Main', 'Side'];
+    return {
+      icons: window.Dino.icons, yes: true, no: false, t200: 200, t300: 300,
+      noop: function () {}, retry: function () { return Promise.resolve(); },
+      cuisines: names.map(function (name) { return { name: name }; }),
+      courses: courseNames.map(function (name) { return { name: name }; }),
+      cuisinesChosen: names.map(function (name) { return { name: name, on: name === 'Middle Eastern' }; }),
+      coursesChosen: courseNames.map(function (name) { return { name: name, on: name === 'Baking' || name === 'Side' }; }),
+      difficulties: [{ value: '', label: 'None' }, { value: 'easy', label: 'Easy' }, { value: 'medium', label: 'Medium' }, { value: 'hard', label: 'Hard' }],
+      servesOrMakes: [{ value: 'serves', label: 'Serves' }, { value: 'makes', label: 'Makes' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

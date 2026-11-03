@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The list: Add a recipe and the private mark</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.in-l{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 32px;max-width:1200px;margin:0 auto;box-sizing:border-box}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.sf{width:360px}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:32px}
+.page-l{padding:32px 32px 48px;max-width:1200px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;gap:32px}
+.page h1,.page-l h1{margin:0}
+.head{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.count{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:32px}
+.list-l{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:36px;row-gap:44px}
+.meta{margin:0}
+.pmark{display:inline-flex;align-items:center;gap:4px;width:fit-content;box-sizing:border-box;padding:2px 8px 2px 6px;border:2px solid transparent;border-radius:var(--radius-check);background:var(--color-surface);color:var(--color-ink);font-size:13px;line-height:17px;font-weight:700;margin-bottom:4px}
+.pmark svg{width:14px;height:14px;flex-shrink:0}
+.side{border:2px dashed var(--color-line);border-radius:var(--radius-card);min-height:520px;display:flex;align-items:flex-start;padding:20px;box-sizing:border-box;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 2260px; height: 1940px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-114 part 2 · / · the recipe list, signed in (with two private recipes) and signed out</span>
+    <h1 class="ttl">The list: Add a recipe and the private mark</h1>
+    <span class="cap">“Add a recipe” sits under the title for everyone. Each private recipe’s card carries the private mark above its meta; a public recipe shows nothing new.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Signed in, phone</b> · Grandma’s curry has only a title and Indian; Za’atar flatbreads has every detail</span>
+      <div class="frame" style="width: 390px; height: 1380px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page">
+          <div class="head">
+            <h1>What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a recipe</x-import>
+            <p class="count" role="status">14 recipes</p>
+          </div>
+          <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.SlidersHorizontal" aria-hidden="true" stroke-width="{{sw}}"></x-import>Filters</x-import></div>
+          <ul class="list">
+            <sc-for list="{{signedIn}}" as="r" hint-placeholder-count="6">
+              <li>
+                <x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nothing}}" lean="{{r.lean}}">
+                  <sc-if value="{{r.private}}" hint-placeholder-val="{{no}}">
+                    <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+                  </sc-if>
+                  <sc-if value="{{r.hasMeta}}" hint-placeholder-val="{{yes}}">
+                    <p class="meta">{{r.meta}}</p>
+                  </sc-if>
+                </x-import>
+              </li>
+            </sc-for>
+          </ul>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Signed out, phone</b> · public recipes only; Add a recipe leads through sign-in to the form</span>
+      <div class="frame" style="width: 390px; height: 1380px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div></header>
+        <main class="page">
+          <div class="head">
+            <h1>What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a recipe</x-import>
+            <p class="count" role="status">12 recipes</p>
+          </div>
+          <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.SlidersHorizontal" aria-hidden="true" stroke-width="{{sw}}"></x-import>Filters</x-import></div>
+          <ul class="list">
+            <sc-for list="{{signedOut}}" as="r" hint-placeholder-count="6">
+              <li>
+                <x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nothing}}" lean="{{r.lean}}">
+                  <p class="meta">{{r.meta}}</p>
+                </x-import>
+              </li>
+            </sc-for>
+          </ul>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Signed in, laptop</b> · the button under the title, above the count; the filters column as today</span>
+      <div class="frame" style="width: 1280px; height: 1380px">
+        <header class="bar"><div class="in-l">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="sf"><x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import></div>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page-l">
+          <div class="head">
+            <h1>What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a recipe</x-import>
+            <p class="count" role="status">14 recipes</p>
+          </div>
+          <div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 48px; align-items: start">
+            <aside class="side" aria-label="Filters">The filters column, unchanged (browse board)</aside>
+            <ul class="list-l">
+              <sc-for list="{{signedIn}}" as="r" hint-placeholder-count="8">
+                <li>
+                  <x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nothing}}" lean="{{r.lean}}">
+                    <sc-if value="{{r.private}}" hint-placeholder-val="{{no}}">
+                      <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+                    </sc-if>
+                    <sc-if value="{{r.hasMeta}}" hint-placeholder-val="{{yes}}">
+                      <p class="meta">{{r.meta}}</p>
+                    </sc-if>
+                  </x-import>
+                </li>
+              </sc-for>
+            </ul>
+          </div>
+        </main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>Add a recipe is a secondary Button with a plus</b>, under the title and above the count, so it reads as something you can do here without taking peach from a screen whose job is finding a recipe. It’s a link to <code>/recipes/new</code>; signed out it’s the same, and the form sends you through sign-in and back.</p>
+    <p><b>The mark sits above the meta</b>, inside the card’s meta block, so it’s read with the card (the meta is the link’s description) and the meta line wraps as it does today. A card with only a title shows the mark alone. Signed out, no card has one.</p>
+    <p><b>A missing time or difficulty just drops out of the meta</b> (“Indian” for Grandma’s curry), as part 1 already does; the card never says “no time”.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2260,"height":1940}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var withLean = function (list) { return list.map(function (r, i) { return Object.assign({ lean: i % 2 === 0 ? 'left' : 'right', hasMeta: r.meta !== '' }, r); }); };
+    var catalogue = [
+      { id: 3, title: 'Chana masala', meta: '1 hr 45 min · Easy · Indian', private: false },
+      { id: 8, title: 'Shakshuka', meta: '35 min · Easy · Middle Eastern', private: false },
+      { id: 11, title: 'Apple tart', meta: '1 hr 10 min · Medium · French', private: false },
+      { id: 14, title: 'Pad see ew', meta: '30 min · Medium · Thai', private: false },
+      { id: 19, title: 'Minestrone', meta: '55 min · Easy · Italian', private: false },
+      { id: 22, title: 'Bibimbap', meta: '50 min · Medium · Korean', private: false }
+    ];
+    var signedIn = [
+      catalogue[0],
+      { id: 101, title: 'Grandma’s curry', meta: 'Indian', private: true },
+      catalogue[1],
+      { id: 102, title: 'Za’atar flatbreads', meta: '1 hr 45 min · Medium · Middle Eastern', private: true },
+      catalogue[2], catalogue[3], catalogue[4], catalogue[5]
+    ];
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.5, nothing: null, noop: function () {},
+      signedIn: withLean(signedIn),
+      signedOut: withLean(catalogue)
+    };
+  }
+}
+</script>
+</body>
+</html>

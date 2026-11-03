@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>A private recipe, laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:1280px;height:860px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 32px;max-width:1200px;margin:0 auto;box-sizing:border-box}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.sf{width:360px}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:32px 32px 48px;max-width:1200px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;gap:24px}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.body{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:64px;align-items:start}
+.left{padding:8px 24px 0}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0;overflow-wrap:break-word}
+.intro p{margin:0}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.pmark{display:inline-flex;align-items:center;gap:4px;width:fit-content;box-sizing:border-box;padding:2px 8px 2px 6px;border:2px solid transparent;border-radius:var(--radius-check);background:var(--color-surface);color:var(--color-ink);font-size:13px;line-height:17px;font-weight:700}
+.pmark svg{width:14px;height:14px;flex-shrink:0}
+.gaps{margin:0;padding:0 0 0 20px;list-style:disc;display:flex;flex-direction:column;gap:2px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1240px; box-sizing: border-box; padding: 56px 60px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-114 part 2 · /recipes/midweek-dal-p4wz8n · laptop, 1280 px · signed in, in the recipe’s household</span>
+    <h1 class="ttl">A private recipe, laptop</h1>
+    <span class="cap">The two columns, 5 to 7. The mark and the Banner belong to the intro, so both sit in the right-hand column; the left keeps the polaroid, with no ingredients under it.</span>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <span class="cap"><b>Prep and cook, no servings</b> · two blobs; three things missing</span>
+    <div class="frame">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="sf"><x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import></div>
+        <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+      </div></header>
+      <main class="page">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+        <div class="body">
+          <div class="left">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{idB}}" alt="Midweek dal"></x-import></x-import>
+          </div>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Midweek</x-import> dal</h1>
+            <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+            <p class="muted">Red lentils with a tarka of cumin and garlic. On the table in under an hour.</p>
+            <p class="facts">50 min · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{twoTimes}}"></x-import>
+            <x-import component-from-global-scope="Dino.Banner" tone="warning" title="What’s missing">
+              <ul class="gaps">
+                <li>No ingredients yet</li>
+                <li>No method yet</li>
+                <li>No servings yet</li>
+              </ul>
+            </x-import>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>The Banner follows the blobs</b>, where the servings stepper and units would be, so it fills the gap the missing parts leave rather than pushing the title down. It’s as wide as the intro column, so its lines stay short.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, sw: 2.5, nothing: null, idB: 104, noop: function () {},
+      twoTimes: [{ label: 'Prep', value: '10 min' }, { label: 'Cook', value: '40 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

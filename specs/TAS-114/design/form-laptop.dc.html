@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Add a recipe, laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:1280px;height:2000px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 32px;max-width:1200px;margin:0 auto;box-sizing:border-box}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.sf{width:360px}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:32px 32px 48px;max-width:1200px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:640px}
+.head{display:flex;flex-direction:column;gap:12px}
+.lede{margin:0;color:var(--color-muted)}
+.form{display:flex;flex-direction:column;gap:40px}
+.grp{display:flex;flex-direction:column;gap:24px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.chips{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.chips legend{padding:0;margin:0 0 8px;font-size:15px;line-height:20px;font-weight:800}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.num{display:flex;align-items:center;gap:10px}
+.num .box{width:96px;flex-shrink:0}
+.unit{color:var(--color-muted)}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2480px; box-sizing: border-box; padding: 56px 60px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-114 part 2 · /recipes/new · laptop, 1280 px · signed in as Milo Bedini</span>
+    <h1 class="ttl">Add a recipe, laptop</h1>
+    <span class="cap">The same column, 640 px at most, set at the content’s left edge under the wordmark. Only the times spread out: prep, cook and extra share a row. Tablet is the phone’s layout with 32 px gutters.</span>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <span class="cap"><b>Filling it in</b> · Indian and Main chosen, Easy, Serves 4</span>
+    <div class="frame">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="sf"><x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import></div>
+        <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+      </div></header>
+      <main class="page"><div class="stack">
+        <div class="head">
+          <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+          <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+        </div>
+        <form class="form" novalidate>
+          <div class="grp">
+            <div class="fld">
+              <label for="l-title" class="lbl">Title</label>
+              <x-import component-from-global-scope="Dino.Input" id="l-title" type="text" required="{{yes}}" max-length="{{t200}}" default-value="Grandma’s curry"></x-import>
+            </div>
+            <div class="fld">
+              <label for="l-desc" class="lbl">Description</label>
+              <x-import component-from-global-scope="Dino.TextArea" id="l-desc" max-length="{{t300}}" default-value="Mild, with potatoes and peas. Better the next day." aria-describedby="l-desc-help"></x-import>
+              <p id="l-desc-help" class="help">A line or two about it.</p>
+            </div>
+            <fieldset class="chips">
+              <legend>Cuisines</legend>
+              <div class="wrap">
+                <sc-for list="{{cuisines}}" as="c" hint-placeholder-count="18">
+                  <x-import component-from-global-scope="Dino.FilterChip" pressed="{{c.on}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                </sc-for>
+              </div>
+            </fieldset>
+            <fieldset class="chips">
+              <legend>Courses</legend>
+              <div class="wrap">
+                <sc-for list="{{courses}}" as="c" hint-placeholder-count="5">
+                  <x-import component-from-global-scope="Dino.FilterChip" pressed="{{c.on}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                </sc-for>
+              </div>
+            </fieldset>
+            <div class="fld">
+              <span class="lbl" aria-hidden="true">Difficulty</span>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Difficulty" options="{{difficulties}}" value="easy" on-value-change="{{noop}}"></x-import></div>
+            </div>
+            <div style="max-width: 320px"><x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">One-pot</x-import></div>
+          </div>
+
+          <section class="grp" aria-labelledby="l-h-times">
+            <h2 id="l-h-times">Times</h2>
+            <div class="three">
+              <div class="fld">
+                <label for="l-prep" class="lbl">Prep time</label>
+                <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="l-prep" type="text" input-mode="numeric" default-value="20" aria-describedby="l-prep-unit"></x-import></div><span id="l-prep-unit" class="unit">minutes</span></div>
+              </div>
+              <div class="fld">
+                <label for="l-cook" class="lbl">Cook time</label>
+                <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="l-cook" type="text" input-mode="numeric" default-value="45" aria-describedby="l-cook-unit"></x-import></div><span id="l-cook-unit" class="unit">minutes</span></div>
+              </div>
+              <div class="fld">
+                <label for="l-extra" class="lbl">Extra time</label>
+                <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="l-extra" type="text" input-mode="numeric" default-value="" aria-describedby="l-extra-unit"></x-import></div><span id="l-extra-unit" class="unit">minutes</span></div>
+              </div>
+            </div>
+            <div class="fld">
+              <label for="l-extra-for" class="lbl">What it’s for</label>
+              <x-import component-from-global-scope="Dino.Input" id="l-extra-for" type="text" default-value="" aria-describedby="l-extra-help"></x-import>
+              <p id="l-extra-help" class="help">Marinating, resting or proving.</p>
+            </div>
+          </section>
+
+          <section class="grp" aria-labelledby="l-h-serves">
+            <h2 id="l-h-serves">Serves or makes</h2>
+            <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="serves" on-value-change="{{noop}}"></x-import></div>
+            <div class="fld">
+              <label for="l-serves" class="lbl">How many people</label>
+              <div style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="l-serves" type="text" input-mode="numeric" default-value="4"></x-import></div>
+            </div>
+          </section>
+
+          <section class="grp" aria-labelledby="l-h-source">
+            <h2 id="l-h-source">Where it’s from</h2>
+            <div class="fld">
+              <label for="l-source" class="lbl">Source credit</label>
+              <x-import component-from-global-scope="Dino.Input" id="l-source" type="text" default-value="Grandma Bedini" aria-describedby="l-source-help"></x-import>
+              <p id="l-source-help" class="help">Who wrote it: a book, a website or a person.</p>
+            </div>
+            <div class="fld">
+              <label for="l-url" class="lbl">Source address</label>
+              <x-import component-from-global-scope="Dino.Input" id="l-url" type="url" default-value=""></x-import>
+            </div>
+          </section>
+
+          <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save recipe</x-import></div>
+        </form>
+      </div></main>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>The column stays narrow on a laptop</b> (640 px, under 68 characters a line in the description), so the eye doesn’t travel from a label to a far-off field. Fields keep full column width except the number fields, which stay 96 px at every width.</p>
+    <p><b>Save recipe stays at the form’s foot</b>, not pinned, at every width: it’s the screen’s one peach button and the form is read top to bottom.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2480}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var names = ['American', 'British', 'Caribbean', 'Chinese', 'French', 'German', 'Greek', 'Indian', 'Italian', 'Japanese', 'Korean', 'Mexican', 'Middle Eastern', 'Moroccan', 'Spanish', 'Thai', 'Turkish', 'Vietnamese'];
+    var courseNames = ['Baking', 'Breakfast', 'Dessert', 'Main', 'Side'];
+    return {
+      yes: true, no: false, t200: 200, t300: 300, noop: function () {},
+      cuisines: names.map(function (name) { return { name: name, on: name === 'Indian' }; }),
+      courses: courseNames.map(function (name) { return { name: name, on: name === 'Main' }; }),
+      difficulties: [{ value: '', label: 'None' }, { value: 'easy', label: 'Easy' }, { value: 'medium', label: 'Medium' }, { value: 'hard', label: 'Hard' }],
+      servesOrMakes: [{ value: 'serves', label: 'Serves' }, { value: 'makes', label: 'Makes' }]
+    };
+  }
+}
+</script>
+</body>
+</html>
