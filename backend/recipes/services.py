@@ -86,6 +86,49 @@ def add_recipe(author: User, details: Record, cuisines: list[Cuisine], courses: 
     return recipe
 
 
+def add_described_recipes(author: User, records: list[Record]) -> list[Recipe]:
+    """Saves private recipes in the author's household, each from a record shaped as a recipe in the catalogue file
+    without its slug. Raises CatalogueError naming the recipe and what the database can't hold in it."""
+    names = _Names(
+        cuisines=_by_name(Cuisine.objects.all()),
+        courses=_by_name(Course.objects.all()),
+        equipment=_by_name(Equipment.objects.all()),
+        ingredients=_by_name(Ingredient.objects.all()),
+    )
+    with transaction.atomic():
+        return [_add_described_recipe(author, record, names) for record in records]
+
+
+def _add_described_recipe(author: User, record: Record, names: _Names) -> Recipe:
+    references = {'cuisines', 'courses', 'equipment', 'ingredient_lines', 'ingredient_groups', 'steps'}
+    # A missing title is left to full_clean, so it's refused with a message rather than a KeyError.
+    title = record.get('title', '')
+    where = f'Recipe "{title}"'
+    recipe = Recipe(
+        household_id=author.household_id,
+        created_by=author,
+        slug=Recipe.objects.private_slug_for(title),
+        **_plain_fields(Recipe, record, where, references),
+    )
+    _save(recipe, where)
+    recipe.cuisines.set(_look_up(names.cuisines, record.get('cuisines', []), where, 'cuisine'))
+    recipe.courses.set(_look_up(names.courses, record.get('courses', []), where, 'course'))
+    recipe.equipment.set(_look_up(names.equipment, record.get('equipment', []), where, 'equipment'))
+    groups = [
+        IngredientGroup(
+            recipe=recipe, position=position, **_plain_fields(IngredientGroup, group, f'{where}, group', {'lines'})
+        )
+        for position, group in enumerate(record.get('ingredient_groups', []))
+    ]
+    for group in groups:
+        _save(group, f'{where}, group')
+    for line in _lines(recipe, record, groups, names, where):
+        _save(line, f'{where}, ingredient line')
+    for position, text in enumerate(record.get('steps', [])):
+        _save(Step(recipe=recipe, position=position, text=text), f'{where}, step')
+    return recipe
+
+
 def _read(path: Path) -> Record:
     try:
         with path.open(encoding='utf-8') as file:
@@ -112,7 +155,7 @@ def _refuse_repeats(values: Iterable[str], what: str) -> None:
         raise CatalogueError(f'{what} must be unique, but these repeat: {", ".join(repeated)}')
 
 
-def _by_name[M: Cuisine | Course](rows: Iterable[M]) -> dict[str, M]:
+def _by_name[M: Cuisine | Course | Equipment | Ingredient](rows: Iterable[M]) -> dict[str, M]:
     return {row.name: row for row in rows}
 
 

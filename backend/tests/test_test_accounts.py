@@ -6,10 +6,10 @@ from pytest_django.fixtures import Settings
 from rest_framework.test import APIClient
 
 from households.models import StoredSignInCode
+from tests.conftest import SECRET
 from tests.test_accounts import BrowserClient
 
 CODE = '/api/test-accounts/code/'
-SECRET = 'bypass-secret-for-tests'
 
 
 @pytest.fixture(autouse=True)
@@ -18,14 +18,6 @@ def no_rate_limits_carried_over() -> Iterator[None]:
     cache.clear()
     yield
     cache.clear()
-
-
-@pytest.fixture
-def test_accounts(settings: Settings) -> Settings:
-    settings.TEST_ACCOUNTS_ENABLED = True
-    settings.TEST_ACCOUNT_CODES_NEED_SECRET = False
-    settings.TEST_ACCOUNT_SECRET = SECRET
-    return settings
 
 
 def stored_code(email: str) -> str:

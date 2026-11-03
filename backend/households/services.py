@@ -1,14 +1,17 @@
 import hmac
 import logging
 import math
+import secrets
 import smtplib
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import partial
+from importlib import import_module
 from typing import Any
 
 from allauth.account.authentication import get_authentication_records
+from allauth.account.models import EmailAddress
 from allauth.core.internal.ratelimit import Rate, get_cache_key, get_rates
 from allauth.mfa.base.internal.flows import post_authentication
 from allauth.mfa.models import Authenticator
@@ -16,6 +19,7 @@ from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
 from allauth.mfa.totp.forms import ActivateTOTPForm
 from allauth.mfa.totp.internal.flows import activate_totp
 from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
@@ -65,6 +69,43 @@ def latest_sign_in_code(email: str) -> str | None:
 
 def household_name_for(name: str) -> str:
     return f"{name}'s household"
+
+
+@dataclass(frozen=True)
+class TestMember:
+    key: str
+    name: str
+    unit_system: UnitSystem
+
+
+def add_test_household(name: str | None, members: list[TestMember]) -> list[User]:
+    """A new household of new test accounts, one a member, in the members' order; named after the first member when
+    no name is given. Each account has no usable password and a verified address at the test domain made of its key
+    and eight random hex characters, so a seed never meets an account that exists."""
+    household = Household.objects.create(name=name or household_name_for(members[0].name))
+    accounts = [
+        User.objects.create_user(
+            f'{member.key}-{secrets.token_hex(4)}@{settings.TEST_ACCOUNT_DOMAIN}',
+            name=member.name,
+            household=household,
+            unit_system=member.unit_system,
+        )
+        for member in members
+    ]
+    # Without a verified address, signing in by code later would stop to verify it.
+    EmailAddress.objects.bulk_create(
+        [EmailAddress(user=account, email=account.email, verified=True, primary=True) for account in accounts]
+    )
+    return accounts
+
+
+def start_session(account: User) -> str:
+    """Signs the account in on a new session, as signing in does, and returns the session's key."""
+    request = HttpRequest()
+    request.session = import_module(settings.SESSION_ENGINE).SessionStore()
+    login(request, account, backend='django.contrib.auth.backends.ModelBackend')
+    request.session.save()
+    return request.session.session_key
 
 
 def name_account(user: User, name: str) -> User:
