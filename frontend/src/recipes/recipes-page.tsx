@@ -1,7 +1,7 @@
-import { SlidersHorizontal } from 'lucide-react';
+import { Plus, SlidersHorizontal } from 'lucide-react';
 import type { RefObject } from 'react';
 import { useCallback, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import type { components } from '../api/schema';
 import type { Lean } from '../dino';
@@ -247,6 +247,13 @@ export const RecipesPage = () => {
         <h1>
           What shall we <Squiggle emphasis>cook</Squiggle> tonight?
         </h1>
+        {/* For everyone: signed out, the form sends you through sign-in and back. */}
+        <Button asChild variant="secondary" className="self-start">
+          <Link to="/recipes/new">
+            <Plus aria-hidden="true" strokeWidth={2.5} />
+            Add a recipe
+          </Link>
+        </Button>
         {shown !== undefined && <RecipeCount count={shown.recipes.length} />}
       </div>
       {isLaptop ? (

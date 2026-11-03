@@ -10,6 +10,7 @@ import { server } from '../test/server';
 import { filterParams } from './recipe-filters';
 
 type Course = components['schemas']['Course'];
+type CurrentAccount = components['schemas']['CurrentAccount'];
 type Cuisine = components['schemas']['Cuisine'];
 type IngredientOption = components['schemas']['IngredientOption'];
 type Recipe = components['schemas']['RecipeSummary'];
@@ -380,6 +381,17 @@ describe('RecipesPage', () => {
         ]
       ]
     ]);
+  });
+
+  it.each([
+    ['signed out', null],
+    ['signed in', { email: 'sam@example.com', name: 'Milo', unit_system: 'metric' }]
+  ] as const)('offers "Add a recipe" %s, leading to the form', async (_, account) => {
+    server.use(http.get('/api/account/', () => HttpResponse.json<CurrentAccount>({ account })));
+
+    renderRoute('/recipes');
+
+    expect(await screen.findByRole('link', { name: 'Add a recipe' })).toHaveAttribute('href', '/recipes/new');
   });
 
   it('marks a private recipe\'s card "Private", and not a public one\'s', async () => {
