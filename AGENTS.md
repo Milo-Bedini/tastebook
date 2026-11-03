@@ -112,7 +112,7 @@ backend/
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; no `let` in frontend/)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; no `let` in frontend/; no hand-built button with a hover style and no pressed one)
 specs/              one spec per issue, plus lessons/
 ```
 

@@ -1,0 +1,13 @@
+language js
+
+JsxAttribute() as $attribute where {
+  $filename <: r".*frontend/src/.*",
+  not $filename <: r".*frontend/src/dino/.*",
+  $attribute <: r"className=[\s\S]*hover:[\s\S]*",
+  not $attribute <: r"[\s\S]*active:[\s\S]*",
+  $attribute <: within or {
+    JsxOpeningElement(name=$name),
+    JsxSelfClosingElement(name=$name)
+  } where { $name <: r"button" },
+  register_diagnostic(span=$attribute, message="Give a hand-built button with a hover style a pressed one too, like Dino's secondary and ghost buttons' active:scale-97 active:bg-line (docs/design.md › States).")
+}

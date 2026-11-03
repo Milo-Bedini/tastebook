@@ -316,7 +316,7 @@ const RowButton = ({ error, errorId, onPress, buttonRef, className, children }: 
     ref={buttonRef}
     aria-describedby={error === undefined ? undefined : errorId}
     onClick={onPress}
-    className={`-mx-2 flex w-[calc(100%+1rem)] cursor-pointer items-center gap-3 rounded-row p-2 text-left hover:bg-surface ${className ?? 'min-h-16'}`}
+    className={`-mx-2 flex w-[calc(100%+1rem)] cursor-pointer items-center gap-3 rounded-row p-2 text-left transition hover:bg-surface active:scale-97 active:bg-line ${className ?? 'min-h-16'}`}
   >
     <span className="flex min-w-0 grow flex-col gap-0.5">
       {children}
