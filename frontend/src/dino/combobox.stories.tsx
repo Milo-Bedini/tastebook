@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fireEvent, fn, userEvent, within } from 'storybook/test';
 
 import { Combobox, type ComboboxOption } from '@/dino/combobox';
 import { matchRange } from '@/dino/match-range';
@@ -186,5 +186,56 @@ export const WrappedHint = {
     await expect(text?.height).toBeGreaterThan(30);
     await expect(text?.top).toBeGreaterThanOrEqual(box.top + 12);
     await expect(text?.bottom).toBeLessThanOrEqual(box.bottom - 12);
+  }
+} satisfies Story;
+
+// Keys are fired at the input rather than typed, so it never takes focus: the screenshot blurs whatever play left
+// focused, and the blur would close the list this story shows.
+export const WithAddOption = {
+  args: {
+    label: 'Add an ingredient',
+    chosen: [],
+    search: 'chipotle paste',
+    defaultOpen: true,
+    addOption: { label: 'Add “chipotle paste”', onAdd: fn() }
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const combobox = canvas.getByRole('combobox', { name: 'Add an ingredient' });
+    await expect(activeOption(combobox)).toBe(canvas.getByRole('option', { name: 'Add “chipotle paste”' }));
+    await expect(canvas.queryByText('No ingredients match.')).not.toBeInTheDocument();
+
+    fireEvent.keyDown(combobox, { key: 'Enter' });
+    await expect(args.addOption?.onAdd).toHaveBeenCalledOnce();
+    await expect(combobox).toHaveAttribute('aria-expanded', 'false');
+    await expect(combobox).toHaveValue('chipotle paste');
+
+    fireEvent.keyDown(combobox, { key: 'ArrowDown' });
+    await expect(activeOption(combobox)).toHaveAccessibleName('Add “chipotle paste”');
+  }
+} satisfies Story;
+export const WithAddOptionBelowMatches = {
+  args: {
+    label: 'Add an ingredient',
+    options: [
+      { value: 'chicken-thighs', name: 'chicken thighs' },
+      { value: 'chickpeas', name: 'chickpeas', hint: 'also garbanzo beans' }
+    ],
+    chosen: [],
+    search: 'chick',
+    addOption: { label: 'Add “chick”', onAdd: fn() }
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const combobox = canvas.getByRole('combobox', { name: 'Add an ingredient' });
+
+    fireEvent.keyDown(combobox, { key: 'ArrowUp' });
+    await expect(canvas.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'chicken thighs',
+      'chickpeas · also garbanzo beans',
+      'Add “chick”'
+    ]);
+    await expect(activeOption(combobox)).toBe(canvas.getByRole('option', { name: 'Add “chick”' }));
+    await expect(canvas.getByRole('option', { name: 'Add “chick”' }).querySelector('b')).toHaveTextContent(/^chick$/);
   }
 } satisfies Story;
