@@ -295,7 +295,11 @@ const NewRecipeForm = () => {
         return;
       }
       // Signed out meanwhile: the session's answer sends a visitor to sign-in, and back here after.
-      await checkSession();
+      const { data: account } = await checkSession();
+      // Still signed in (a refused CSRF token, or the check failing), so nothing else says it wasn't saved.
+      if (account !== null) {
+        toast.error("Couldn't save the recipe. Check your connection and try again.");
+      }
     } catch {
       toast.error("Couldn't save the recipe. Check your connection and try again.");
     }

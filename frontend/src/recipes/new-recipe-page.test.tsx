@@ -320,6 +320,30 @@ describe('NewRecipePage', () => {
     expect(router.state.location.search).toBe('?next=%2Frecipes%2Fnew');
   });
 
+  it.each<[string, () => Response]>([
+    ['the session still says signed in', () => HttpResponse.json<CurrentAccount>(signedIn)],
+    ["the session can't be checked", () => new HttpResponse(null, { status: 503 })]
+  ])('says the recipe was not saved when Save is refused and %s', async (_, sessionAnswer) => {
+    const state = { refused: false };
+    answerAdding(() => {
+      state.refused = true;
+      return new HttpResponse(null, { status: 403 });
+    });
+    server.use(
+      http.get('/api/account/', () => (state.refused ? sessionAnswer() : HttpResponse.json<CurrentAccount>(signedIn)))
+    );
+    const { router } = await openForm();
+
+    await typeInto('Title', "Grandma's curry");
+    await save();
+
+    expect(
+      await screen.findByText("Couldn't save the recipe. Check your connection and try again.")
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/recipes/new');
+    expect(textbox('Title')).toHaveValue("Grandma's curry");
+  });
+
   it('keeps what was typed and says so when the recipe could not be sent', async () => {
     answerAdding(() => HttpResponse.error());
     await openForm();
