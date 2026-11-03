@@ -4,6 +4,7 @@ import { Slot } from 'radix-ui';
 import { type ComponentProps, type MouseEvent, useId } from 'react';
 
 import { cn } from '@/dino/cn';
+import { Spinner } from '@/dino/spinner';
 
 const buttonVariants = cva(
   'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-pill border-2 border-transparent no-underline transition aria-disabled:cursor-not-allowed aria-busy:cursor-progress aria-disabled:not-aria-busy:border-dashed aria-disabled:not-aria-busy:border-field aria-disabled:not-aria-busy:bg-surface aria-disabled:not-aria-busy:text-muted aria-disabled:not-aria-busy:shadow-none [&_svg]:pointer-events-none [&_svg]:size-4.5 [&_svg]:shrink-0',
@@ -44,13 +45,6 @@ type ButtonProps = ButtonBaseProps &
     | ({ asChild?: false } & DisabledProps & LoadingProps)
     | { asChild: true; disabled?: undefined; disabledReason?: undefined; loading?: undefined; loadingLabel?: undefined }
   );
-
-const Spinner = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="animate-spin motion-reduce:animate-none">
-    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-    <path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-  </svg>
-);
 
 const layer = 'col-start-1 row-start-1 inline-flex items-center justify-center gap-2';
 

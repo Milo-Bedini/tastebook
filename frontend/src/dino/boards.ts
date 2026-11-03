@@ -17,6 +17,7 @@ export const boardByTitle: Record<string, `docs/design/${string}.dc.png`> = {
   'Dino/EmptyState': 'docs/design/dino/feedback.dc.png',
   'Dino/ErrorWithRetry': 'docs/design/dino/feedback.dc.png',
   'Dino/Loading': 'docs/design/dino/feedback.dc.png',
+  'Dino/Spinner': 'docs/design/picnic/recipe-new.dc.png',
   'Dino/Field': 'docs/design/dino/fields.dc.png',
   'Dino/Input': 'docs/design/dino/fields.dc.png',
   'Dino/NativeSelect': 'docs/design/dino/fields.dc.png',
