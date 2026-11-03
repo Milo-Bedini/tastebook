@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { expect, fireEvent, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '@/dino/button';
 import { CheckboxRow } from '@/dino/checkbox-row';
+import { Field } from '@/dino/field';
+import { Input } from '@/dino/input';
 import { Note } from '@/dino/note';
 import { Sheet } from '@/dino/sheet';
 
@@ -151,5 +153,42 @@ export const Open = {
     await step('Ends open', async () => {
       await openSheet();
     });
+  }
+} satisfies Story;
+
+// Opened by a control outside it, with focus put on a field of the caller's choosing.
+export const OpensOnAField = {
+  args: { trigger: undefined, title: 'Onion', description: undefined },
+  render: (args) => {
+    const [open, setOpen] = useState(false);
+    const amount = useRef<HTMLInputElement>(null);
+    return (
+      <>
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Onion
+        </Button>
+        <Sheet
+          {...args}
+          open={open}
+          onOpenChange={setOpen}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            amount.current?.focus();
+          }}
+        >
+          <Field label="Amount" help="Like 2, ½ or 2-3. Leave it empty for “to taste”.">
+            {(control) => <Input {...control} ref={amount} />}
+          </Field>
+          <Button onClick={() => setOpen(false)}>Done</Button>
+        </Sheet>
+      </>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Onion' }));
+    const sheet = body.getByRole('dialog', { name: 'Onion' });
+    await waitFor(() => expect(sheet).toBeVisible());
+    await expect(within(sheet).getByRole('textbox', { name: 'Amount' })).toHaveFocus();
   }
 } satisfies Story;
