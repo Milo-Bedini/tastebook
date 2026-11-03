@@ -1,4 +1,3 @@
-import hmac
 from http import HTTPStatus
 from typing import Any
 
@@ -6,7 +5,6 @@ from allauth.headless.account.inputs import ConfirmLoginCodeInput, RequestLoginC
 from allauth.headless.account.views import ConfirmLoginCodeView, RequestLoginCodeView, SignupView, VerifyEmailView
 from allauth.headless.base.response import ConflictResponse, RateLimitResponse
 from allauth.headless.internal.restkit.response import ErrorResponse
-from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -37,21 +35,13 @@ from households.services import (
     latest_sign_in_code,
     leave_household,
     make_invite,
+    may_use_test_accounts,
     members_of,
     remove_member,
     rename_household,
     seconds_until_allowed,
     update_account,
 )
-
-
-def may_read_codes(request: Request) -> bool:
-    if not settings.TEST_ACCOUNTS_ENABLED:
-        return False
-    if not settings.TEST_ACCOUNT_CODES_NEED_SECRET:
-        return True
-    secret = request.headers.get('X-Test-Account-Secret', '')
-    return bool(settings.TEST_ACCOUNT_SECRET) and hmac.compare_digest(secret, settings.TEST_ACCOUNT_SECRET)
 
 
 class TestAccountCodeView(APIView):
@@ -67,7 +57,7 @@ class TestAccountCodeView(APIView):
     )
     def get(self, request: Request) -> Response:
         email = request.query_params.get('email', '')
-        if not may_read_codes(request) or not is_test_account(email):
+        if not may_use_test_accounts(request.headers) or not is_test_account(email):
             raise NotFound
         code = latest_sign_in_code(email)
         if code is None:

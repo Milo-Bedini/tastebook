@@ -1,7 +1,9 @@
+import hmac
 import logging
 import math
 import smtplib
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import partial
 from typing import Any
@@ -41,6 +43,15 @@ logger = logging.getLogger(__name__)
 
 def is_test_account(email: str) -> bool:
     return email.rpartition('@')[2].lower() == settings.TEST_ACCOUNT_DOMAIN
+
+
+def may_use_test_accounts(headers: Mapping[str, str]) -> bool:
+    if not settings.TEST_ACCOUNTS_ENABLED:
+        return False
+    if not settings.TEST_ACCOUNT_CODES_NEED_SECRET:
+        return True
+    secret = headers.get('X-Test-Account-Secret', '')
+    return bool(settings.TEST_ACCOUNT_SECRET) and hmac.compare_digest(secret, settings.TEST_ACCOUNT_SECRET)
 
 
 def store_sign_in_code(email: str, code: str) -> None:
