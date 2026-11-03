@@ -1,2 +1,2 @@
-// Ingredient names and labels are stored in lower case; a list or a heading shows them capitalised.
+// Ingredient names can begin in lower case, but a row, a sheet's title or a heading starts with a capital.
 export const capitalise = (text: string) => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
