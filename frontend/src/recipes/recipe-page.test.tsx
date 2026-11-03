@@ -334,6 +334,43 @@ describe('RecipePage', () => {
     ]);
   });
 
+  it('leaves a private recipe for "Recipe not found" when its household member signs out on it', async () => {
+    const signOuts: string[] = [];
+    const curry: Recipe = {
+      ...shakshuka,
+      slug: 'grandmas-curry-k7m2qx',
+      visibility: 'private',
+      title: "Grandma's curry"
+    };
+    server.use(
+      http.get('/api/account/', () =>
+        HttpResponse.json<CurrentAccount>({
+          account: signOuts.length > 0 ? null : { email: 'sam@example.com', name: 'Sam', unit_system: 'metric' }
+        })
+      ),
+      // allauth answers a sign out with 401: nobody is signed in now.
+      http.delete('/api/_allauth/browser/v1/auth/session', ({ request }) => {
+        signOuts.push(new URL(request.url).pathname);
+        return HttpResponse.json(
+          { status: 401, data: { flows: [] }, meta: { is_authenticated: false } },
+          { status: 401 }
+        );
+      }),
+      // Only a member of its household is shown it: signed out, it isn't found.
+      http.get('/api/recipes/:slug/', () =>
+        signOuts.length > 0 ? new HttpResponse(null, { status: 404 }) : HttpResponse.json<Recipe>(curry)
+      )
+    );
+    renderRoute('/recipes/grandmas-curry-k7m2qx');
+    expect(await screen.findByRole('heading', { level: 1, name: "Grandma's curry" })).toBeInTheDocument();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Account for Sam' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
+
+    expect(await screen.findByRole('heading', { name: 'Recipe not found' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: "Grandma's curry" })).not.toBeInTheDocument();
+  });
+
   it('puts the squiggle under the longest word of the name', async () => {
     server.use(
       http.get('/api/recipes/:slug/', () =>

@@ -12,8 +12,7 @@ import {
   signUp,
   verifyEmail
 } from './auth-api';
-import { forgetHousehold } from './household-api';
-import { SESSION_KEY } from './session-api';
+import { forgetSignedInData, SESSION_KEY } from './session-api';
 
 type Rejected = Extract<AuthResult, { kind: 'rejected' }>;
 
@@ -28,10 +27,8 @@ export type TwoFactorConfirmation = SignedIn | Rejected;
 // The page shows only these outcomes; anything else allauth answers is treated like a failed request.
 const unexpected = (result: AuthResult): Error => new Error(`Unexpected sign-in answer: ${result.kind}`);
 
-const signedIn = (queryClient: QueryClient) => {
-  forgetHousehold(queryClient);
-  return queryClient.invalidateQueries({ queryKey: SESSION_KEY });
-};
+const signedIn = (queryClient: QueryClient) =>
+  Promise.all([forgetSignedInData(queryClient), queryClient.invalidateQueries({ queryKey: SESSION_KEY })]);
 
 const isUnknownEmail = (result: AuthResult): boolean =>
   result.kind === 'rejected' && result.status === 400 && result.errors[0]?.code === 'unknown_email';

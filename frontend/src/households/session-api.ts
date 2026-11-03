@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '../api/client';
 import { type Account, signOut } from './auth-api';
@@ -21,6 +21,12 @@ export const useSession = () => {
   return { account: data, isPending, isError, errorUpdatedAt, refetch };
 };
 
+// What every other area fetched depends on who's signed in (a household's private recipes), so it's fetched again.
+export const forgetSignedInData = (queryClient: QueryClient) => {
+  forgetHousehold(queryClient);
+  return queryClient.resetQueries({ predicate: ({ queryKey }) => queryKey[0] !== 'households' });
+};
+
 export const useSignOut = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -30,8 +36,8 @@ export const useSignOut = () => {
       if (result.kind === 'signed-in') {
         return queryClient.invalidateQueries({ queryKey: SESSION_KEY });
       }
-      forgetHousehold(queryClient);
       queryClient.setQueryData<Account | null>(SESSION_KEY, null);
+      return forgetSignedInData(queryClient);
     }
   });
 };
