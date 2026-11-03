@@ -6,7 +6,7 @@ from django.db import transaction
 from households.models import UnitSystem, User
 from households.services import TestMember, add_test_household, start_session
 from recipes.models import Recipe
-from recipes.services import add_described_recipes
+from recipes.services import add_described_recipes, add_ingredient
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,9 @@ def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
     Keyed by each member's key. Raises CatalogueError for a recipe the database can't hold."""
     with transaction.atomic():
         made = [pair for household in households for pair in _add_household(household)]
+        # Before any recipe, so a recipe can name an ingredient another member added.
+        for name in (name for member, _ in made for name in member['added_ingredients']):
+            add_ingredient(name)
         recipes = {member['key']: add_described_recipes(account, member['recipes']) for member, account in made}
         return {
             member['key']: SeededAccount(

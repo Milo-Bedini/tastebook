@@ -108,6 +108,26 @@ def test_a_recipe_given_only_a_title_has_no_ingredients_or_method(test_accounts:
 
 
 @pytest.mark.django_db
+def test_a_seeded_member_adds_an_ingredient_awaiting_review_their_recipe_can_use(test_accounts: Settings) -> None:
+    ingredient('onion')
+    beans = {'title': 'Chipotle beans', 'ingredient_lines': [{'ingredient': 'onion'}, {'ingredient': 'chipotle paste'}]}
+    body = seeded(
+        {'members': [{'key': 'ada', 'name': 'Ada', 'added_ingredients': ['chipotle paste'], 'recipes': [beans]}]}
+    )
+    slug = body['accounts']['ada']['recipes'][0]['slug']
+
+    recipe = signed_in_as(body, 'ada').get(f'/api/recipes/{slug}/').json()
+
+    assert [
+        (row['ingredient']['name'], row['ingredient']['awaiting_review']) for row in recipe['ingredient_lines']
+    ] == [
+        ('onion', False),
+        ('chipotle paste', True),
+    ]
+    assert recipe['diet_tags'] == []
+
+
+@pytest.mark.django_db
 def test_another_household_does_not_see_a_seeded_recipe(test_accounts: Settings) -> None:
     body = seeded(
         {'members': [{'key': 'ada', 'name': 'Ada', 'recipes': [{'title': 'Toast'}]}]},

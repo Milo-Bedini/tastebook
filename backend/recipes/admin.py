@@ -1,6 +1,8 @@
+from typing import Any
+
 from django.contrib import admin
-from django.db.models import Model, QuerySet
-from django.forms import BaseInlineFormSet, ModelForm
+from django.db.models import Field, Model, QuerySet
+from django.forms import BaseInlineFormSet, ChoiceField, ModelForm
 from django.http import HttpRequest
 
 from recipes.models import (
@@ -9,6 +11,7 @@ from recipes.models import (
     Ingredient,
     IngredientGroup,
     IngredientLine,
+    IngredientStatus,
     IngredientSynonym,
     Recipe,
     Step,
@@ -55,18 +58,45 @@ class IngredientSynonymInline(CatalogueInline):
     extra = 0
 
 
+def _added(ingredient: Ingredient | None) -> bool:
+    return ingredient is not None and ingredient.status != IngredientStatus.CATALOGUE
+
+
 @admin.register(Ingredient)
-class IngredientAdmin(CatalogueAdmin):
-    list_display = ('name', 'slug', *Ingredient.CONTAINS)
-    list_filter = Ingredient.CONTAINS
+class IngredientAdmin(admin.ModelAdmin):
+    """Catalogue ingredients are read-only, as CatalogueAdmin's are; staff review and change the ones people added."""
+
+    change_list_template = 'admin/recipes/ingredient_change_list.html'
+    change_form_template = 'admin/recipes/ingredient_change_form.html'
+    list_display = ('name', 'slug', 'status', *Ingredient.CONTAINS)
+    list_filter = ('status', *Ingredient.CONTAINS)
     # Synonyms too, so the ingredient picker on a recipe line finds courgette by "zucchini".
     search_fields = ('name', 'synonyms__name')
-    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ('slug',)
     fieldsets = (
-        (None, {'fields': ('name', 'slug')}),
+        (None, {'fields': ('name', 'slug', 'status')}),
         ('Contains', {'fields': Ingredient.CONTAINS, 'description': "A recipe's diet tags are worked out from these."}),
+        ('Measures', {'fields': ('grams_per_cup',)}),
     )
     inlines = (IngredientSynonymInline,)
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj: Ingredient | None = None) -> bool:
+        return _added(obj) and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request: HttpRequest, obj: Ingredient | None = None) -> bool:
+        return _added(obj) and super().has_delete_permission(request, obj)
+
+    def formfield_for_choice_field(self, db_field: Field[Any, Any], request: HttpRequest, **kwargs: Any) -> ChoiceField:
+        # An added ingredient can't become a catalogue one here; only the catalogue load makes those.
+        if db_field.name == 'status':
+            kwargs['choices'] = [
+                (IngredientStatus.AWAITING_REVIEW.value, IngredientStatus.AWAITING_REVIEW.label),
+                (IngredientStatus.REVIEWED.value, IngredientStatus.REVIEWED.label),
+            ]
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
 
 
 class IngredientGroupInline(CatalogueInline):

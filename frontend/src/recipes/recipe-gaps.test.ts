@@ -11,11 +11,16 @@ const line: IngredientLine = {
   amount: 2,
   amount_max: null,
   unit: 'tbsp',
-  ingredient: { slug: 'olive-oil', name: 'olive oil', grams_per_cup: null },
+  ingredient: { slug: 'olive-oil', name: 'olive oil', grams_per_cup: null, awaiting_review: false },
   note: '',
   optional: false,
   original_text: ''
 };
+
+const awaitingReview = (name: string): IngredientLine => ({
+  ...line,
+  ingredient: { slug: name.replaceAll(' ', '-'), name, grams_per_cup: null, awaiting_review: true }
+});
 
 const complete: Recipe = {
   id: 9,
@@ -61,7 +66,22 @@ describe('recipeGaps', () => {
     ],
     ['a yield but no servings', { servings: null, yield_amount: 12, yield_unit: 'flatbreads' }, []],
     ['a prep time only', { cook_minutes: null }, ['No cook time yet']],
-    ['a cook time only, and no method', { prep_minutes: null, steps: [] }, ['No method yet', 'No prep time yet']]
+    ['a cook time only, and no method', { prep_minutes: null, steps: [] }, ['No method yet', 'No prep time yet']],
+    [
+      'a line awaiting review',
+      { ingredient_lines: [line, awaitingReview('chipotle paste')] },
+      ["No diet tags until we've checked chipotle paste"]
+    ],
+    [
+      'two awaiting review, one in a group, and the first again',
+      {
+        ingredient_lines: [awaitingReview('chipotle paste')],
+        ingredient_groups: [
+          { id: 1, name: 'To serve', lines: [awaitingReview('gochujang'), awaitingReview('chipotle paste')] }
+        ]
+      },
+      ["No diet tags until we've checked chipotle paste and gochujang"]
+    ]
   ])('%s', (_, changes, gaps) => {
     expect(recipeGaps({ ...complete, ...changes })).toEqual(gaps);
   });

@@ -6,11 +6,16 @@ from typing import Any
 
 import pytest
 from django.core.management import CommandError, call_command
+from django.test import Client
 from django.urls import reverse
 from rest_framework.test import APIClient
 
 from households.models import Household
 from recipes.models import Course, Cuisine, Equipment, Ingredient, Recipe
+from tests.test_accounts import BrowserClient
+from tests.test_added_ingredients import add_ingredient, line, review
+from tests.test_editing_recipes import MILO, add
+from tests.test_household import signed_up
 
 HAND_WRITTEN = [
     'Chicken tikka masala',
@@ -240,14 +245,22 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
                 'amount': 1.0,
                 'amount_max': None,
                 'unit': 'tbsp',
-                'ingredient': {'slug': 'olive-oil', 'name': 'olive oil', 'grams_per_cup': None},
+                'ingredient': {
+                    'slug': 'olive-oil',
+                    'name': 'olive oil',
+                    'grams_per_cup': None,
+                    'awaiting_review': False,
+                },
                 'note': '',
                 'optional': False,
                 'original_text': '',
             }
         ],
         'diet_tag_conflicts': [
-            {'ingredient': {'slug': 'eggs', 'name': 'eggs', 'grams_per_cup': None}, 'diet_tags': ['vegan']}
+            {
+                'ingredient': {'slug': 'eggs', 'name': 'eggs', 'grams_per_cup': None, 'awaiting_review': False},
+                'diet_tags': ['vegan'],
+            }
         ],
     }
     assert [
@@ -683,6 +696,10 @@ def with_line(**line: Any) -> dict[str, Any]:
             'Ingredient "porridge oats" has fields the catalogue does not know: slug',
         ),
         (
+            catalogue(FLAPJACKS, ingredients=[{'name': 'porridge oats', 'status': 'reviewed'}]),
+            'Ingredient "porridge oats" has fields the catalogue does not know: status',
+        ),
+        (
             catalogue(FLAPJACKS, ingredients=[{'name': 'porridge oats', 'grams_per_cup': 0}]),
             'Ingredient "porridge oats": Ensure this value is greater than or equal to 1.',
         ),
@@ -751,3 +768,45 @@ def test_a_file_recipe_with_a_households_recipes_slug_fails_and_leaves_it_alone(
 
     assert str(error.value) == 'Recipe grandmas-curry: Recipe with this Slug already exists.'
     assert Recipe.objects.get(slug='grandmas-curry').title == "Grandma's curry"
+
+
+def milos_chipotle_beans(admin_client: Client) -> tuple[BrowserClient, str]:
+    """Milo's recipe using two ingredients he added: chipotle paste, awaiting review, and gochujang, reviewed."""
+    milo = signed_up(MILO, 'Milo')
+    for name in ['chipotle paste', 'gochujang']:
+        add_ingredient(milo, name)
+    review(admin_client, 'gochujang')
+    slug = add(milo, {'title': 'Chipotle beans', 'ingredient_lines': [line('chipotle-paste'), line('gochujang')]})
+    return milo, slug
+
+
+def ingredients_used(milo: BrowserClient, slug: str) -> list[tuple[str, bool]]:
+    lines = milo.client.get(f'/api/recipes/{slug}/').json()['ingredient_lines']
+    return [(row['ingredient']['slug'], row['ingredient']['awaiting_review']) for row in lines]
+
+
+@pytest.mark.django_db
+def test_loading_leaves_the_ingredients_people_added_alone(tmp_path: Path, admin_client: Client) -> None:
+    milo, slug = milos_chipotle_beans(admin_client)
+
+    call_command('load_catalogue', write(tmp_path / 'catalogue.json', catalogue(SHAKSHUKA)))
+
+    assert sorted(
+        Ingredient.objects.filter(slug__in=['chipotle-paste', 'gochujang']).values_list('slug', 'status')
+    ) == [('chipotle-paste', 'awaiting_review'), ('gochujang', 'reviewed')]
+    assert ingredients_used(milo, slug) == [('chipotle-paste', True), ('gochujang', False)]
+
+
+@pytest.mark.django_db
+def test_a_file_ingredient_with_an_added_ones_slug_makes_it_a_catalogue_ingredient(
+    tmp_path: Path, admin_client: Client
+) -> None:
+    milo, slug = milos_chipotle_beans(admin_client)
+    ingredients = [*INGREDIENTS, {'name': 'chipotle paste'}]
+
+    call_command('load_catalogue', write(tmp_path / 'catalogue.json', catalogue(SHAKSHUKA, ingredients=ingredients)))
+
+    assert list(Ingredient.objects.filter(slug='chipotle-paste').values_list('name', 'status')) == [
+        ('chipotle paste', 'catalogue')
+    ]
+    assert ingredients_used(milo, slug) == [('chipotle-paste', False), ('gochujang', False)]

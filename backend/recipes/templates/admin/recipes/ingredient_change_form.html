@@ -1,0 +1,6 @@
+{% extends "admin/change_form.html" %}
+{% block messages %}{% if original.status == 'catalogue' %}{% include "admin/recipes/catalogue_notice.html" %}{% else %}
+<ul class="messagelist">
+  <li class="info">Someone added this ingredient from a recipe. Set what it contains, then mark it Reviewed: until then, recipes using it show no diet tags and only households using it are offered it.</li>
+</ul>
+{% endif %}{{ block.super }}{% endblock %}

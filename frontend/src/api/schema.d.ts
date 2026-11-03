@@ -147,9 +147,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** @description Every ingredient but those awaiting review; a household is also offered the ones its recipes use. */
         get: operations["ingredients_list"];
         put?: never;
-        post?: never;
+        /** @description Gives the ingredient with this name or synonym, ignoring case and accents (200), or adds one awaiting review (201). 403 when signed out or for an account with no household yet. */
+        post: operations["ingredients_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -220,7 +222,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** @description Edits a recipe of the signed-in account's household; any member may, whoever wrote it. Only the fields sent change, and the address stays as it is. */
+        /** @description Edits a recipe of the signed-in account's household; any member may, whoever wrote it. Only the fields sent change, and the address stays as it is. Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. */
         patch: operations["recipes_partial_update"];
         trace?: never;
     };
@@ -331,6 +333,7 @@ export interface components {
             /** @description The UK name: courgette, coriander, plain flour. */
             name: string;
             readonly grams_per_cup: number | null;
+            readonly awaiting_review: boolean;
         };
         IngredientGroup: {
             readonly id: number;
@@ -411,6 +414,25 @@ export interface components {
             name: string;
             is_you: boolean;
         };
+        /** @description The name of an ingredient someone adds from the recipe form. */
+        NewIngredient: {
+            name: string;
+        };
+        NewIngredientGroup: {
+            name: string;
+            lines: components["schemas"]["NewIngredientLine"][];
+        };
+        NewIngredientLine: {
+            /** Format: double */
+            amount: number | null;
+            /** Format: double */
+            amount_max: number | null;
+            unit: components["schemas"]["UnitEnum"] | components["schemas"]["BlankEnum"];
+            ingredient: string;
+            note: string;
+            optional: boolean;
+            original_text: string;
+        };
         /** @description What the form sends to add a recipe. Only the title is required. */
         NewRecipe: {
             title: string;
@@ -441,6 +463,8 @@ export interface components {
              * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
              */
             source_url?: string;
+            ingredient_lines?: components["schemas"]["NewIngredientLine"][];
+            ingredient_groups?: components["schemas"]["NewIngredientGroup"][];
         };
         PatchedAccountChanges: {
             name?: string;
@@ -479,6 +503,8 @@ export interface components {
              * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
              */
             source_url?: string;
+            ingredient_lines?: components["schemas"]["NewIngredientLine"][];
+            ingredient_groups?: components["schemas"]["NewIngredientGroup"][];
         };
         PhotoThumbnail: {
             readonly width: number;
@@ -562,6 +588,8 @@ export interface components {
              *     * `us` - US customary
              */
             unit_system?: components["schemas"]["UnitSystem"];
+            /** @description Ingredients this member adds, awaiting review, before their recipes are made; their recipes may name them. */
+            added_ingredients?: string[];
             recipes?: {
                 [key: string]: unknown;
             }[];
@@ -975,6 +1003,53 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["IngredientOption"][];
                 };
+            };
+        };
+    };
+    ingredients_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewIngredient"];
+                "application/x-www-form-urlencoded": components["schemas"]["NewIngredient"];
+                "multipart/form-data": components["schemas"]["NewIngredient"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientOption"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientOption"];
+                };
+            };
+            /** @description The name is blank, has no letter or is over 100 characters. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

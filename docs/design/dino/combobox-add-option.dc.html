@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Combobox, the add option</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 56px;align-items:start}
+.spec{display:flex;flex-direction:column;gap:12px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.is-focus input{outline:1px solid var(--color-ink);outline-offset:0;border-color:var(--color-ink)}
+.lb{margin:8px 0 0;display:flex;flex-direction:column;gap:2px;max-height:288px;overflow-y:auto;border-radius:var(--radius-card);border:2px solid var(--color-field);background:var(--color-surface);padding:6px;list-style:none}
+.opt{position:relative;display:flex;min-height:48px;box-sizing:border-box;align-items:center;justify-content:space-between;gap:8px;border-radius:var(--radius-option);padding:12px 14px;font-size:16px;line-height:24px;font-weight:600;color:var(--color-ink);cursor:pointer}
+.opt[aria-selected="true"]{background:var(--color-line);outline:3px solid var(--color-ink);outline-offset:-3px}
+.opt b{font-weight:800}
+.opt .hint{color:var(--color-muted)}
+.opt svg{width:16px;height:16px;flex-shrink:0}
+.add{margin-top:7px}
+.add .rule{position:absolute;left:14px;right:14px;top:-5px;height:1px;background:var(--color-line)}
+.lead{display:inline-flex;align-items:center;gap:8px}
+.lead svg{width:18px;height:18px}
+.card{border:2px solid var(--color-line);border-radius:var(--radius-card);padding:20px 24px;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-family:var(--font-serif);font-style:italic;font-size:28px;line-height:30px;font-weight:400}
+.card p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.card code{font-size:14px}
+.card ul{margin:0;padding-left:20px;list-style:disc;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:22px;font-weight:600}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1260px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">Dino · Combobox (changed) · TAS-116 part 2 · stories WithAddOption and WithAddOptionBelowMatches</span>
+    <h1 class="ttl">Combobox, the add option</h1>
+    <span class="cap">An optional last item below the matches, for what the list doesn’t have. The caller decides when there is one and what it says; the Combobox draws it, moves to it and picks it like any option.</span>
+  </header>
+
+  <div class="grid">
+
+    <div class="spec">
+      <span class="cap"><b>Closed</b> · as today; the add option shows only while the list is open</span>
+      <x-import component-from-global-scope="Dino.Combobox" label="Add an ingredient" placeholder="Type an ingredient" options="{{empty}}" chosen="{{empty}}" search="" on-search-change="{{noop}}" on-choose="{{noop}}" on-remove="{{noop}}" remove-label="Remove" empty-text="No ingredients match."></x-import>
+    </div>
+
+    <div class="spec">
+      <span class="cap"><b>Below the matches</b> · “chick”: the first match is active; the add option after a Line hairline</span>
+      <div class="fld">
+        <label id="a-l" for="a-in" class="lbl">Add an ingredient</label>
+        <div class="is-focus">
+          <x-import component-from-global-scope="Dino.Input" id="a-in" role="combobox" aria-expanded="true" aria-controls="a-list" aria-activedescendant="a-o0" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="chick"></x-import>
+          <ul id="a-list" role="listbox" aria-labelledby="a-l" class="lb">
+            <li id="a-o0" role="option" aria-selected="true" tabindex="-1" class="opt"><span><b>chick</b>en thighs</span><x-import component-from-global-scope="Dino.icons.CornerDownLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import></li>
+            <li id="a-o1" role="option" aria-selected="false" tabindex="-1" class="opt"><span><b>chick</b>peas <span class="hint">· also garbanzo beans</span></span></li>
+            <li id="a-add" role="option" aria-selected="false" tabindex="-1" class="opt add"><span class="rule" aria-hidden="true"></span><span class="lead"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Add “<b>chick</b>”</span></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <span class="cap"><b>The add option active</b> · ArrowUp from closed, or ArrowDown past the last match: Enter adds</span>
+      <div class="fld">
+        <label id="b-l" for="b-in" class="lbl">Add an ingredient</label>
+        <div class="is-focus">
+          <x-import component-from-global-scope="Dino.Input" id="b-in" role="combobox" aria-expanded="true" aria-controls="b-list" aria-activedescendant="b-add" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="chick"></x-import>
+          <ul id="b-list" role="listbox" aria-labelledby="b-l" class="lb">
+            <li id="b-o0" role="option" aria-selected="false" tabindex="-1" class="opt"><span><b>chick</b>en thighs</span></li>
+            <li id="b-o1" role="option" aria-selected="false" tabindex="-1" class="opt"><span><b>chick</b>peas <span class="hint">· also garbanzo beans</span></span></li>
+            <li id="b-add" role="option" aria-selected="true" tabindex="-1" class="opt add"><span class="rule" aria-hidden="true"></span><span class="lead"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Add “<b>chick</b>”</span></span><x-import component-from-global-scope="Dino.icons.CornerDownLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <span class="cap"><b>Only the add option</b> · nothing matches: it is the list, active, and the empty text doesn’t show</span>
+      <div class="fld">
+        <label id="c-l" for="c-in" class="lbl">Add an ingredient</label>
+        <div class="is-focus">
+          <x-import component-from-global-scope="Dino.Input" id="c-in" role="combobox" aria-expanded="true" aria-controls="c-list" aria-activedescendant="c-add" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="chipotle paste"></x-import>
+          <ul id="c-list" role="listbox" aria-labelledby="c-l" class="lb">
+            <li id="c-add" role="option" aria-selected="true" tabindex="-1" class="opt"><span class="lead"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Add “<b>chipotle paste</b>”</span></span><x-import component-from-global-scope="Dino.icons.CornerDownLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <span class="cap"><b>Under the pointer</b> · moving onto it makes it active, as the options do; a press adds</span>
+      <div class="fld">
+        <label id="d-l" for="d-in" class="lbl">Add an ingredient</label>
+        <div class="is-focus">
+          <x-import component-from-global-scope="Dino.Input" id="d-in" role="combobox" aria-expanded="true" aria-controls="d-list" aria-activedescendant="d-add" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="gochu"></x-import>
+          <ul id="d-list" role="listbox" aria-labelledby="d-l" class="lb" style="position: relative">
+            <li id="d-o0" role="option" aria-selected="false" tabindex="-1" class="opt"><span><b>gochu</b>garu <span class="hint">· also Korean chilli flakes</span></span></li>
+            <li id="d-add" role="option" aria-selected="true" tabindex="-1" class="opt add"><span class="rule" aria-hidden="true"></span><span class="lead"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Add “<b>gochu</b>”</span></span><x-import component-from-global-scope="Dino.icons.CornerDownLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <span class="cap"><b>No add option</b> · the browse filters pass none, so nothing matching shows the empty text, as today</span>
+      <div class="fld">
+        <label for="e-in" class="lbl">Ingredients</label>
+        <div class="is-focus"><x-import component-from-global-scope="Dino.Input" id="e-in" role="combobox" aria-expanded="false" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="chipotle paste"></x-import></div>
+        <div role="status"><p style="margin: 8px 0 0; border-radius: var(--radius-card); border: 2px solid var(--color-field); background: var(--color-surface); padding: 12px 14px; color: var(--color-muted)">No ingredients match.</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+    <div class="card">
+      <h2>How it works</h2>
+      <ul>
+        <li><code>addOption?: { label, onAdd }</code>: the caller passes it only when it should show, with its label (“Add “chipotle paste””) and what it does.</li>
+        <li>It’s the list’s last item, after the options: an <code>li role="option"</code> with id <code>…-add</code>. Arrow keys, Enter, <code>aria-activedescendant</code> and the active fill treat it as one more option; ArrowUp from closed lands on it.</li>
+        <li>Its look is an option’s (Body Ink, 48 px, 16 px corners; active: a Line fill, the focus outline on its own edge and the Enter icon) with a Lucide Plus before the label. The typed text is bold, as matched letters are.</li>
+        <li>Below matches, a 1 px Line hairline 14 px in from each side, 6 px above it, sets it apart; alone, it has none.</li>
+        <li>Picking it calls <code>onAdd()</code> and closes the list; the search stays for the caller, who clears it once the line is added.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>What it may grow into</h2>
+      <ul>
+        <li>Another caller’s add: “Add “Thursday” as a new list” in planning, or a new cuisine, with the same prop and no new look.</li>
+        <li>A busy state inside the option (a spinner in place of the Plus while <code>onAdd</code> runs), if a second caller needs one; for now the recipe form says “Adding…” under the picker.</li>
+        <li>Under forced colours the active option’s outline and the hairline draw in CanvasText, as the options’ do; the Plus is <code>currentColor</code>.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1260}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, sw: 2.5, empty: [], noop: function () {} };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,3 +1,6 @@
+from decimal import Decimal
+from typing import Any
+
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -13,6 +16,7 @@ from recipes.models import (
     IngredientLine,
     Recipe,
     Step,
+    Unit,
     Visibility,
 )
 
@@ -38,10 +42,11 @@ class EquipmentSerializer(serializers.ModelSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     # Declared read-only so the schema lists it as always sent; a blank=True field would come out optional.
     grams_per_cup = serializers.IntegerField(read_only=True, allow_null=True)
+    awaiting_review = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Ingredient
-        fields = ['slug', 'name', 'grams_per_cup']
+        fields = ['slug', 'name', 'grams_per_cup', 'awaiting_review']
 
 
 class IngredientOptionSerializer(serializers.ModelSerializer):
@@ -299,10 +304,100 @@ class RecipeSerializer(RecipeSummarySerializer):
         return DietTagConflictSerializer(services.diet_tag_conflicts(self._all_lines(recipe)), many=True).data
 
 
+NO_INGREDIENT_NAME = "Type the ingredient's name."
+
+
+class NewIngredientSerializer(serializers.Serializer):
+    """The name of an ingredient someone adds from the recipe form."""
+
+    name = serializers.CharField(
+        max_length=100,
+        error_messages={
+            'blank': NO_INGREDIENT_NAME,
+            'required': NO_INGREDIENT_NAME,
+            'max_length': 'Give a name of 100 characters or fewer.',
+        },
+    )
+
+    def validate_name(self, name: str) -> str:
+        collapsed = ' '.join(name.split())
+        if not any(character.isalpha() for character in collapsed):
+            raise serializers.ValidationError('Give the ingredient a name with a letter in it.')
+        return collapsed
+
+
+def _ingredients_named_in(data: object) -> set[str]:
+    """Every string given as a line's ingredient anywhere in the request, however it's nested."""
+    if isinstance(data, list):
+        return set().union(*(_ingredients_named_in(item) for item in data))
+    if not isinstance(data, dict):
+        return set()
+    named = {data['ingredient']} if isinstance(data.get('ingredient'), str) else set()
+    return named.union(*(_ingredients_named_in(value) for value in data.values()))
+
+
+class IngredientSlugField(serializers.SlugRelatedField):
+    """A line's ingredient by slug, looked up with every other line's in one query, as a recipe may have 100."""
+
+    def __init__(self) -> None:
+        super().__init__(slug_field='slug', queryset=Ingredient.objects.all())
+
+    def to_internal_value(self, data: object) -> Ingredient:
+        known = self._known()
+        if isinstance(data, str) and data in known:
+            return known[data]
+        # Answers DRF's own message for a slug no ingredient has.
+        return super().to_internal_value(data)
+
+    def _known(self) -> dict[str, Ingredient]:
+        root = self.root
+        if not hasattr(root, '_ingredients_by_slug'):
+            named = _ingredients_named_in(getattr(root, 'initial_data', None))
+            root._ingredients_by_slug = Ingredient.objects.in_bulk(named, field_name='slug')
+        return root._ingredients_by_slug
+
+
+class NewIngredientLineSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(
+        max_digits=8,
+        decimal_places=3,
+        coerce_to_string=False,
+        allow_null=True,
+        min_value=Decimal('0.001'),
+        error_messages={'min_value': 'Give an amount above 0, or leave it empty.'},
+    )
+    amount_max = serializers.DecimalField(max_digits=8, decimal_places=3, coerce_to_string=False, allow_null=True)
+    unit = serializers.ChoiceField(choices=Unit.choices, allow_blank=True)
+    ingredient = IngredientSlugField()
+    note = serializers.CharField(max_length=200, allow_blank=True)
+    optional = serializers.BooleanField()
+    original_text = serializers.CharField(max_length=300, allow_blank=True)
+
+    def validate(self, line: dict[str, Any]) -> dict[str, Any]:
+        # The model's range_rises constraint, checked here so a refusal names its line.
+        if line['amount_max'] is not None and (line['amount'] is None or line['amount_max'] <= line['amount']):
+            raise serializers.ValidationError(
+                {'amount_max': 'Give a range with its lower amount first, such as 2 up to 3.'}
+            )
+        return line
+
+
+class NewIngredientGroupSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100, error_messages={'blank': 'Give the group a name, like For the sauce.'})
+    lines = NewIngredientLineSerializer(many=True, max_length=100)
+
+
+class RecipeIngredientsSerializer(serializers.Serializer):
+    """A recipe's lines and groups. Sending either replaces every line and group; the one left out counts as none."""
+
+    ingredient_lines = NewIngredientLineSerializer(many=True, max_length=100, required=False, default=list)
+    ingredient_groups = NewIngredientGroupSerializer(many=True, max_length=20, required=False, default=list)
+
+
 BLANK_TITLE = "Give the recipe a title, like Grandma's curry."
 
 
-class NewRecipeSerializer(serializers.ModelSerializer):
+class NewRecipeSerializer(RecipeIngredientsSerializer, serializers.ModelSerializer):
     """What the form sends to add a recipe. Only the title is required."""
 
     title = serializers.CharField(max_length=200, error_messages={'blank': BLANK_TITLE, 'required': BLANK_TITLE})
@@ -331,6 +426,8 @@ class NewRecipeSerializer(serializers.ModelSerializer):
             'one_pot',
             'source',
             'source_url',
+            'ingredient_lines',
+            'ingredient_groups',
         ]
 
 

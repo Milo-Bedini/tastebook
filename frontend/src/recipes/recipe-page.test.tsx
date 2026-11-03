@@ -80,7 +80,7 @@ const line = (id: number, name: string, fields: Partial<IngredientLine> = {}): I
   amount: null,
   amount_max: null,
   unit: '',
-  ingredient: { slug: name.replaceAll(' ', '-'), name, grams_per_cup: null },
+  ingredient: { slug: name.replaceAll(' ', '-'), name, grams_per_cup: null, awaiting_review: false },
   note: '',
   optional: false,
   original_text: '',
@@ -144,7 +144,7 @@ const holdRecipe = (respond: () => Response) => {
 };
 
 // A dry good: what a US cup of it weighs, from USDA FoodData Central.
-const plainFlour = { slug: 'plain-flour', name: 'plain flour', grams_per_cup: 125 };
+const plainFlour = { slug: 'plain-flour', name: 'plain flour', grams_per_cup: 125, awaiting_review: false };
 
 const withFlour: Recipe = { ...shakshuka, ingredient_lines: [line(1, 'plain flour', { amount: 1, unit: 'cup' })] };
 
@@ -389,6 +389,34 @@ describe('RecipePage', () => {
     expect(screen.queryByRole('term')).not.toBeInTheDocument();
   });
 
+  it('says a private recipe has no diet tags until an ingredient someone added is checked', async () => {
+    const beans: Recipe = {
+      ...withIngredientsAndMethod,
+      slug: 'chipotle-beans-k7m2qx',
+      visibility: 'private',
+      title: 'Chipotle beans',
+      ingredient_lines: [
+        ...withIngredientsAndMethod.ingredient_lines,
+        {
+          ...line(9, 'chipotle paste'),
+          ingredient: { slug: 'chipotle-paste', name: 'chipotle paste', grams_per_cup: null, awaiting_review: true }
+        }
+      ]
+    };
+    server.use(http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>(beans)));
+
+    renderRoute('/recipes/chipotle-beans-k7m2qx');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Chipotle beans' })).toBeInTheDocument();
+    const missing = screen.getByText("What's missing").closest<HTMLElement>('[role="status"]');
+    expect(missing).not.toBeNull();
+    expect(
+      within(missing as HTMLElement)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent)
+    ).toEqual(["No diet tags until we've checked chipotle paste"]);
+  });
+
   it('lists what a private recipe is missing, and nothing for a public one missing the same', async () => {
     server.use(
       http.get('/api/recipes/:slug/', ({ params }) =>
@@ -514,23 +542,39 @@ describe('RecipePage', () => {
     [[], [], [], []],
     [
       ['vegetarian', 'vegan', 'dairy_free'],
-      [{ ingredient: { slug: 'parmesan', name: 'parmesan', grams_per_cup: null }, diet_tags: ['vegan', 'dairy_free'] }],
+      [
+        {
+          ingredient: { slug: 'parmesan', name: 'parmesan', grams_per_cup: null, awaiting_review: false },
+          diet_tags: ['vegan', 'dairy_free']
+        }
+      ],
       ['Vegan'],
       ['Leave out the parmesan to keep it vegan and dairy-free.']
     ],
     [
       ['vegetarian', 'gluten_free', 'dairy_free'],
-      [{ ingredient: { slug: 'butter', name: 'butter', grams_per_cup: null }, diet_tags: ['dairy_free'] }],
+      [
+        {
+          ingredient: { slug: 'butter', name: 'butter', grams_per_cup: null, awaiting_review: false },
+          diet_tags: ['dairy_free']
+        }
+      ],
       ['Vegetarian', 'Gluten-free', 'Dairy-free'],
       ['Leave out the butter to keep it dairy-free.']
     ],
     [
       ['vegetarian', 'vegan', 'gluten_free', 'dairy_free'],
       [
-        { ingredient: { slug: 'bacon', name: 'bacon', grams_per_cup: null }, diet_tags: ['vegetarian', 'vegan'] },
-        { ingredient: { slug: 'eggs', name: 'eggs', grams_per_cup: null }, diet_tags: ['vegan'] },
         {
-          ingredient: { slug: 'croutons', name: 'butter croutons', grams_per_cup: null },
+          ingredient: { slug: 'bacon', name: 'bacon', grams_per_cup: null, awaiting_review: false },
+          diet_tags: ['vegetarian', 'vegan']
+        },
+        {
+          ingredient: { slug: 'eggs', name: 'eggs', grams_per_cup: null, awaiting_review: false },
+          diet_tags: ['vegan']
+        },
+        {
+          ingredient: { slug: 'croutons', name: 'butter croutons', grams_per_cup: null, awaiting_review: false },
           diet_tags: ['vegan', 'gluten_free', 'dairy_free']
         }
       ],
@@ -894,7 +938,7 @@ describe('RecipePage', () => {
             line(3, 'caster sugar', {
               amount: 2,
               unit: 'tbsp',
-              ingredient: { slug: 'caster-sugar', name: 'caster sugar', grams_per_cup: 200 }
+              ingredient: { slug: 'caster-sugar', name: 'caster sugar', grams_per_cup: 200, awaiting_review: false }
             })
           ]
         })

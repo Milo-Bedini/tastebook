@@ -13,6 +13,13 @@ class SeedMemberSerializer(serializers.Serializer):
     unit_system = serializers.ChoiceField(
         choices=UnitSystem.choices, required=False, help_text='metric when not given.'
     )
+    added_ingredients = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        max_length=20,
+        default=list,
+        help_text='Ingredients this member adds, awaiting review, before their recipes are made; their recipes may '
+        'name them.',
+    )
     recipes = serializers.ListField(child=serializers.DictField(), max_length=20, default=list)
 
 

@@ -15,6 +15,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Author | The account that wrote a recipe. | `Recipe.created_by` |
 | Ingredient | A food in the shared ingredient list, under its UK name (courgette, coriander, plain flour). Records whether it contains meat, fish, dairy, animal rennet, egg, another animal product or gluten. | `Ingredient`, `contains_meat`, `contains_fish`, `contains_dairy`, `contains_animal_rennet`, `contains_egg`, `contains_other_animal_product`, `contains_gluten` |
 | Synonym | Another name for an ingredient, including US names (zucchini for courgette). Search finds the ingredient by any of them. | `IngredientSynonym` |
+| Added ingredient | An ingredient someone added by name from the recipe form because the shared list didn't have it. It awaits review until staff check what it contains in the admin: meanwhile recipes using it show no diet tags, and only households whose recipes use it are offered it. The catalogue load leaves it alone. | `Ingredient.status` (`IngredientStatus`), `add_ingredient()` |
 | Ingredient line | One line of a recipe's ingredients: amount, unit, ingredient, note, and whether it's optional. | `IngredientLine` |
 | Ingredient group | A named group of ingredient lines ("For the sauce", "To serve"). | `IngredientGroup` |
 | Original wording | An ingredient line as its source wrote it ("1 cup plain flour, sifted"), shown by "Show original". A recipe written by hand has none. | `IngredientLine.original_text` |

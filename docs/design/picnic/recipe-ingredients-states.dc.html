@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Reorder, checking and adding</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.scrolled{position:absolute;top:0;left:0;right:0;padding:8px 20px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-bottom:1px dashed var(--color-line);background:var(--color-ground);z-index:1}
+.page{padding:56px 20px 48px;display:flex;flex-direction:column}
+.form{display:flex;flex-direction:column;gap:40px}
+.grp{display:flex;flex-direction:column;gap:20px}
+.sec{margin:0;font-family:var(--font-serif);font-style:italic;font-size:28px;line-height:30px;font-weight:400}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.lede{margin:0;color:var(--color-muted)}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.is-focus input{outline:1px solid var(--color-ink);outline-offset:0;border-color:var(--color-ink)}
+.rows{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.rows > li{border-bottom:1px solid var(--color-line)}
+.rows > li:last-child{border-bottom:0}
+.rb{margin:0 -8px;width:calc(100% + 16px);min-height:64px;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:8px;border:0;border-radius:var(--radius-row);background:transparent;color:var(--color-ink);font:inherit;text-align:left;cursor:pointer}
+.rb.hv{background:var(--color-surface)}
+.rb.fv{outline:3px solid var(--color-ink);outline-offset:0}
+.rb > svg{width:20px;height:20px;flex-shrink:0;color:var(--color-muted)}
+.sum{flex-grow:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.sum > span{display:block}
+.nm{font-size:19px;line-height:24px;font-weight:800}
+.dt{font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.gsec{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--color-line);padding-top:12px}
+.gh{margin:0;font-family:var(--font-serif);font-style:italic;font-size:21px;line-height:22px;font-weight:400}
+.gh .rb{font-family:var(--font-serif);font-style:italic;font-size:21px;line-height:22px;font-weight:400;min-height:52px}
+.rail{border-left:2px solid var(--color-line);padding-left:16px;display:flex;flex-direction:column;gap:16px}
+.scrim{position:absolute;inset:0;background:var(--color-scrim);z-index:2}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:3;box-sizing:border-box;background:var(--color-surface);border:2px solid transparent;border-bottom:0;border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:6px 18px 24px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-lift)}
+.grab{align-self:center;width:40px;height:5px;border-radius:var(--radius-pill);background:var(--color-field)}
+.shd{margin-top:14px;padding-bottom:0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.st{margin:0;font-family:var(--font-serif);font-style:italic;font-size:34px;line-height:36px;font-weight:400}
+.sd{margin:0;color:var(--color-muted)}
+.sbody{display:flex;flex-direction:column;gap:16px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.sacts{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:4px}
+.boards{display:grid;grid-template-columns:repeat(4,390px);gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sum > .err{display:flex}
+.gh .err{font-family:var(--font-sans);font-style:normal}
+.rrow{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+.rrow .acts{display:flex;gap:8px;flex-shrink:0}
+.status{margin:0;font-size:15px;line-height:20px;font-weight:800;color:var(--color-ink)}
+.said{margin:0;padding:8px 12px;border:1px dashed var(--color-field);border-radius:var(--radius-row);font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.said b{color:var(--color-ink)}
+.btnring{display:inline-flex;border-radius:var(--radius-pill);outline:3px solid var(--color-ink);outline-offset:0}
+.ring{outline:3px solid var(--color-ink);outline-offset:0;border-radius:var(--radius-note)}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;z-index:4;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.wait{margin:0;display:flex;align-items:center;gap:10px;font-size:15px;line-height:20px;font-weight:800}
+.lb{margin:8px 0 0;display:flex;flex-direction:column;gap:2px;max-height:288px;overflow-y:auto;border-radius:var(--radius-card);border:2px solid var(--color-field);background:var(--color-surface);padding:6px;list-style:none}
+.opt{position:relative;display:flex;min-height:48px;box-sizing:border-box;align-items:center;justify-content:space-between;gap:8px;border-radius:var(--radius-option);padding:12px 14px;font-size:16px;line-height:24px;font-weight:600;color:var(--color-ink);cursor:pointer}
+.opt[aria-selected="true"]{background:var(--color-line);outline:3px solid var(--color-ink);outline-offset:-3px}
+.opt b{font-weight:800}
+.opt .hint{color:var(--color-muted)}
+.opt svg{width:16px;height:16px;flex-shrink:0}
+.add{margin-top:7px}
+.add .rule{position:absolute;left:14px;right:14px;top:-5px;height:1px;background:var(--color-line)}
+.lead{display:inline-flex;align-items:center;gap:8px}
+.lead svg{width:18px;height:18px}
+code{font-size:14px}
+</style>
+</helmet>
+<div style="width: 1800px; height: 2860px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-116 part 2 · /recipes/new · phone, 390 px · the Reorder mode, what Save checks, adding an ingredient and the list loading</span>
+    <h1 class="ttl">Reorder, checking and adding</h1>
+    <span class="cap">Moving is its own mode, with nothing but names and arrows. Save’s first error opens that row’s sheet on the field. Adding and loading say what’s happening beside a spinner.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Reordering, after a move</b> · “Move onion down” on the last line above the groups: onion crosses into For the sauce; focus stays on its button</span>
+      <div class="frame" style="height: 720px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="a-h">
+          <div class="hd">
+            <h2 id="a-h" class="sec">Ingredients</h2>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ArrowUpDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>Done reordering</x-import>
+          </div>
+          <p class="status" role="status">Moved onion into For the sauce.</p>
+          <ul class="rows">
+            <li><div class="rrow"><span class="nm">Olive oil</span><span class="acts">
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move olive oil up"></x-import>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move olive oil down"></x-import>
+            </span></div></li>
+          </ul>
+          <section class="gsec" aria-labelledby="a-g1">
+            <div class="rrow"><h3 id="a-g1" class="gh">For the sauce</h3><span class="acts">
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move group For the sauce up"></x-import>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move group For the sauce down"></x-import>
+            </span></div>
+            <div class="rail"><ul class="rows">
+              <li><div class="rrow"><span class="nm">Onion</span><span class="acts">
+                <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move onion up"></x-import>
+                <span class="btnring"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move onion down"></x-import></span>
+              </span></div></li>
+              <li><div class="rrow"><span class="nm">Garlic</span><span class="acts">
+                <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move garlic up"></x-import>
+                <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move garlic down"></x-import>
+              </span></div></li>
+              <li><div class="rrow"><span class="nm">Chilli flakes</span><span class="acts">
+                <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move chilli flakes up"></x-import>
+                <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move chilli flakes down"></x-import>
+              </span></div></li>
+            </ul></div>
+          </section>
+          <h2 class="sec" style="margin-top: 20px">Times</h2>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>At an end</b> · “Move olive oil up” on the first line: every move button stays enabled; pressing one that can’t move says why and changes nothing</span>
+      <div class="frame" style="height: 720px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="b-h">
+          <div class="hd">
+            <h2 id="b-h" class="sec">Ingredients</h2>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ArrowUpDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>Done reordering</x-import>
+          </div>
+          <p class="status" role="status">Olive oil is already first.</p>
+          <ul class="rows">
+            <li><div class="rrow"><span class="nm">Olive oil</span><span class="acts">
+              <span class="btnring"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move olive oil up"></x-import></span>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move olive oil down"></x-import>
+            </span></div></li>
+            <li><div class="rrow"><span class="nm">Onion</span><span class="acts">
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move onion up"></x-import>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move onion down"></x-import>
+            </span></div></li>
+          </ul>
+          <section class="gsec" aria-labelledby="b-g1">
+            <div class="rrow"><h3 id="b-g1" class="gh">For the sauce</h3><span class="acts">
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move group For the sauce up"></x-import>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move group For the sauce down"></x-import>
+            </span></div>
+            <div class="rail"><ul class="rows">
+              <li><div class="rrow"><span class="nm">Garlic</span><span class="acts">
+                <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move garlic up"></x-import>
+                <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move garlic down"></x-import>
+              </span></div></li>
+            </ul></div>
+          </section>
+          <p class="said">The same for a group: “For the sauce is already the first group.” With no name, its buttons read “Move group up” and “Move group down”.</p>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Save refused, the sheet open</b> · olive oil “3-2” and garlic “0”: the first error’s sheet opens on Amount, focused, with its message</span>
+      <div class="frame" style="height: 720px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp">
+          <div class="hd"><h2 class="sec">Ingredients</h2></div>
+          <ul class="rows">
+            <li><button type="button" class="rb" tabindex="-1"><span class="sum"><span class="nm">Olive oil</span><span class="dt">3-2 tbsp, extra virgin · optional</span><span class="err">Put the smaller amount first, like 2-3.</span></span></button></li>
+          </ul>
+        </section></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="c-t">
+          <span class="grab" aria-hidden="true"></span>
+          <div class="shd">
+            <h2 id="c-t" class="st">Olive oil</h2>
+            <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import>
+          </div>
+          <div class="sbody">
+            <div class="fld">
+              <div class="row2">
+                <div class="fld"><label for="c-amount" class="lbl">Amount</label><div class="is-focus"><x-import component-from-global-scope="Dino.Input" id="c-amount" type="text" default-value="3-2" aria-invalid="true" aria-describedby="c-err"></x-import></div></div>
+                <div class="fld"><label for="c-unit" class="lbl">Unit</label><x-import component-from-global-scope="Dino.NativeSelect" id="c-unit" default-value="tbsp"><sc-for list="{{units}}" as="u" hint-placeholder-count="17"><option value="{{u.value}}">{{u.label}}</option></sc-for></x-import></div>
+              </div>
+              <p id="c-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Put the smaller amount first, like 2-3.</p>
+            </div>
+            <div class="fld"><label for="c-note" class="lbl">Note</label><x-import component-from-global-scope="Dino.Input" id="c-note" type="text" max-length="{{t200}}" default-value="extra virgin" aria-describedby="c-note-help"></x-import><p id="c-note-help" class="help">Like finely chopped.</p></div>
+            <x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">Optional, can be left out</x-import>
+            <div class="sacts">
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Trash2" aria-hidden="true" stroke-width="{{sw}}"></x-import>Remove olive oil</x-import>
+              <x-import component-from-global-scope="Dino.Button">Done</x-import>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Save refused, the sheet closed</b> · after Escape: focus on olive oil’s row; each row in error shows its message under its detail</span>
+      <div class="frame" style="height: 720px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="d-h">
+          <div class="hd">
+            <h2 id="d-h" class="sec">Ingredients</h2>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ArrowUpDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>Reorder</x-import>
+          </div>
+          <p class="lede">Pick each ingredient from the list, or add one it doesn’t have. Press an ingredient to set its amount, note and whether it’s optional.</p>
+          <ul class="rows">
+            <li><button type="button" class="rb fv" aria-describedby="d-e1"><span class="sum"><span class="nm">Olive oil</span><span class="dt">3-2 tbsp, extra virgin · optional</span><span id="d-e1" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Put the smaller amount first, like 2-3.</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+            <li><button type="button" class="rb" aria-describedby="d-e2"><span class="sum"><span class="nm">Garlic</span><span class="dt">0 cloves</span><span id="d-e2" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Enter an amount above 0, or leave it empty.</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+            <li><button type="button" class="rb"><span class="sum"><span class="nm">Onion</span><span class="dt">1</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+          </ul>
+          <x-import component-from-global-scope="Dino.Combobox" label="Add an ingredient" placeholder="Type an ingredient" options="{{empty}}" chosen="{{empty}}" search="" on-search-change="{{noop}}" on-choose="{{noop}}" on-remove="{{noop}}" remove-label="Remove" empty-text="No ingredients match."></x-import>
+          <p class="said">An amount that doesn’t read shows as typed (“3-2 tbsp”). Saved in the Reorder mode, Save ends the mode first, so every row and its error shows.</p>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>A group with no name</b> · on Save (once the details pass): the group’s sheet opens on Group name, with its message in place of the help</span>
+      <div class="frame" style="height: 640px">
+        <div class="scrolled">Scrolled to the group</div>
+        <main class="page"><section class="grp">
+          <section class="gsec" style="border-top: 0; padding-top: 0">
+            <h3 class="gh"><button type="button" class="rb" tabindex="-1"><span class="sum"><span>Unnamed group</span><span class="err">Give the group a name, like For the sauce.</span></span></button></h3>
+            <div class="rail"><ul class="rows">
+              <li><button type="button" class="rb" tabindex="-1"><span class="sum"><span class="nm">Coriander</span><span class="dt">1 handful, chopped</span></span></button></li>
+            </ul></div>
+          </section>
+        </section></main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="e-t" aria-describedby="e-d">
+          <span class="grab" aria-hidden="true"></span>
+          <div class="shd">
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <h2 id="e-t" class="st">Group</h2>
+              <p id="e-d" class="sd">Its name heads its ingredients on the recipe.</p>
+            </div>
+            <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import>
+          </div>
+          <div class="sbody">
+            <div class="fld"><label for="e-name" class="lbl">Group name</label><div class="is-focus"><x-import component-from-global-scope="Dino.Input" id="e-name" type="text" max-length="{{t100}}" default-value="" aria-invalid="true" aria-describedby="e-err"></x-import></div><p id="e-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Give the group a name, like For the sauce.</p></div>
+            <div class="sacts">
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Trash2" aria-hidden="true" stroke-width="{{sw}}"></x-import>Remove group</x-import>
+              <x-import component-from-global-scope="Dino.Button">Done</x-import>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Picking</b> · “eggpl” typed: aubergine, found by its synonym, then the add option, since “eggpl” names nothing in full</span>
+      <div class="frame" style="height: 640px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="f-h">
+          <div class="hd"><h2 id="f-h" class="sec">Ingredients</h2></div>
+          <p class="lede">Pick each ingredient from the list, or add one it doesn’t have. Press an ingredient to set its amount, note and whether it’s optional.</p>
+          <div class="fld">
+            <label id="f-l" for="f-in" class="lbl">Add an ingredient</label>
+            <div class="is-focus">
+              <x-import component-from-global-scope="Dino.Input" id="f-in" role="combobox" aria-expanded="true" aria-controls="f-list" aria-activedescendant="f-o0" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="eggpl"></x-import>
+              <ul id="f-list" role="listbox" aria-labelledby="f-l" class="lb">
+                <li id="f-o0" role="option" aria-selected="true" tabindex="-1" class="opt"><span>aubergine <span class="hint">· also <b>eggpl</b>ant</span></span><x-import component-from-global-scope="Dino.icons.CornerDownLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import></li>
+                <li id="f-add" role="option" aria-selected="false" tabindex="-1" class="opt add"><span class="rule" aria-hidden="true"></span><span class="lead"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Add “<b>eggpl</b>”</span></span></li>
+              </ul>
+            </div>
+          </div>
+          <p class="said">“eggplant” in full offers aubergine alone. Picking adds the line at the end of this list, clears the search and opens its sheet on Amount.</p>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Adding</b> · after Add “chipotle paste”: the list closes, the text stays and a status line waits under the picker; a second add is ignored</span>
+      <div class="frame" style="height: 640px">
+        <div class="scrolled">Scrolled to the group</div>
+        <main class="page"><section class="grp">
+          <section class="gsec" style="border-top: 0; padding-top: 0">
+            <h3 class="gh"><button type="button" class="rb"><span class="sum">To serve</span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></h3>
+            <div class="rail">
+              <ul class="rows">
+                <li><button type="button" class="rb"><span class="sum"><span class="nm">Black beans</span><span class="dt">2 tins</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+              </ul>
+              <div class="fld">
+                <label for="g-in" class="lbl">Add an ingredient to To serve</label>
+                <div class="is-focus"><x-import component-from-global-scope="Dino.Input" id="g-in" role="combobox" aria-expanded="false" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="chipotle paste" aria-busy="true"></x-import></div>
+                <p class="wait" role="status" style="margin-top: 4px"><x-import component-from-global-scope="Dino.Spinner" class-name="size-4.5"></x-import>Adding “chipotle paste”…</p>
+              </div>
+            </div>
+          </section>
+          <p class="said">Then a row <b>Chipotle paste</b> at the end of To serve, the search cleared, and its sheet open on Amount with the description “In To serve”, as picking does.</p>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t add</b> · offline, a 5xx, or a 403 while still signed in: a toast; the text stays to try again</span>
+      <div class="frame" style="height: 640px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="h-h">
+          <div class="hd"><h2 id="h-h" class="sec">Ingredients</h2></div>
+          <p class="lede">Pick each ingredient from the list, or add one it doesn’t have. Press an ingredient to set its amount, note and whether it’s optional.</p>
+          <div class="fld">
+            <label for="h-in" class="lbl">Add an ingredient</label>
+            <x-import component-from-global-scope="Dino.Input" id="h-in" role="combobox" aria-expanded="false" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient" default-value="chipotle paste"></x-import>
+          </div>
+          <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a group</x-import></div>
+          <p class="said">A 400 shows Tastebook’s own message in the same toast, such as “Give the ingredient a name with a letter in it.” Signed out, the page goes to sign-in and back, as Save does.</p>
+        </section></main>
+        <div class="toast" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg><span>Couldn’t add “chipotle paste”. Check your connection and try again.</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>The list loading</b> · editing a recipe: its rows already open and Reorder works; the pickers wait</span>
+      <div class="frame" style="height: 660px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="i-h">
+          <div class="hd">
+            <h2 id="i-h" class="sec">Ingredients</h2>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ArrowUpDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>Reorder</x-import>
+          </div>
+          <p class="lede">Pick each ingredient from the list, or add one it doesn’t have. Press an ingredient to set its amount, note and whether it’s optional.</p>
+          <p class="wait" role="status"><x-import component-from-global-scope="Dino.Spinner" class-name="size-4.5"></x-import>Loading ingredients…</p>
+          <ul class="rows">
+            <li><button type="button" class="rb"><span class="sum"><span class="nm">Onion</span><span class="dt">1, finely chopped</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+            <li><button type="button" class="rb"><span class="sum"><span class="nm">Olive oil</span><span class="dt">2 tbsp</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+          </ul>
+          <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a group</x-import></div>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>The list couldn’t load</b> · Try again asks only for the ingredients; rows, groups and Reorder keep working</span>
+      <div class="frame" style="height: 660px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="j-h">
+          <div class="hd">
+            <h2 id="j-h" class="sec">Ingredients</h2>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ArrowUpDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>Reorder</x-import>
+          </div>
+          <p class="lede">Pick each ingredient from the list, or add one it doesn’t have. Press an ingredient to set its amount, note and whether it’s optional.</p>
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load the ingredients" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+          <ul class="rows">
+            <li><button type="button" class="rb"><span class="sum"><span class="nm">Onion</span><span class="dt">1, finely chopped</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+            <li><button type="button" class="rb"><span class="sum"><span class="nm">Olive oil</span><span class="dt">2 tbsp</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+          </ul>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Removed</b> · “Remove onion” in its sheet: the sheet closes, the row goes and focus lands in that list’s picker</span>
+      <div class="frame" style="height: 660px">
+        <div class="scrolled">Scrolled to Ingredients</div>
+        <main class="page"><section class="grp" aria-labelledby="k-h">
+          <div class="hd"><h2 id="k-h" class="sec">Ingredients</h2></div>
+          <p class="lede">Pick each ingredient from the list, or add one it doesn’t have. Press an ingredient to set its amount, note and whether it’s optional.</p>
+          <ul class="rows">
+            <li><button type="button" class="rb"><span class="sum"><span class="nm">Olive oil</span><span class="dt">2 tbsp</span></span><x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" stroke-width="{{sw}}"></x-import></button></li>
+          </ul>
+          <div class="fld">
+            <label for="k-in" class="lbl">Add an ingredient</label>
+            <div class="is-focus"><x-import component-from-global-scope="Dino.Input" id="k-in" role="combobox" aria-expanded="false" aria-autocomplete="list" auto-complete="off" placeholder="Type an ingredient"></x-import></div>
+          </div>
+          <p class="vh" role="status">Removed onion.</p>
+          <p class="said">Announced, not shown: <b>Removed onion.</b> Removing a group: “Removed group For the sauce. Its ingredients joined the list above.”, with focus on “Add a group”. Nothing is saved until Save, so neither asks first.</p>
+        </section></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Refused by Tastebook</b> · a 400 on a line: the form’s danger Banner above Save, which takes focus</span>
+      <div class="frame" style="height: 660px">
+        <div class="scrolled">Scrolled to the foot</div>
+        <main class="page"><form class="form" novalidate>
+          <section class="grp" aria-labelledby="l-h">
+            <h2 id="l-h" class="sec">Where it’s from</h2>
+            <div class="fld"><label for="l-credit" class="lbl">Source credit</label><x-import component-from-global-scope="Dino.Input" id="l-credit" type="text" default-value="Grandma Bedini" aria-describedby="l-credit-help"></x-import><p id="l-credit-help" class="help">Who wrote it: a book, a website or a person.</p></div>
+            <div class="fld"><label for="l-addr" class="lbl">Source address</label><x-import component-from-global-scope="Dino.Input" id="l-addr" type="url" default-value=""></x-import></div>
+          </section>
+          <div class="grp">
+            <div class="ring"><x-import component-from-global-scope="Dino.Banner" tone="danger" title="Couldn’t save the recipe">Some ingredients couldn’t be saved. Check them and try again.</x-import></div>
+            <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save recipe</x-import></div>
+          </div>
+        </form></main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>Reorder is a mode, from a secondary button at the heading’s end</b> (with ArrowUpDown, shown from two entries). Pressed, the same button reads “Done reordering”, so focus stays on it. The pickers, “Add a group” and the row buttons go: each line shows only its name, with Move up and Move down icon buttons named for it; each group shows its name in its h3 with its own pair. The status line, visually hidden in the list, shows under the heading here, so the last move stays on screen. A line next to a group heading crosses it: down, to the start of that group (“Moved onion into For the sauce.”); up, to the end of the list above (“Moved onion above the groups.”). A group moves with its lines past its neighbour. Focus stays on the button pressed, in its new place.</p>
+    <p><b>Nothing is disabled at the ends.</b> As the Disabled rule allows (“leave the control enabled and explain on press”), the first and last buttons stay live and say why on press, so the list carries no reason lines and focus never rests on a dead control. No rule change is needed.</p>
+    <p><b>Save’s first error, in the form’s order, opens that row’s sheet on its field</b>: focus goes to the row, then the sheet opens on Amount (or Group name), so closing it lands back on the row. Rows in error carry their message under their detail in Danger, with its icon, tied by <code>aria-describedby</code>; the field in the sheet takes Danger’s message in place of its help. The messages are the spec’s: unreadable, zero, falling and a blank group name.</p>
+    <p><b>Adding and loading touch only the pickers.</b> “Adding “chipotle paste”…” and “Loading ingredients…” are status lines in Label type beside a spinner; “Couldn’t load the ingredients” is the one ErrorWithRetry. Rows already in the draft stay editable throughout.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":2860}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var units = [['', 'No unit'], ['g', 'g'], ['kg', 'kg'], ['ml', 'ml'], ['l', 'l'], ['tsp', 'tsp'], ['tbsp', 'tbsp'], ['cup', 'cup'], ['oz', 'oz'], ['lb', 'lb'], ['fl_oz', 'fl oz'], ['pinch', 'pinch'], ['clove', 'clove'], ['tin', 'tin'], ['slice', 'slice'], ['bunch', 'bunch'], ['handful', 'handful']];
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.5, t100: 100, t200: 200,
+      empty: [], noop: function () {}, retry: function () { return Promise.resolve(); },
+      units: units.map(function (u) { return { value: u[0], label: u[1] }; })
+    };
+  }
+}
+</script>
+</body>
+</html>
