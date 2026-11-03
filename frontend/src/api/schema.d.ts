@@ -311,6 +311,7 @@ export interface components {
             slug: string;
             /** @description The UK name: courgette, coriander, plain flour. */
             name: string;
+            readonly grams_per_cup: number | null;
         };
         IngredientGroup: {
             readonly id: number;

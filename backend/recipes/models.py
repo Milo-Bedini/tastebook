@@ -299,6 +299,12 @@ class Ingredient(models.Model):
     contains_gluten = models.BooleanField(
         'gluten', default=False, help_text='Wheat, barley and rye, and oats not labelled gluten-free.'
     )
+    grams_per_cup = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+        help_text='What a US cup of it weighs, from USDA FoodData Central. Only dry goods have one.',
+    )
     CONTAINS = (
         'contains_meat',
         'contains_fish',

@@ -35,9 +35,12 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    # Declared read-only so the schema lists it as always sent; a blank=True field would come out optional.
+    grams_per_cup = serializers.IntegerField(read_only=True, allow_null=True)
+
     class Meta:
         model = Ingredient
-        fields = ['slug', 'name']
+        fields = ['slug', 'name', 'grams_per_cup']
 
 
 class IngredientOptionSerializer(serializers.ModelSerializer):
