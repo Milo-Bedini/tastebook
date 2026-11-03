@@ -1,30 +1,10 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixtures.ts';
+import { soleCook } from './setups.ts';
 import { newTestAccountEmail, readSignInCode } from './test-accounts.ts';
 
-type Accessibility = { check: () => Promise<void> };
-
-const signInWithCode = async (page: Page, email: string): Promise<void> => {
-  await page.getByRole('textbox', { name: 'Email address' }).fill(email);
-  await page.getByRole('button', { name: 'Send code' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Check your email' })).toBeFocused();
-  await page.getByRole('textbox', { name: 'Code' }).fill(await readSignInCode(page.request, email));
-  await page.getByRole('button', { name: 'Sign in' }).click();
-};
-
-const signInFromTheBar = async (page: Page, email: string): Promise<void> => {
-  await page.getByRole('banner').getByRole('link', { name: 'Sign in' }).click();
-  await signInWithCode(page, email);
-};
-
-const signUpAs = async (page: Page, name: string): Promise<void> => {
-  await page.goto('/recipes/baguette');
-  await signInFromTheBar(page, newTestAccountEmail());
-  await page.getByRole('textbox', { name: 'Your name' }).fill(name);
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await expect(page).toHaveURL(/\/recipes\/baguette$/);
-};
+type Accessibility = { check: (on?: Page) => Promise<void> };
 
 // Chromium names the heading "Your  household": the squiggle is inline-block, which adds a space around it.
 const HOUSEHOLD_HEADING = /^Your +household$/;
@@ -36,11 +16,12 @@ const openHouseholdPage = async (page: Page, name: string, accessibility: Access
     .click();
   await page.getByRole('menuitem', { name: 'Household' }).click();
   await expect(page.getByRole('heading', { level: 1, name: HOUSEHOLD_HEADING })).toBeVisible();
-  await accessibility.check();
+  await accessibility.check(page);
 };
 
-test('a new test account renames its household', async ({ page, accessibility }) => {
-  await signUpAs(page, 'Sam');
+test('a new test account renames its household', async ({ seed, accessibility }) => {
+  const { page } = (await seed(soleCook)).sam;
+  await page.goto('/recipes/baguette');
   await openHouseholdPage(page, 'Sam', accessibility);
   await expect(page).toHaveURL(/\/household$/);
 
@@ -57,33 +38,35 @@ test('a new test account renames its household', async ({ page, accessibility })
 
   await page.reload();
   await expect(page.getByRole('textbox', { name: 'Household name' })).toHaveValue('The Jones');
-  await accessibility.check();
+  await accessibility.check(page);
 });
 
-test('a member makes an invite link and cancels it', async ({ page, accessibility }) => {
-  await signUpAs(page, 'Sam');
+test('a member makes an invite link and cancels it', async ({ seed, accessibility }) => {
+  const { page } = (await seed(soleCook)).sam;
+  await page.goto('/recipes/baguette');
   await openHouseholdPage(page, 'Sam', accessibility);
 
   await page.getByRole('button', { name: 'Make invite link' }).click();
   const link = page.getByRole('textbox', { name: 'Invite link' });
   await expect(link).toHaveValue(/\/join\/[\w-]{43}$/);
-  await accessibility.check();
+  await accessibility.check(page);
 
   await page.getByRole('button', { name: 'Cancel link' }).click();
   const asked = page.getByRole('alertdialog', { name: 'Cancel this invite link?' });
   await expect(asked.getByRole('button', { name: 'Keep link' })).toBeFocused();
-  await accessibility.check();
+  await accessibility.check(page);
   await asked.getByRole('button', { name: 'Cancel link' }).click();
 
   await expect(page.getByText('Link cancelled')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Make invite link' })).toBeFocused();
   await expect(link).toHaveCount(0);
-  await accessibility.check();
+  await accessibility.check(page);
 });
 
-test("a new test account's household page under forced colours", async ({ page, accessibility }, testInfo) => {
+test("a new test account's household page under forced colours", async ({ seed, accessibility }, testInfo) => {
+  const { page } = (await seed(soleCook)).sam;
   await page.emulateMedia({ forcedColors: 'active' });
-  await signUpAs(page, 'Sam');
+  await page.goto('/recipes/baguette');
   await openHouseholdPage(page, 'Sam', accessibility);
 
   const heading = page.getByRole('heading', { level: 1, name: HOUSEHOLD_HEADING });
@@ -117,17 +100,8 @@ const expectRecipeListed = async (page: Page) => {
   await expect(page.getByRole('link', { name: new RegExp(ANNS_RECIPE) })).toBeVisible();
 };
 
-test('someone joins from an invite link, leaves, joins again and is removed', async ({
-  page,
-  browser,
-  baseURL,
-  extraHTTPHeaders,
-  accessibility
-}) => {
-  // A second person needs a context of their own; it takes the config's address and headers, so it runs on previews.
-  const samsContext = await browser.newContext({ baseURL, extraHTTPHeaders, reducedMotion: 'reduce' });
-  const sam = await samsContext.newPage();
-  await signUpAs(sam, 'Sam');
+test('someone joins from an invite link, leaves, joins again and is removed', async ({ page, seed, accessibility }) => {
+  const sam = (await seed(soleCook)).sam.page;
   await sam.goto('/household');
   await sam.getByRole('button', { name: 'Make invite link' }).click();
   const address = await sam.getByRole('textbox', { name: 'Invite link' }).inputValue();
@@ -137,7 +111,12 @@ test('someone joins from an invite link, leaves, joins again and is removed', as
   await expect(page.getByRole('heading', { level: 1, name: /^You've been +invited +to a household$/ })).toBeVisible();
   await accessibility.check();
   await page.getByRole('link', { name: 'Sign in to join' }).click();
-  await signInWithCode(page, newTestAccountEmail());
+  const email = newTestAccountEmail();
+  await page.getByRole('textbox', { name: 'Email address' }).fill(email);
+  await page.getByRole('button', { name: 'Send code' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Check your email' })).toBeFocused();
+  await page.getByRole('textbox', { name: 'Code' }).fill(await readSignInCode(page.request, email));
+  await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('textbox', { name: 'Your name' }).fill('Ann');
   await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page).toHaveURL(address);
@@ -180,7 +159,6 @@ test('someone joins from an invite link, leaves, joins again and is removed', as
   await sam.getByRole('alertdialog').getByRole('button', { name: 'Remove member' }).click();
   await expect(sam.getByRole('list', { name: 'Members' }).getByRole('listitem')).toHaveText([/Sam \(you\)$/]);
   await expectRecipeListed(sam);
-  await samsContext.close();
   await expectRecipeListed(page);
 
   await page.goto(address);

@@ -1,26 +1,9 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixtures.ts';
-import { newTestAccountEmail, readSignInCode } from './test-accounts.ts';
+import { soleCook } from './setups.ts';
 
-type Accessibility = { check: () => Promise<void> };
-
-const signInFromTheBar = async (page: Page, email: string): Promise<void> => {
-  await page.getByRole('banner').getByRole('link', { name: 'Sign in' }).click();
-  await page.getByRole('textbox', { name: 'Email address' }).fill(email);
-  await page.getByRole('button', { name: 'Send code' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Check your email' })).toBeFocused();
-  await page.getByRole('textbox', { name: 'Code' }).fill(await readSignInCode(page.request, email));
-  await page.getByRole('button', { name: 'Sign in' }).click();
-};
-
-const signUpAs = async (page: Page, name: string): Promise<void> => {
-  await page.goto('/recipes/baguette');
-  await signInFromTheBar(page, newTestAccountEmail());
-  await page.getByRole('textbox', { name: 'Your name' }).fill(name);
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await expect(page).toHaveURL(/\/recipes\/baguette$/);
-};
+type Accessibility = { check: (on?: Page) => Promise<void> };
 
 // Chromium names the heading "Your  account": the squiggle is inline-block, which adds a space around it.
 const ACCOUNT_HEADING = /^Your +account$/;
@@ -32,11 +15,12 @@ const openAccountPage = async (page: Page, name: string, accessibility: Accessib
     .click();
   await page.getByRole('menuitem', { name: 'Account' }).click();
   await expect(page.getByRole('heading', { level: 1, name: ACCOUNT_HEADING })).toBeVisible();
-  await accessibility.check();
+  await accessibility.check(page);
 };
 
-test('a new test account changes its name and units, and recipes open in them', async ({ page, accessibility }) => {
-  await signUpAs(page, 'Sam');
+test('a new test account changes its name and units, and recipes open in them', async ({ seed, accessibility }) => {
+  const { page } = (await seed(soleCook)).sam;
+  await page.goto('/recipes/baguette');
   await openAccountPage(page, 'Sam', accessibility);
   await expect(page).toHaveURL(/\/account$/);
 
@@ -55,9 +39,10 @@ test('a new test account changes its name and units, and recipes open in them', 
   await expect(units.getByRole('radio', { name: 'Metric' })).not.toBeChecked();
 });
 
-test("a new test account's account page under forced colours", async ({ page, accessibility }, testInfo) => {
+test("a new test account's account page under forced colours", async ({ seed, accessibility }, testInfo) => {
+  const { page } = (await seed(soleCook)).sam;
   await page.emulateMedia({ forcedColors: 'active' });
-  await signUpAs(page, 'Sam');
+  await page.goto('/recipes/baguette');
   await openAccountPage(page, 'Sam', accessibility);
 
   const heading = page.getByRole('heading', { level: 1, name: ACCOUNT_HEADING });
