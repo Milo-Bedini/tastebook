@@ -168,7 +168,7 @@ const RecipeDetails = ({ recipe, preferredSystem }: RecipeDetailsProps) => (
   </>
 );
 
-const RecipeNotFound = () => (
+export const RecipeNotFound = () => (
   <>
     <title>Recipe not found · Tastebook</title>
     <h1>Recipe not found</h1>

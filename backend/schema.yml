@@ -513,6 +513,47 @@ paths:
           description: ''
         '404':
           description: No recipe has this slug, or it's another household's.
+    patch:
+      operationId: recipes_partial_update
+      description: Edits a recipe of the signed-in account's household; any member
+        may, whoever wrote it. Only the fields sent change, and the address stays
+        as it is.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeChanges'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeChanges'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeChanges'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+        '400':
+          description: A field, or a pair of them, is not one a recipe can hold.
+        '403':
+          description: Signed out, or the account has no household yet.
+        '404':
+          description: 'No recipe has this slug in the account''s household: there''s
+            none, it''s another household''s, or it''s a catalogue recipe.'
   /api/test-accounts/code/:
     get:
       operationId: test_account_code_retrieve
@@ -1008,6 +1049,82 @@ components:
         name:
           type: string
           maxLength: 100
+    PatchedRecipeChanges:
+      type: object
+      description: 'What the form sends to edit a recipe: the fields it has, each
+        optional. The title can''t be blanked.'
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 300
+        cuisines:
+          type: array
+          items:
+            type: string
+        courses:
+          type: array
+          items:
+            type: string
+        difficulty:
+          oneOf:
+          - $ref: '#/components/schemas/DifficultyEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        prep_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        cook_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        extra_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Waiting time, such as marinating or proving.
+        extra_label:
+          type: string
+          description: What the extra time is for, such as marinating, resting or
+            proving.
+          maxLength: 50
+        servings:
+          type: integer
+          maximum: 32767
+          minimum: 1
+          nullable: true
+          description: Leave empty when giving a yield.
+        yield_amount:
+          type: integer
+          maximum: 32767
+          minimum: 1
+          nullable: true
+          description: '"12" in "makes 12 cookies".'
+        yield_unit:
+          type: string
+          description: '"cookies" in "makes 12 cookies".'
+          maxLength: 50
+        one_pot:
+          type: boolean
+        source:
+          type: string
+          title: Source credit
+          description: 'Where the recipe came from: an author, a website or a book.'
+          maxLength: 300
+        source_url:
+          title: Source address
+          description: The original recipe's page, which the source credit links to.
+            Leave empty when there is none.
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
     PhotoThumbnail:
       type: object
       properties:

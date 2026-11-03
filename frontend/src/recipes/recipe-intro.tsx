@@ -1,7 +1,9 @@
+import { Pencil } from 'lucide-react';
 import type { ComponentProps } from 'react';
+import { Link } from 'react-router';
 
 import type { components } from '../api/schema';
-import { PrivateMark, Squiggle, TimeBlobs } from '../dino';
+import { Button, PrivateMark, Squiggle, TimeBlobs } from '../dino';
 import { describeDietTagConflict } from './diet-tags';
 import { difficultyLabel } from './difficulty';
 import { formatMinutes } from './format-minutes';
@@ -108,6 +110,15 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
       ))}
       <RecipeTimes recipe={recipe} />
       <RecipeGaps recipe={recipe} />
+      {/* A private recipe reaches its page only for its own household, so anyone seeing it may edit it. */}
+      {recipe.visibility === 'private' && (
+        <Button asChild variant="secondary" className="self-start">
+          <Link to={`/recipes/${recipe.slug}/edit`}>
+            <Pencil aria-hidden="true" strokeWidth={2.5} />
+            Edit recipe
+          </Link>
+        </Button>
+      )}
     </div>
   );
 };

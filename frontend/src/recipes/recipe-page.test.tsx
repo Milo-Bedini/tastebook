@@ -414,6 +414,31 @@ describe('RecipePage', () => {
     expect(screen.getByText('Private')).toBeVisible();
   });
 
+  it('offers to edit a private recipe, and not a public one', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', ({ params }) =>
+        HttpResponse.json<Recipe>(
+          params.slug === 'shakshuka'
+            ? shakshuka
+            : { ...shakshuka, slug: 'shakshuka-k7m2qx', visibility: 'private', title: 'Our shakshuka' }
+        )
+      )
+    );
+
+    const { router, queryClient } = renderRoute('/recipes/shakshuka-k7m2qx');
+
+    expect(await screen.findByRole('link', { name: 'Edit recipe' })).toHaveAttribute(
+      'href',
+      '/recipes/shakshuka-k7m2qx/edit'
+    );
+
+    await act(() => router.navigate('/recipes/shakshuka'));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(screen.queryByRole('link', { name: 'Edit recipe' })).not.toBeInTheDocument();
+  });
+
   it('leaves a private recipe for "Recipe not found" when its household member signs out on it', async () => {
     const signOuts: string[] = [];
     const curry: Recipe = {
