@@ -356,6 +356,64 @@ describe('RecipePage', () => {
     ]);
   });
 
+  it('marks a private recipe with only a title "Private" and lists everything it is missing, in order', async () => {
+    const curry: Recipe = {
+      ...shakshuka,
+      slug: 'grandmas-curry-k7m2qx',
+      visibility: 'private',
+      title: "Grandma's curry",
+      description: '',
+      courses: [],
+      difficulty: '',
+      prep_minutes: null,
+      cook_minutes: null,
+      total_minutes: null,
+      servings: null,
+      equipment: [],
+      one_pot: false,
+      source: ''
+    };
+    server.use(http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>(curry)));
+
+    renderRoute('/recipes/grandmas-curry-k7m2qx');
+
+    expect(await screen.findByRole('heading', { level: 1, name: "Grandma's curry" })).toBeInTheDocument();
+    expect(screen.getByText('Private')).toBeVisible();
+    const missing = screen.getByText("What's missing").closest<HTMLElement>('[role="status"]');
+    expect(missing).not.toBeNull();
+    expect(
+      within(missing as HTMLElement)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent)
+    ).toEqual(['No ingredients yet', 'No method yet', 'No prep time yet', 'No cook time yet', 'No servings yet']);
+    expect(screen.queryByRole('term')).not.toBeInTheDocument();
+  });
+
+  it('lists what a private recipe is missing, and nothing for a public one missing the same', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', ({ params }) =>
+        HttpResponse.json<Recipe>(
+          params.slug === 'shakshuka'
+            ? shakshuka
+            : { ...shakshuka, slug: 'shakshuka-k7m2qx', visibility: 'private', title: 'Our shakshuka' }
+        )
+      )
+    );
+
+    const { router, queryClient } = renderRoute('/recipes/shakshuka');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(screen.queryByText('No method yet')).not.toBeInTheDocument();
+    expect(screen.queryByText('Private')).not.toBeInTheDocument();
+
+    await act(() => router.navigate('/recipes/shakshuka-k7m2qx'));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Our shakshuka' })).toBeInTheDocument();
+    expect(screen.getByText('No method yet')).toBeVisible();
+    expect(screen.getByText('Private')).toBeVisible();
+  });
+
   it('leaves a private recipe for "Recipe not found" when its household member signs out on it', async () => {
     const signOuts: string[] = [];
     const curry: Recipe = {

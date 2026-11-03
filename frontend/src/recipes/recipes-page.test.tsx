@@ -295,7 +295,7 @@ describe('RecipesPage', () => {
     renderRoute('/recipes');
 
     expect((await screen.findByRole('heading', { name: "Grandma's curry" })).closest('li')).toHaveTextContent(
-      /^Grandma's curryItalian$/
+      /^Grandma's curryPrivateItalian$/
     );
     expect(screen.getByRole('heading', { name: 'Apple tart' }).closest('li')).toHaveTextContent(
       /^Apple tart1 hr 40 min · Medium · French$/
@@ -380,6 +380,29 @@ describe('RecipesPage', () => {
         ]
       ]
     ]);
+  });
+
+  it('marks a private recipe\'s card "Private", and not a public one\'s', async () => {
+    server.use(
+      http.get('/api/recipes/', () =>
+        HttpResponse.json<Recipe[]>([
+          { ...bananaBread, id: 5, slug: 'grandmas-curry-k7m2qx', visibility: 'private', title: "Grandma's curry" },
+          appleTart
+        ])
+      )
+    );
+
+    renderRoute('/recipes');
+
+    const privateCard = (await screen.findByRole('heading', { name: "Grandma's curry" })).closest('li');
+    const publicCard = screen.getByRole('heading', { name: 'Apple tart' }).closest('li');
+    expect(privateCard).not.toBeNull();
+    expect(publicCard).not.toBeNull();
+    expect(within(privateCard as HTMLElement).getByText('Private')).toBeVisible();
+    expect(within(publicCard as HTMLElement).queryByText('Private')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Grandma's curry" })).toHaveAccessibleDescription(
+      'Private 1 hr 15 min · Easy'
+    );
   });
 
   it("names each card's link by the recipe and describes it by its meta", async () => {

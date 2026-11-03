@@ -1,10 +1,11 @@
 import type { ComponentProps } from 'react';
 
 import type { components } from '../api/schema';
-import { Squiggle, TimeBlobs } from '../dino';
+import { PrivateMark, Squiggle, TimeBlobs } from '../dino';
 import { describeDietTagConflict } from './diet-tags';
 import { difficultyLabel } from './difficulty';
 import { formatMinutes } from './format-minutes';
+import { RecipeGaps } from './recipe-gaps';
 import { hasIngredients } from './recipe-ingredients';
 
 type Recipe = components['schemas']['Recipe'];
@@ -88,20 +89,25 @@ const RecipeTimes = ({ recipe }: RecipeProps) => {
   return times === null ? null : <TimeBlobs times={times} />;
 };
 
-export const RecipeIntro = ({ recipe }: RecipeProps) => (
-  <div className="flex flex-col gap-4">
-    <RecipeTitle title={recipe.title} />
-    {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
-    <p className="text-muted tabular-nums">{factsOf(recipe)}</p>
-    {recipe.equipment.length > 0 && <p className="text-muted">{`Equipment: ${namesOf(recipe.equipment)}`}</p>}
-    {recipe.source !== '' && (
-      <p className="min-w-0 break-words text-muted">
-        Source: <SourceCredit source={recipe.source} sourceUrl={recipe.source_url} />
-      </p>
-    )}
-    {recipe.diet_tag_conflicts.map((conflict) => (
-      <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
-    ))}
-    <RecipeTimes recipe={recipe} />
-  </div>
-);
+export const RecipeIntro = ({ recipe }: RecipeProps) => {
+  const facts = factsOf(recipe);
+  return (
+    <div className="flex flex-col gap-4">
+      <RecipeTitle title={recipe.title} />
+      {recipe.visibility === 'private' && <PrivateMark />}
+      {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
+      {facts !== '' && <p className="text-muted tabular-nums">{facts}</p>}
+      {recipe.equipment.length > 0 && <p className="text-muted">{`Equipment: ${namesOf(recipe.equipment)}`}</p>}
+      {recipe.source !== '' && (
+        <p className="min-w-0 break-words text-muted">
+          Source: <SourceCredit source={recipe.source} sourceUrl={recipe.source_url} />
+        </p>
+      )}
+      {recipe.diet_tag_conflicts.map((conflict) => (
+        <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
+      ))}
+      <RecipeTimes recipe={recipe} />
+      <RecipeGaps recipe={recipe} />
+    </div>
+  );
+};
