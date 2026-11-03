@@ -9,7 +9,10 @@ from households.models import HOUSEHOLD_NAME_MAX_LENGTH, NAME_MAX_LENGTH, UnitSy
 class SeedMemberSerializer(serializers.Serializer):
     key = serializers.RegexField(r'^[a-z][a-z0-9-]{0,19}$')
     name = serializers.CharField(max_length=NAME_MAX_LENGTH)
-    unit_system = serializers.ChoiceField(choices=UnitSystem.choices, default=UnitSystem.METRIC)
+    # Left out rather than given a default, so the generated request type has it optional.
+    unit_system = serializers.ChoiceField(
+        choices=UnitSystem.choices, required=False, help_text='metric when not given.'
+    )
     recipes = serializers.ListField(child=serializers.DictField(), max_length=20, default=list)
 
 

@@ -1284,7 +1284,11 @@ components:
         unit_system:
           allOf:
           - $ref: '#/components/schemas/UnitSystem'
-          default: metric
+          description: |-
+            metric when not given.
+
+            * `metric` - Metric
+            * `us` - US customary
         recipes:
           type: array
           items:

@@ -523,8 +523,13 @@ export interface components {
         SeedMember: {
             key: string;
             name: string;
-            /** @default metric */
-            unit_system: components["schemas"]["UnitSystem"];
+            /**
+             * @description metric when not given.
+             *
+             *     * `metric` - Metric
+             *     * `us` - US customary
+             */
+            unit_system?: components["schemas"]["UnitSystem"];
             recipes?: {
                 [key: string]: unknown;
             }[];

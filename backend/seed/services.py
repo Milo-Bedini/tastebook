@@ -3,7 +3,7 @@ from typing import Any
 
 from django.db import transaction
 
-from households.models import User
+from households.models import UnitSystem, User
 from households.services import TestMember, add_test_household, start_session
 from recipes.models import Recipe
 from recipes.services import add_described_recipes
@@ -33,5 +33,7 @@ def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
 
 def _add_household(household: dict[str, Any]) -> list[tuple[dict[str, Any], User]]:
     members = household['members']
-    test_members = [TestMember(member['key'], member['name'], member['unit_system']) for member in members]
+    test_members = [
+        TestMember(member['key'], member['name'], member.get('unit_system', UnitSystem.METRIC)) for member in members
+    ]
     return list(zip(members, add_test_household(household.get('name'), test_members), strict=True))
