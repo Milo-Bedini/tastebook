@@ -141,6 +141,54 @@ def test_ingredients_the_recipe_cant_hold_are_refused(body: dict[str, Any], erro
     ]
 
 
+def leaving_out(field: str, sent: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in sent.items() if key != field}
+
+
+LINE_FIELDS = list(ONION)
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures('pantry')
+@pytest.mark.parametrize(
+    ('body', 'errors'),
+    [
+        *(
+            (
+                {'ingredient_lines': [leaving_out(field, ONION)]},
+                {'ingredient_lines': {'0': {field: ['This field is required.']}}},
+            )
+            for field in LINE_FIELDS
+        ),
+        *(
+            (
+                {'ingredient_groups': [leaving_out(field, SAUCE)]},
+                {'ingredient_groups': {'0': {field: ['This field is required.']}}},
+            )
+            for field in SAUCE
+        ),
+        (
+            {'ingredient_groups': [{**SAUCE, 'lines': [leaving_out('amount_max', GARLIC)]}]},
+            {'ingredient_groups': {'0': {'lines': {'0': {'amount_max': ['This field is required.']}}}}},
+        ),
+    ],
+    ids=[
+        *(f'line without {field}' for field in LINE_FIELDS),
+        *(f'group without {field}' for field in SAUCE),
+        'grouped line without amount_max',
+    ],
+)
+def test_an_edit_with_a_line_or_group_missing_a_field_is_refused(body: dict[str, Any], errors: dict[str, Any]) -> None:
+    milo, slug = milos_curry(ingredient_lines=[ONION])
+
+    response = change(milo, slug, body)
+
+    assert (response.status_code, response.json()) == (400, errors)
+    assert list(IngredientLine.objects.filter(recipe__slug=slug).values_list('ingredient__slug', flat=True)) == [
+        'onion'
+    ]
+
+
 @pytest.mark.django_db
 @pytest.mark.usefixtures('pantry')
 def test_saving_thirty_lines_takes_as_many_queries_as_two() -> None:

@@ -16,10 +16,13 @@ from recipes.serializers import (
     NewRecipeSerializer,
     RecipeChangesSerializer,
     RecipeFiltersSerializer,
+    RecipeIngredientsSerializer,
     RecipeSerializer,
     RecipeSummarySerializer,
 )
 from recipes.services import IngredientList, add_ingredient, add_recipe, edit_recipe
+
+INGREDIENT_FIELDS = tuple(RecipeIngredientsSerializer().fields)
 
 
 class RecipeListView(ListAPIView):
@@ -126,12 +129,22 @@ class RecipeDetailView(RetrieveAPIView):
         if not request.user.is_authenticated or request.user.household_id is None:
             raise PermissionDenied
         recipe = get_object_or_404(Recipe.objects.editable_by(request.user), slug=slug)
-        given = RecipeChangesSerializer(data=request.data, partial=True)
-        given.is_valid(raise_exception=True)
+        changes = request.data.copy()
+        sent = {name: changes.pop(name) for name in INGREDIENT_FIELDS if name in changes}
+        given = RecipeChangesSerializer(data=changes, partial=True)
+        # Not partial: DRF skips a missing field at every depth of a partial update, so a line could lack its amount.
+        given_ingredients = RecipeIngredientsSerializer(data=sent)
+        # Both run, so one answer names every field refused.
+        if not all([given.is_valid(), given_ingredients.is_valid()]):
+            raise ValidationError({**given.errors, **given_ingredients.errors})
         details = dict(given.validated_data)
         cuisines, courses = details.pop('cuisines', None), details.pop('courses', None)
-        lines, groups = details.pop('ingredient_lines', None), details.pop('ingredient_groups', None)
-        ingredients = None if lines is None and groups is None else IngredientList(lines or [], groups or [])
+        sent_ingredients = given_ingredients.validated_data
+        ingredients = (
+            IngredientList(sent_ingredients['ingredient_lines'], sent_ingredients['ingredient_groups'])
+            if sent
+            else None
+        )
         try:
             edit_recipe(recipe, details, cuisines, courses, ingredients)
         except DjangoValidationError as error:

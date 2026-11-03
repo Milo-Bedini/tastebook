@@ -387,10 +387,17 @@ class NewIngredientGroupSerializer(serializers.Serializer):
     lines = NewIngredientLineSerializer(many=True, max_length=100)
 
 
+class RecipeIngredientsSerializer(serializers.Serializer):
+    """A recipe's lines and groups. Sending either replaces every line and group; the one left out counts as none."""
+
+    ingredient_lines = NewIngredientLineSerializer(many=True, max_length=100, required=False, default=list)
+    ingredient_groups = NewIngredientGroupSerializer(many=True, max_length=20, required=False, default=list)
+
+
 BLANK_TITLE = "Give the recipe a title, like Grandma's curry."
 
 
-class NewRecipeSerializer(serializers.ModelSerializer):
+class NewRecipeSerializer(RecipeIngredientsSerializer, serializers.ModelSerializer):
     """What the form sends to add a recipe. Only the title is required."""
 
     title = serializers.CharField(max_length=200, error_messages={'blank': BLANK_TITLE, 'required': BLANK_TITLE})
@@ -400,9 +407,6 @@ class NewRecipeSerializer(serializers.ModelSerializer):
     courses = serializers.SlugRelatedField(
         many=True, slug_field='slug', queryset=Course.objects.all(), required=False, default=list
     )
-    # Sending either replaces every line and group; the one left out counts as none.
-    ingredient_lines = NewIngredientLineSerializer(many=True, max_length=100, required=False, default=list)
-    ingredient_groups = NewIngredientGroupSerializer(many=True, max_length=20, required=False, default=list)
 
     class Meta:
         model = Recipe
