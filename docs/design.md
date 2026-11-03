@@ -148,7 +148,7 @@ Picnic works only while its playful parts stay rare. Review checks each screen a
 - **Stickers** carry a recipe's diet tags in pink, or a featured recipe's time in butter, tilted 6 to 12 degrees; two at most on one photo. They describe and are never buttons.
 - **The squiggle** goes under one word of a screen's title, a recipe's name or a step number, in Pop. One per screen.
 - **Doodles** (a hand-drawn arrow and a note in italic serif, like "start it tonight!") go on browse and empty states only, one per screen, and repeat nothing the screen doesn't already say in words: they're hidden from screen readers.
-- **Blobs** (three fixed irregular shapes in peach, butter and mint) hold a recipe's prep, cook and soaking times, and nothing else.
+- **Blobs** (three fixed irregular shapes in peach, butter and mint) hold a recipe's prep, cook and soaking times, and nothing else. A recipe shows only the times it has, one to three, in that order; each keeps its third of the row, and the colours and shapes go by position.
 - **Dotted leaders** join an ingredient to its amount wherever amounts are listed.
 
 ## Components

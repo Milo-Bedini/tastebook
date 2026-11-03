@@ -64,22 +64,23 @@ const SourceCredit = ({ source, sourceUrl }: SourceCreditProps) => {
   return <a href={sourceUrl}>{source}</a>;
 };
 
-// TimeBlobs shows two or three times, so a recipe missing its prep or cook time shows none.
-const timesOf = ({
-  prep_minutes,
-  cook_minutes,
-  extra_minutes,
-  extra_label
-}: Recipe): ComponentProps<typeof TimeBlobs>['times'] | null => {
-  if (prep_minutes === null || cook_minutes === null) {
+type Times = ComponentProps<typeof TimeBlobs>['times'];
+
+// Only the times the recipe has, in TimeBlobs' order: prep, cook, then the extra time.
+const timesOf = ({ prep_minutes, cook_minutes, extra_minutes, extra_label }: Recipe): Times | null => {
+  const times = [
+    prep_minutes === null ? null : { label: 'Prep', value: formatMinutes(prep_minutes) },
+    cook_minutes === null ? null : { label: 'Cook', value: formatMinutes(cook_minutes) },
+    extra_minutes === 0 ? null : { label: capitalise(extra_label), value: formatMinutes(extra_minutes) }
+  ].filter((time) => time !== null);
+  const [first, second, third] = times;
+  if (first === undefined) {
     return null;
   }
-  const prep = { label: 'Prep', value: formatMinutes(prep_minutes) };
-  const cook = { label: 'Cook', value: formatMinutes(cook_minutes) };
-  if (extra_minutes === 0) {
-    return [prep, cook];
+  if (second === undefined) {
+    return [first];
   }
-  return [prep, cook, { label: capitalise(extra_label), value: formatMinutes(extra_minutes) }];
+  return third === undefined ? [first, second] : [first, second, third];
 };
 
 const RecipeTimes = ({ recipe }: RecipeProps) => {

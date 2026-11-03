@@ -32,7 +32,7 @@ export const boardByTitle: Record<string, `docs/design/${string}.dc.png`> = {
   'Dino/PrivateMark': 'docs/design/dino/private-mark.dc.png',
   'Dino/Page': 'docs/design/dino/layout.dc.png',
   'Dino/TopBar': 'docs/design/dino/layout.dc.png',
-  'Dino/TimeBlobs': 'docs/design/dino/layout.dc.png',
+  'Dino/TimeBlobs': 'docs/design/picnic/recipe-new-time-blobs.dc.png',
   'Dino/AmountList': 'docs/design/dino/layout.dc.png',
   'Dino/Method': 'docs/design/dino/layout.dc.png',
   'Dino/Squiggle': 'docs/design/picnic/browse-and-recipe.dc.png',

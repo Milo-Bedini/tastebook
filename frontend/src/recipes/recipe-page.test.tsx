@@ -308,13 +308,36 @@ describe('RecipePage', () => {
     expect(blobs()).toEqual(times);
   });
 
-  it('shows no time blobs and no total time for a recipe missing its prep time', async () => {
+  it.each<[string, Partial<Recipe>, string[][]]>([
+    ['only a prep time', { prep_minutes: 20, cook_minutes: null }, [['Prep', '20 min']]],
+    ['only a cook time', { prep_minutes: null }, [['Cook', '25 min']]],
+    [
+      'a cook time and extra time, no prep',
+      { prep_minutes: null, extra_minutes: 120, extra_label: 'marinating' },
+      [
+        ['Cook', '25 min'],
+        ['Marinating', '2 hr']
+      ]
+    ]
+  ])('shows only the times a recipe has, and no total time, for %s', async (_, times, shown) => {
+    server.use(
+      http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>({ ...shakshuka, ...times, total_minutes: null }))
+    );
+
+    renderRoute('/recipes/shakshuka');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+    expect(blobs()).toEqual(shown);
+    expect(paragraphs()).toContain('Easy · One-pot · Main · Serves 2');
+  });
+
+  it('shows no time blobs for a recipe with no times', async () => {
     server.use(
       http.get('/api/recipes/:slug/', ({ params }) =>
         HttpResponse.json<Recipe>(
           params.slug === 'shakshuka'
-            ? { ...shakshuka, prep_minutes: null, total_minutes: null }
-            : { ...shakshuka, slug: 'flatbreads', title: 'Flatbreads', prep_minutes: 30, total_minutes: 55 }
+            ? { ...shakshuka, prep_minutes: null, cook_minutes: null, total_minutes: null }
+            : { ...shakshuka, slug: 'flatbreads', title: 'Flatbreads' }
         )
       )
     );
@@ -323,13 +346,12 @@ describe('RecipePage', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
     expect(screen.queryByRole('term')).not.toBeInTheDocument();
-    expect(paragraphs()).toContain('Easy · One-pot · Main · Serves 2');
 
     await act(() => router.navigate('/recipes/flatbreads'));
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Flatbreads' })).toBeInTheDocument();
     expect(blobs()).toEqual([
-      ['Prep', '30 min'],
+      ['Prep', '10 min'],
       ['Cook', '25 min']
     ]);
   });

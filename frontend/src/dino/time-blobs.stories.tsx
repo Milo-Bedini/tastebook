@@ -50,3 +50,24 @@ export const TwoTimes = {
     ]);
   }
 } satisfies Story;
+
+export const OneTime = {
+  args: { times: [{ label: 'Prep', value: '20 min' }] },
+  play: async ({ canvasElement }) => {
+    await expect(termsAndDefinitions(canvasElement)).toEqual([['Prep', '20 min']]);
+  }
+} satisfies Story;
+
+// The first blob is peach whatever time it holds, so a lone cook time is a peach "Cook".
+export const OnlyACookTime = {
+  args: { times: [{ label: 'Cook', value: '45 min' }] },
+  play: async ({ canvasElement }) => {
+    await expect(termsAndDefinitions(canvasElement)).toEqual([['Cook', '45 min']]);
+    const blob = within(canvasElement).getByRole('term').parentElement;
+    await expect(blob).toHaveClass('bg-peach');
+  }
+} satisfies Story;
+
+export const LargeText = {
+  args: { times: [{ label: 'Prep', value: '20 min' }] }
+} satisfies Story;
