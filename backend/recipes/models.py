@@ -7,8 +7,10 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import Case, F, Q, Value, When
 from django.db.models.functions import Lower
+from django.dispatch import receiver
 
 from households.models import Household, User
+from households.signals import counting_recipes_to_copy, member_moved
 from recipes.photos import COMMONS_FILE, COMMONS_FILE_PAGE, Photo
 from recipes.slugs import base_slug, first_free_slug, random_suffix
 
@@ -167,6 +169,44 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
 
     def catalogue(self) -> RecipeQuerySet:
         return self.filter(household__isnull=True)
+
+    def written_by_in(self, author: User, household_id: int) -> RecipeQuerySet:
+        return self.filter(household_id=household_id, created_by=author)
+
+    def copy_into(self, household_id: int) -> list[Recipe]:
+        """Copies each recipe into the household as a private recipe by the same author, with its ingredients, steps,
+        cuisines, courses and equipment. A copy links to nothing, so changing either one leaves the other alone."""
+        originals = list(
+            self.prefetch_related('cuisines', 'courses', 'equipment', 'ingredient_groups', 'ingredient_lines', 'steps')
+        )
+        # A few queries however many recipes there are, besides one per recipe to find a free slug.
+        copies = Recipe.objects.bulk_create(
+            [
+                _copied(original, household_id=household_id, slug=Recipe.objects.private_slug_for(original.title))
+                for original in originals
+            ]
+        )
+        pairs = list(zip(originals, copies, strict=True))
+        for field_name in ['cuisines', 'courses', 'equipment']:
+            _copy_links(pairs, field_name)
+        groups = [
+            (group, _copied(group, recipe_id=copy.pk))
+            for original, copy in pairs
+            for group in original.ingredient_groups.all()
+        ]
+        IngredientGroup.objects.bulk_create([group for _, group in groups])
+        group_ids = {original.pk: group.pk for original, group in groups}
+        IngredientLine.objects.bulk_create(
+            [
+                _copied(line, recipe_id=copy.pk, group_id=group_ids.get(line.group_id))
+                for original, copy in pairs
+                for line in original.ingredient_lines.all()
+            ]
+        )
+        Step.objects.bulk_create(
+            [_copied(step, recipe_id=copy.pk) for original, copy in pairs for step in original.steps.all()]
+        )
+        return copies
 
     def visible_to(self, user: User | AnonymousUser) -> RecipeQuerySet:
         """Catalogue recipes, and the recipes of the user's household when they're signed in to one."""
@@ -511,3 +551,38 @@ class Step(models.Model):
 
     def __str__(self) -> str:
         return self.text[:50]
+
+
+def _copied[M: models.Model](row: M, **changes: Any) -> M:
+    """A new, unsaved row holding the row's values but for the changes, which are named by attname."""
+    values = {
+        field.attname: getattr(row, field.attname) for field in row._meta.concrete_fields if not field.primary_key
+    }
+    return type(row)(**{**values, **changes})
+
+
+def _copy_links(pairs: list[tuple[Recipe, Recipe]], field_name: str) -> None:
+    """Gives each copy the rows its original has through a many-to-many field."""
+    field = Recipe._meta.get_field(field_name)
+    assert isinstance(field, models.ManyToManyField)
+    through = field.remote_field.through
+    source, target = f'{field.m2m_field_name()}_id', f'{field.m2m_reverse_field_name()}_id'
+    through.objects.bulk_create(
+        [
+            through(**{source: copy.pk, target: row.pk})
+            for original, copy in pairs
+            for row in getattr(original, field_name).all()
+        ]
+    )
+
+
+# The households area sends these and depends on no other, so the recipes it moves an account away from are copied here.
+@receiver(member_moved, dispatch_uid='recipes-copy-written-recipes')
+def copy_recipes_written(sender: type[User], account: User, left: int, **kwargs: Any) -> None:
+    """Gives an account that moved household a copy of each recipe it wrote in the one it left, which keeps its own."""
+    Recipe.objects.written_by_in(account, left).copy_into(account.household_id)
+
+
+@receiver(counting_recipes_to_copy, dispatch_uid='recipes-count-written-recipes')
+def count_recipes_written(sender: type[User], account: User, **kwargs: Any) -> int:
+    return Recipe.objects.written_by_in(account, account.household_id).count()

@@ -115,7 +115,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Moves the signed-in account into a new household of one, named after it. A household left with nobody in it is deleted. */
+        /** @description Moves the signed-in account into a new household of one, named after it, with a copy of each private recipe it wrote; the household it left keeps its own. A household left with nobody in it is deleted. */
         post: operations["household_leave_create"];
         delete?: never;
         options?: never;
@@ -133,7 +133,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** @description Removes another member of the signed-in account's household into a new household of one, and emails them. Any member may. 404 for anyone who isn't another member of it. */
+        /** @description Removes another member of the signed-in account's household into a new household of one, with a copy of each private recipe they wrote (the household keeps its own), and emails them. Any member may. 404 for anyone who isn't another member of it. */
         delete: operations["household_members_destroy"];
         options?: never;
         head?: never;
@@ -182,7 +182,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Moves the signed-in account into the invite's household; a household left with nobody in it is deleted. 404 for an unknown token, 409 when the link is cancelled or expired. */
+        /** @description Moves the signed-in account into the invite's household with a copy of each private recipe it wrote; the household it left keeps its own, and is deleted if nobody is left in it. 404 for an unknown token, 409 when the link is cancelled or expired. */
         post: operations["invite_join_create"];
         delete?: never;
         options?: never;
@@ -385,6 +385,8 @@ export interface components {
             status: components["schemas"]["InviteStatus"];
             is_member: boolean;
             household: components["schemas"]["InvitedHousehold"] | null;
+            /** @description How many private recipes the viewer wrote in their household and would take a copy of by joining. 0 when the link offers them no household to join. */
+            recipes_to_copy: number;
         };
         Member: {
             id: number;

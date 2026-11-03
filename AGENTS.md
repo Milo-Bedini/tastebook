@@ -87,6 +87,7 @@ The code is organised by domain area, the same areas on both sides, named in the
 - [a] reach another area's behaviour through its public surface: its `services.py` (and querysets) in the backend, its `index.ts` exports in the frontend. Foreign keys to another area's models are fine.
 - [n] import another area's internals (views, serializers, private helpers, components it doesn't export).
 - Dependencies point one way: every area may depend on `households` (who owns what); `collections`, `kitchen` and `importing` depend on `recipes`; `planning` depends on `recipes` and `kitchen`; `households` depends on no other area. [n] add a dependency that points back.
+- When `households` needs another area to act (a member moving takes the recipes they wrote), it sends a signal from `households/signals.py` and that area's receiver, connected in its `models.py`, does the work.
 
 ## Layout
 
