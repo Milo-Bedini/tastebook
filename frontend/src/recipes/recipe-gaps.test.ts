@@ -11,7 +11,7 @@ const line: IngredientLine = {
   amount: 2,
   amount_max: null,
   unit: 'tbsp',
-  ingredient: { slug: 'olive-oil', name: 'olive oil', grams_per_cup: null },
+  ingredient: { slug: 'olive-oil', name: 'olive oil', grams_per_cup: null, awaiting_review: false },
   note: '',
   optional: false,
   original_text: ''

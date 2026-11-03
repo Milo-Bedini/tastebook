@@ -21,6 +21,7 @@ from recipes.models import (
     Ingredient,
     IngredientGroup,
     IngredientLine,
+    IngredientStatus,
     IngredientSynonym,
     Recipe,
     Step,
@@ -40,6 +41,16 @@ class LoadedCatalogue:
     recipes: int
     ingredients: int
     equipment: int
+
+
+@dataclass(frozen=True)
+class IngredientList:
+    """A recipe's ingredient lines as the form sends them: the lines above every group, then each group with its
+    own. A line is {amount, amount_max, unit, ingredient: Ingredient, note, optional, original_text}; a group is
+    {name, lines}."""
+
+    lines: list[Record]
+    groups: list[Record]
 
 
 @dataclass(frozen=True)
@@ -65,11 +76,36 @@ def load_catalogue(path: Path = CATALOGUE_PATH) -> LoadedCatalogue:
         # Catalogue recipes the file no longer lists go; household recipes aren't the file's.
         Recipe.objects.catalogue().exclude(pk__in=[recipe.pk for recipe in recipes]).delete()
         Equipment.objects.exclude(pk__in=[row.pk for row in names.equipment.values()]).delete()
-        Ingredient.objects.exclude(pk__in=[row.pk for row in names.ingredients.values()]).delete()
+        # Ingredients people added aren't the file's.
+        Ingredient.objects.filter(status=IngredientStatus.CATALOGUE).exclude(
+            pk__in=[row.pk for row in names.ingredients.values()]
+        ).delete()
     return LoadedCatalogue(recipes=len(recipes), ingredients=len(names.ingredients), equipment=len(names.equipment))
 
 
-def add_recipe(author: User, details: Record, cuisines: list[Cuisine], courses: list[Course]) -> Recipe:
+def add_ingredient(name: str) -> tuple[Ingredient, bool]:
+    """The ingredient with this name or synonym, ignoring case and accents, or a new one awaiting review under the
+    name as given. True when it's new."""
+    found = Ingredient.objects.called(name)
+    if found is not None:
+        return found, False
+    try:
+        with transaction.atomic():
+            added = Ingredient.objects.create(
+                name=name, slug=Ingredient.objects.unique_slug_for(name), status=IngredientStatus.AWAITING_REVIEW
+            )
+    except IntegrityError:
+        # Someone else added the same name between the lookup and the insert.
+        found = Ingredient.objects.called(name)
+        if found is None:
+            raise
+        return found, False
+    return added, True
+
+
+def add_recipe(
+    author: User, details: Record, cuisines: list[Cuisine], courses: list[Course], ingredients: IngredientList
+) -> Recipe:
     """Saves a private recipe in the author's household. Raises ValidationError when a pair is half given
     (servings or a yield, extra time and its label)."""
     with transaction.atomic():
@@ -83,14 +119,19 @@ def add_recipe(author: User, details: Record, cuisines: list[Cuisine], courses: 
         recipe.save()
         recipe.cuisines.set(cuisines)
         recipe.courses.set(courses)
+        _set_ingredients(recipe, ingredients)
     return recipe
 
 
 def edit_recipe(
-    recipe: Recipe, details: Record, cuisines: list[Cuisine] | None, courses: list[Course] | None
+    recipe: Recipe,
+    details: Record,
+    cuisines: list[Cuisine] | None,
+    courses: list[Course] | None,
+    ingredients: IngredientList | None,
 ) -> Recipe:
-    """Changes the details given and keeps the recipe's address. None leaves the cuisines or courses as they are.
-    Raises ValidationError when a pair is half given, as add_recipe does."""
+    """Changes the details given and keeps the recipe's address. None leaves the cuisines, courses or ingredients
+    as they are. Raises ValidationError when a pair is half given, as add_recipe does."""
     with transaction.atomic():
         for name, value in details.items():
             setattr(recipe, name, value)
@@ -100,7 +141,33 @@ def edit_recipe(
             recipe.cuisines.set(cuisines)
         if courses is not None:
             recipe.courses.set(courses)
+        if ingredients is not None:
+            _set_ingredients(recipe, ingredients)
     return recipe
+
+
+def _set_ingredients(recipe: Recipe, ingredients: IngredientList) -> None:
+    """Replaces the recipe's lines and groups in four queries, however many there are. The serializer has checked
+    each line, so the database's constraints are only a backstop."""
+    IngredientLine.objects.filter(recipe=recipe).delete()
+    IngredientGroup.objects.filter(recipe=recipe).delete()
+    groups = IngredientGroup.objects.bulk_create(
+        [
+            IngredientGroup(recipe=recipe, name=group['name'], position=position)
+            for position, group in enumerate(ingredients.groups)
+        ]
+    )
+    placed = [
+        (None, ingredients.lines),
+        *zip(groups, (group['lines'] for group in ingredients.groups), strict=True),
+    ]
+    IngredientLine.objects.bulk_create(
+        [
+            IngredientLine(recipe=recipe, group=group, position=position, **line)
+            for group, lines in placed
+            for position, line in enumerate(lines)
+        ]
+    )
 
 
 def add_described_recipes(author: User, records: list[Record]) -> list[Recipe]:
@@ -294,11 +361,14 @@ def _objects(records: list[Any], where: str, kind: str) -> list[Record]:
 
 
 def _plain_fields(model: type[models.Model], record: Record, where: str, references: set[str]) -> Record:
-    # Position comes from the order in the file, and ids and slugs are the loader's to give.
+    # Position comes from the order in the file, and ids, slugs and status are the loader's to give.
     allowed = {
         field.name
         for field in model._meta.concrete_fields
-        if field.editable and not field.primary_key and not field.is_relation and field.name not in {'position', 'slug'}
+        if field.editable
+        and not field.primary_key
+        and not field.is_relation
+        and field.name not in {'position', 'slug', 'status'}
     }
     unknown = record.keys() - allowed - references
     if unknown:
@@ -406,6 +476,10 @@ def _allows(ingredient: Ingredient, tag: DietTag) -> bool:
 
 def diet_tags(lines: Iterable[IngredientLine]) -> list[DietTag]:
     """The diet tags every required line allows. Optional lines never take one away."""
+    lines = list(lines)
+    # An ingredient someone added says nothing of what it contains until staff review it.
+    if any(line.ingredient.awaiting_review for line in lines):
+        return []
     required = [line.ingredient for line in lines if not line.optional]
     # A recipe whose ingredients aren't filled in yet would otherwise claim every diet.
     if not required:

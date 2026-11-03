@@ -250,8 +250,13 @@ paths:
   /api/ingredients/:
     get:
       operationId: ingredients_list
+      description: Every ingredient but those awaiting review; a household is also
+        offered the ones its recipes use.
       tags:
       - ingredients
+      security:
+      - cookieAuth: []
+      - basicAuth: []
       responses:
         '200':
           content:
@@ -261,6 +266,45 @@ paths:
                 items:
                   $ref: '#/components/schemas/IngredientOption'
           description: ''
+    post:
+      operationId: ingredients_create
+      description: Gives the ingredient with this name or synonym, ignoring case and
+        accents (200), or adds one awaiting review (201). 403 when signed out or for
+        an account with no household yet.
+      tags:
+      - ingredients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewIngredient'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NewIngredient'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NewIngredient'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngredientOption'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngredientOption'
+          description: ''
+        '400':
+          description: The name is blank, has no letter or is over 100 characters.
+        '403':
+          description: Signed out, or the account has no household yet.
   /api/invites/{token}/:
     get:
       operationId: invite_retrieve
@@ -517,7 +561,8 @@ paths:
       operationId: recipes_partial_update
       description: Edits a recipe of the signed-in account's household; any member
         may, whoever wrote it. Only the fields sent change, and the address stays
-        as it is.
+        as it is. Sending ingredient_lines or ingredient_groups replaces every line
+        and group; the one left out counts as none.
       parameters:
       - in: path
         name: slug
@@ -773,7 +818,11 @@ components:
           type: integer
           readOnly: true
           nullable: true
+        awaiting_review:
+          type: boolean
+          readOnly: true
       required:
+      - awaiting_review
       - grams_per_cup
       - name
       - slug
@@ -958,6 +1007,68 @@ components:
       - id
       - is_you
       - name
+    NewIngredient:
+      type: object
+      description: The name of an ingredient someone adds from the recipe form.
+      properties:
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - name
+    NewIngredientGroup:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewIngredientLine'
+      required:
+      - lines
+      - name
+    NewIngredientLine:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          maximum: 100000
+          minimum: 0.001
+          exclusiveMaximum: true
+          nullable: true
+        amount_max:
+          type: number
+          format: double
+          maximum: 100000
+          minimum: -100000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        unit:
+          oneOf:
+          - $ref: '#/components/schemas/UnitEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        ingredient:
+          type: string
+        note:
+          type: string
+          maxLength: 200
+        optional:
+          type: boolean
+        original_text:
+          type: string
+          maxLength: 300
+      required:
+      - amount
+      - amount_max
+      - ingredient
+      - note
+      - optional
+      - original_text
+      - unit
     NewRecipe:
       type: object
       description: What the form sends to add a recipe. Only the title is required.
@@ -1033,6 +1144,14 @@ components:
             maxLength: 500
           - type: string
             maxLength: 0
+        ingredient_lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewIngredientLine'
+        ingredient_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewIngredientGroup'
       required:
       - title
     PatchedAccountChanges:
@@ -1125,6 +1244,14 @@ components:
             maxLength: 500
           - type: string
             maxLength: 0
+        ingredient_lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewIngredientLine'
+        ingredient_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewIngredientGroup'
     PhotoThumbnail:
       type: object
       properties:

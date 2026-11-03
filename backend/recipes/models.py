@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models import Case, F, Q, Value, When
 from django.db.models.functions import Lower
 from django.dispatch import receiver
+from django.utils.text import slugify
 
 from households.models import Household, User
 from households.signals import counting_recipes_to_copy, member_moved
@@ -124,8 +125,13 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
         flags = sorted({flag for diet in diets for flag in RULED_OUT_BY[DietTag(diet)]})
         required = IngredientLine.objects.filter(optional=False)
         ruled_out = required.filter(reduce(or_, (Q(**{f'ingredient__{flag}': True}) for flag in flags)))
+        unchecked = IngredientLine.objects.filter(ingredient__status=IngredientStatus.AWAITING_REVIEW)
         # A recipe with no required line claims no diet, as diet_tags() says.
-        return self.filter(pk__in=required.values('recipe')).exclude(pk__in=ruled_out.values('recipe'))
+        return (
+            self.filter(pk__in=required.values('recipe'))
+            .exclude(pk__in=ruled_out.values('recipe'))
+            .exclude(pk__in=unchecked.values('recipe'))
+        )
 
     def with_difficulties(self, difficulties: list[str]) -> RecipeQuerySet:
         return self.filter(difficulty__in=difficulties) if difficulties else self
@@ -384,12 +390,38 @@ class Recipe(models.Model):
         return Photo(self.photo_url, self.photo_author, self.photo_licence, self.photo_source_url)
 
 
+class IngredientStatus(models.TextChoices):
+    CATALOGUE = 'catalogue', 'From the catalogue'
+    AWAITING_REVIEW = 'awaiting_review', 'Awaiting review'
+    REVIEWED = 'reviewed', 'Reviewed'
+
+
 class IngredientQuerySet(models.QuerySet['Ingredient']):
     def named(self, text: str) -> IngredientQuerySet:
         """Ingredients whose name or any synonym contains the text, ignoring case and accents."""
         # A subquery, not a join, so an ingredient with two matching synonyms is listed once.
         synonyms = IngredientSynonym.objects.filter(name__unaccent__icontains=text)
         return self.filter(Q(name__unaccent__icontains=text) | Q(pk__in=synonyms.values('ingredient')))
+
+    def called(self, name: str) -> Ingredient | None:
+        """The ingredient with this name or synonym, ignoring case and accents."""
+        synonyms = IngredientSynonym.objects.filter(name__unaccent__iexact=name)
+        return self.filter(Q(name__unaccent__iexact=name) | Q(pk__in=synonyms.values('ingredient'))).first()
+
+    def offered_to(self, user: User | AnonymousUser) -> IngredientQuerySet:
+        """Every ingredient but those awaiting review, which only households whose recipes use them are offered."""
+        checked = ~Q(status=IngredientStatus.AWAITING_REVIEW)
+        household_id = user.household_id if user.is_authenticated else None
+        if household_id is None:
+            return self.filter(checked)
+        used = IngredientLine.objects.filter(recipe__household_id=household_id).values('ingredient')
+        return self.filter(checked | Q(pk__in=used))
+
+    def unique_slug_for(self, name: str) -> str:
+        # Cut short so a "-2" still fits the field's 100 characters.
+        base = (slugify(name) or 'ingredient')[:90].strip('-')
+        taken = set(self.filter(slug__startswith=base).values_list('slug', flat=True))
+        return first_free_slug(base, taken)
 
 
 class Ingredient(models.Model):
@@ -417,6 +449,13 @@ class Ingredient(models.Model):
         validators=[MinValueValidator(1)],
         help_text='What a US cup of it weighs, from USDA FoodData Central. Only dry goods have one.',
     )
+    status = models.CharField(
+        max_length=20,
+        choices=IngredientStatus.choices,
+        default=IngredientStatus.CATALOGUE,
+        help_text='Someone added it from a recipe unless it comes from the catalogue. '
+        'Until it is reviewed, recipes using it show no diet tags.',
+    )
     CONTAINS = (
         'contains_meat',
         'contains_fish',
@@ -434,6 +473,10 @@ class Ingredient(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def awaiting_review(self) -> bool:
+        return self.status == IngredientStatus.AWAITING_REVIEW
 
 
 class IngredientSynonym(models.Model):
@@ -456,6 +499,7 @@ class DietTag(models.TextChoices):
 
 
 # The ingredient flags that rule each diet tag out. services.diet_tags() and RecipeQuerySet.suiting() both read it.
+# Neither claims a diet for a recipe using an ingredient awaiting review.
 RULED_OUT_BY: dict[DietTag, tuple[str, ...]] = {
     DietTag.VEGETARIAN: ('contains_meat', 'contains_fish', 'contains_animal_rennet'),
     DietTag.VEGAN: (

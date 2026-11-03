@@ -53,7 +53,14 @@ const flatbreads: Recipe = {
 const answerEditing = (
   recipe: Recipe = flatbreads,
   respond: (changes: RecipeChanges) => Response = (changes) =>
-    HttpResponse.json<Recipe>({ ...recipe, ...changes, cuisines: recipe.cuisines, courses: recipe.courses })
+    HttpResponse.json<Recipe>({
+      ...recipe,
+      ...changes,
+      cuisines: recipe.cuisines,
+      courses: recipe.courses,
+      ingredient_lines: recipe.ingredient_lines,
+      ingredient_groups: recipe.ingredient_groups
+    })
 ) => {
   const sent: RecipeChanges[] = [];
   server.use(

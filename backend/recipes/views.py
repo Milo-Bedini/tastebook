@@ -7,18 +7,19 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from recipes.models import Course, Cuisine, Ingredient, Recipe, RecipeQuerySet
+from recipes.models import Course, Cuisine, Ingredient, IngredientQuerySet, Recipe, RecipeQuerySet
 from recipes.serializers import (
     CourseSerializer,
     CuisineSerializer,
     IngredientOptionSerializer,
+    NewIngredientSerializer,
     NewRecipeSerializer,
     RecipeChangesSerializer,
     RecipeFiltersSerializer,
     RecipeSerializer,
     RecipeSummarySerializer,
 )
-from recipes.services import add_recipe, edit_recipe
+from recipes.services import IngredientList, add_ingredient, add_recipe, edit_recipe
 
 
 class RecipeListView(ListAPIView):
@@ -55,8 +56,9 @@ class RecipeListView(ListAPIView):
         given.is_valid(raise_exception=True)
         details = dict(given.validated_data)
         cuisines, courses = details.pop('cuisines'), details.pop('courses')
+        ingredients = IngredientList(details.pop('ingredient_lines'), details.pop('ingredient_groups'))
         try:
-            recipe = add_recipe(request.user, details, cuisines, courses)
+            recipe = add_recipe(request.user, details, cuisines, courses, ingredients)
         except DjangoValidationError as error:
             errors = error.message_dict
             raise ValidationError(
@@ -116,7 +118,8 @@ class RecipeDetailView(RetrieveAPIView):
             ),
         },
         description="Edits a recipe of the signed-in account's household; any member may, whoever wrote it. "
-        'Only the fields sent change, and the address stays as it is.',
+        'Only the fields sent change, and the address stays as it is. '
+        'Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none.',
     )
     def patch(self, request: Request, slug: str) -> Response:
         # Refused before the lookup, so a signed-out answer says nothing about the slug.
@@ -127,8 +130,10 @@ class RecipeDetailView(RetrieveAPIView):
         given.is_valid(raise_exception=True)
         details = dict(given.validated_data)
         cuisines, courses = details.pop('cuisines', None), details.pop('courses', None)
+        lines, groups = details.pop('ingredient_lines', None), details.pop('ingredient_groups', None)
+        ingredients = None if lines is None and groups is None else IngredientList(lines or [], groups or [])
         try:
-            edit_recipe(recipe, details, cuisines, courses)
+            edit_recipe(recipe, details, cuisines, courses, ingredients)
         except DjangoValidationError as error:
             errors = error.message_dict
             raise ValidationError(
@@ -161,7 +166,36 @@ class CourseListView(ListAPIView):
 
 
 class IngredientListView(ListAPIView):
-    authentication_classes = []
     permission_classes = []
     serializer_class = IngredientOptionSerializer
-    queryset = Ingredient.objects.prefetch_related('synonyms')
+
+    def get_queryset(self) -> IngredientQuerySet:
+        return Ingredient.objects.offered_to(self.request.user).prefetch_related('synonyms')
+
+    @extend_schema(
+        description='Every ingredient but those awaiting review; a household is also offered the ones its recipes use.'
+    )
+    def get(self, request: Request) -> Response:
+        return super().get(request)
+
+    @extend_schema(
+        operation_id='ingredients_create',
+        request=NewIngredientSerializer,
+        responses={
+            200: IngredientOptionSerializer,
+            201: IngredientOptionSerializer,
+            400: OpenApiResponse(description='The name is blank, has no letter or is over 100 characters.'),
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+        },
+        description='Gives the ingredient with this name or synonym, ignoring case and accents (200), or adds one '
+        'awaiting review (201). 403 when signed out or for an account with no household yet.',
+    )
+    def post(self, request: Request) -> Response:
+        if not request.user.is_authenticated or request.user.household_id is None:
+            raise PermissionDenied
+        given = NewIngredientSerializer(data=request.data)
+        given.is_valid(raise_exception=True)
+        ingredient, added = add_ingredient(given.validated_data['name'])
+        return Response(
+            IngredientOptionSerializer(ingredient).data, status=status.HTTP_201_CREATED if added else status.HTTP_200_OK
+        )

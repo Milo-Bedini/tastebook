@@ -17,6 +17,7 @@ from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, reso
 from households.models import Household, Invite, User
 from recipes.models import Recipe
 from tests.test_accounts import BrowserClient
+from tests.test_added_ingredients import line
 from tests.test_household import HOUSEHOLD, cancel_link, join, make_link, signed_up
 
 ZEBEDEE = 'zebedee@example.com'
@@ -130,7 +131,7 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
     ),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),
-    'api/ingredients/': (get('/api/ingredients/'),),
+    'api/ingredients/': (get('/api/ingredients/'), post('/api/ingredients/', {'name': 'Taken'})),
     'api/schema/': (get('/api/schema/'),),
     'api/schema/docs/': (get('/api/schema/docs/'),),
 }
@@ -161,16 +162,17 @@ class Quillfeathers:
 
 def the_quillfeathers() -> Quillfeathers:
     """Zebedee's household, renamed The Quillfeathers, with Philippa in it, a cancelled link and a live one, and a
-    private recipe."""
+    private recipe using an ingredient Zebedee added."""
     zebedee = signed_up(ZEBEDEE, 'Zebedee')
     signed_up(PHILIPPA, 'Philippa')
     join(PHILIPPA, ZEBEDEE)
     zebedee.client.patch(HOUSEHOLD, {'name': HOUSEHOLD_NAME}, format='json', **zebedee.csrf_header())
     dead_token = make_link(zebedee).json()['invite']['token']
     cancel_link(zebedee)
+    zebedee.client.post('/api/ingredients/', {'name': 'quillfeather jam'}, format='json', **zebedee.csrf_header())
     recipe = zebedee.client.post(
         '/api/recipes/',
-        {'title': 'Quillfeather crumble', 'cuisines': ['french']},
+        {'title': 'Quillfeather crumble', 'cuisines': ['french'], 'ingredient_lines': [line('quillfeather-jam')]},
         format='json',
         **zebedee.csrf_header(),
     )
@@ -219,7 +221,7 @@ def outsider_in_another_household() -> BrowserClient:
 
 
 # What a member sees of their household, and nobody else should: names, addresses, the live link and its recipes.
-SECRETS = (HOUSEHOLD_NAME, 'Zebedee', 'Philippa', ZEBEDEE, PHILIPPA, 'Quillfeather crumble')
+SECRETS = (HOUSEHOLD_NAME, 'Zebedee', 'Philippa', ZEBEDEE, PHILIPPA, 'Quillfeather crumble', 'quillfeather jam')
 
 PROBES = [
     pytest.param(probe, id=f'{probe.method.upper()} {probe.path}') for probes in ENDPOINTS.values() for probe in probes
@@ -271,6 +273,7 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
         philippa.client.get(path).content.decode()
         for path in (f'/api/recipes/{quillfeathers.recipe}/', '/api/recipes/?q=crumble')
     ]
+    ingredients = philippa.client.get('/api/ingredients/').content.decode()
 
     assert [secret for secret in (*SECRETS, quillfeathers.live_token) if secret in seen] == [
         HOUSEHOLD_NAME,
@@ -279,6 +282,7 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
         quillfeathers.live_token,
     ]
     assert ['Quillfeather crumble' in page for page in recipes] == [True, True]
+    assert 'quillfeather jam' in ingredients
 
 
 @pytest.mark.django_db
