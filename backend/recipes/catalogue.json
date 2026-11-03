@@ -42,6 +42,7 @@
     },
     {
       "name": "almonds",
+      "grams_per_cup": 143,
       "synonyms": ["whole almonds"]
     },
     {
@@ -148,7 +149,8 @@
       "name": "basil"
     },
     {
-      "name": "basmati rice"
+      "name": "basmati rice",
+      "grams_per_cup": 185
     },
     {
       "name": "batter mix",
@@ -247,6 +249,7 @@
     },
     {
       "name": "blanched almonds",
+      "grams_per_cup": 145,
       "synonyms": ["peeled almonds"]
     },
     {
@@ -270,7 +273,8 @@
       "contains_gluten": true
     },
     {
-      "name": "brown lentils"
+      "name": "brown lentils",
+      "grams_per_cup": 192
     },
     {
       "name": "brown mustard",
@@ -278,6 +282,7 @@
     },
     {
       "name": "bulgur wheat",
+      "grams_per_cup": 140,
       "synonyms": ["bulgur", "bulghur", "cracked wheat"],
       "contains_gluten": true
     },
@@ -336,6 +341,7 @@
     },
     {
       "name": "cashew nuts",
+      "grams_per_cup": 137,
       "synonyms": ["cashews"]
     },
     {
@@ -344,6 +350,7 @@
     },
     {
       "name": "caster sugar",
+      "grams_per_cup": 200,
       "synonyms": ["superfine sugar"]
     },
     {
@@ -498,7 +505,8 @@
       "contains_fish": true
     },
     {
-      "name": "cocoa powder"
+      "name": "cocoa powder",
+      "grams_per_cup": 86
     },
     {
       "name": "coconut cream"
@@ -564,6 +572,7 @@
     },
     {
       "name": "cornflour",
+      "grams_per_cup": 128,
       "synonyms": ["cornstarch"]
     },
     {
@@ -631,6 +640,7 @@
     },
     {
       "name": "currants",
+      "grams_per_cup": 144,
       "synonyms": ["dried currants", "zante currants"]
     },
     {
@@ -652,6 +662,7 @@
     },
     {
       "name": "dark brown soft sugar",
+      "grams_per_cup": 220,
       "synonyms": ["dark brown sugar"]
     },
     {
@@ -671,6 +682,7 @@
     },
     {
       "name": "dates",
+      "grams_per_cup": 147,
       "synonyms": ["pitted dates"]
     },
     {
@@ -716,6 +728,7 @@
     },
     {
       "name": "dried breadcrumbs",
+      "grams_per_cup": 108,
       "contains_gluten": true
     },
     {
@@ -887,6 +900,7 @@
     },
     {
       "name": "flaked almonds",
+      "grams_per_cup": 92,
       "synonyms": ["slivered almonds"]
     },
     {
@@ -913,6 +927,7 @@
     },
     {
       "name": "fresh breadcrumbs",
+      "grams_per_cup": 45,
       "contains_gluten": true
     },
     {
@@ -1003,10 +1018,12 @@
     },
     {
       "name": "gram flour",
+      "grams_per_cup": 92,
       "synonyms": ["besan", "chickpea flour"]
     },
     {
       "name": "granulated sugar",
+      "grams_per_cup": 200,
       "synonyms": ["white sugar"]
     },
     {
@@ -1128,6 +1145,7 @@
     },
     {
       "name": "icing sugar",
+      "grams_per_cup": 120,
       "synonyms": ["powdered sugar", "confectioners' sugar"]
     },
     {
@@ -1238,6 +1256,7 @@
     },
     {
       "name": "light brown soft sugar",
+      "grams_per_cup": 220,
       "synonyms": ["light brown sugar"]
     },
     {
@@ -1257,6 +1276,7 @@
     },
     {
       "name": "long-grain rice",
+      "grams_per_cup": 185,
       "synonyms": ["white rice"]
     },
     {
@@ -1461,6 +1481,7 @@
     },
     {
       "name": "paella rice",
+      "grams_per_cup": 195,
       "synonyms": ["bomba rice", "calasparra rice"]
     },
     {
@@ -1506,10 +1527,12 @@
       "name": "peanut butter"
     },
     {
-      "name": "peanuts"
+      "name": "peanuts",
+      "grams_per_cup": 146
     },
     {
       "name": "pearl barley",
+      "grams_per_cup": 200,
       "synonyms": ["barley"],
       "contains_gluten": true
     },
@@ -1559,13 +1582,15 @@
       "synonyms": ["panela"]
     },
     {
-      "name": "pine nuts"
+      "name": "pine nuts",
+      "grams_per_cup": 135
     },
     {
       "name": "pineapple"
     },
     {
       "name": "pistachios",
+      "grams_per_cup": 123,
       "synonyms": ["pistachio nuts"]
     },
     {
@@ -1583,6 +1608,7 @@
     },
     {
       "name": "plain flour",
+      "grams_per_cup": 125,
       "contains_gluten": true,
       "synonyms": ["all-purpose flour"]
     },
@@ -1606,6 +1632,7 @@
     },
     {
       "name": "polenta",
+      "grams_per_cup": 157,
       "synonyms": ["cornmeal"]
     },
     {
@@ -1650,6 +1677,7 @@
     },
     {
       "name": "porridge oats",
+      "grams_per_cup": 81,
       "contains_gluten": true,
       "synonyms": ["rolled oats"]
     },
@@ -1677,6 +1705,7 @@
     },
     {
       "name": "pudding rice",
+      "grams_per_cup": 200,
       "synonyms": ["round-grain rice"]
     },
     {
@@ -1704,7 +1733,8 @@
       "contains_meat": true
     },
     {
-      "name": "raisins"
+      "name": "raisins",
+      "grams_per_cup": 145
     },
     {
       "name": "rapeseed oil",
@@ -1750,6 +1780,7 @@
     },
     {
       "name": "rice flour",
+      "grams_per_cup": 158,
       "synonyms": ["ground rice flour"]
     },
     {
@@ -1855,11 +1886,13 @@
     },
     {
       "name": "self-raising flour",
+      "grams_per_cup": 125,
       "synonyms": ["self-rising flour"],
       "contains_gluten": true
     },
     {
       "name": "semolina",
+      "grams_per_cup": 167,
       "contains_gluten": true
     },
     {
@@ -1885,6 +1918,7 @@
     },
     {
       "name": "short-grain rice",
+      "grams_per_cup": 200,
       "synonyms": ["sushi rice"]
     },
     {
@@ -2004,6 +2038,7 @@
     },
     {
       "name": "strong white bread flour",
+      "grams_per_cup": 137,
       "synonyms": ["bread flour", "strong flour"],
       "contains_gluten": true
     },
@@ -2020,6 +2055,7 @@
     },
     {
       "name": "sultanas",
+      "grams_per_cup": 145,
       "synonyms": ["golden raisins"]
     },
     {
@@ -2192,7 +2228,8 @@
       "contains_gluten": true
     },
     {
-      "name": "walnuts"
+      "name": "walnuts",
+      "grams_per_cup": 117
     },
     {
       "name": "water"
@@ -2253,6 +2290,7 @@
     },
     {
       "name": "wholemeal flour",
+      "grams_per_cup": 120,
       "synonyms": ["whole wheat flour"],
       "contains_gluten": true
     },

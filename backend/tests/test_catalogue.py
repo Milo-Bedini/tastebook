@@ -238,13 +238,15 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
                 'amount': 1.0,
                 'amount_max': None,
                 'unit': 'tbsp',
-                'ingredient': {'slug': 'olive-oil', 'name': 'olive oil'},
+                'ingredient': {'slug': 'olive-oil', 'name': 'olive oil', 'grams_per_cup': None},
                 'note': '',
                 'optional': False,
                 'original_text': '',
             }
         ],
-        'diet_tag_conflicts': [{'ingredient': {'slug': 'eggs', 'name': 'eggs'}, 'diet_tags': ['vegan']}],
+        'diet_tag_conflicts': [
+            {'ingredient': {'slug': 'eggs', 'name': 'eggs', 'grams_per_cup': None}, 'diet_tags': ['vegan']}
+        ],
     }
     assert [
         (group['name'], [(line['amount'], line['amount_max'], line['ingredient']['name']) for line in group['lines']])
@@ -338,6 +340,36 @@ def test_loading_records_what_each_ingredient_contains_and_clears_what_the_file_
         ['vegetarian', 'vegan', 'dairy_free'],
         ['vegetarian', 'gluten_free'],
     )
+
+
+@pytest.mark.django_db
+def test_loading_records_what_a_cup_of_each_ingredient_weighs_and_clears_what_the_file_leaves_out(
+    tmp_path: Path,
+) -> None:
+    oats = {'name': 'porridge oats', 'grams_per_cup': 81}
+    call_command('load_catalogue', write(tmp_path / 'first.json', catalogue(FLAPJACKS, ingredients=[oats])))
+    first = recipe_json('flapjacks')['ingredient_lines'][0]['ingredient']['grams_per_cup']
+
+    call_command('load_catalogue', write(tmp_path / 'second.json', catalogue(FLAPJACKS)))
+
+    assert (first, recipe_json('flapjacks')['ingredient_lines'][0]['ingredient']['grams_per_cup']) == (81, None)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ('name', 'grams_per_cup'),
+    [
+        ('plain flour', 125),
+        ('light brown soft sugar', 220),
+        ('porridge oats', 81),
+        ('raisins', 145),
+        ('olive oil', None),
+    ],
+)
+def test_the_catalogue_gives_dry_goods_what_a_cup_of_them_weighs(name: str, grams_per_cup: int | None) -> None:
+    call_command('load_catalogue')
+
+    assert Ingredient.objects.get(name=name).grams_per_cup == grams_per_cup
 
 
 @pytest.mark.django_db
@@ -634,6 +666,10 @@ def with_line(**line: Any) -> dict[str, Any]:
         (
             catalogue(FLAPJACKS, ingredients=[{'name': 'porridge oats', 'slug': 'oats'}]),
             'Ingredient "porridge oats" has fields the catalogue does not know: slug',
+        ),
+        (
+            catalogue(FLAPJACKS, ingredients=[{'name': 'porridge oats', 'grams_per_cup': 0}]),
+            'Ingredient "porridge oats": Ensure this value is greater than or equal to 1.',
         ),
         (
             catalogue(FLAPJACKS, ingredients=[{'name': 'porridge oats'}, {'name': 'Porridge oats'}]),

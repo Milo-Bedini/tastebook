@@ -812,7 +812,7 @@ def test_returns_the_ingredients_with_ungrouped_lines_first_then_each_group_and_
             'amount': None,
             'amount_max': None,
             'unit': '',
-            'ingredient': {'slug': slug, 'name': name},
+            'ingredient': {'slug': slug, 'name': name, 'grams_per_cup': None},
             'note': '',
             'optional': False,
             'original_text': '',
@@ -974,6 +974,9 @@ def test_optional_lines_keep_the_diet_tags_and_name_the_ones_they_would_take_awa
     assert listed['diet_tags'] == ['vegetarian', 'vegan', 'dairy_free']
     assert detail['diet_tags'] == ['vegetarian', 'vegan', 'dairy_free']
     assert detail['diet_tag_conflicts'] == [
-        {'ingredient': {'slug': 'bacon', 'name': 'bacon'}, 'diet_tags': ['vegetarian', 'vegan']},
-        {'ingredient': {'slug': 'parmesan', 'name': 'parmesan'}, 'diet_tags': ['vegetarian', 'vegan', 'dairy_free']},
+        {'ingredient': {'slug': 'bacon', 'name': 'bacon', 'grams_per_cup': None}, 'diet_tags': ['vegetarian', 'vegan']},
+        {
+            'ingredient': {'slug': 'parmesan', 'name': 'parmesan', 'grams_per_cup': None},
+            'diet_tags': ['vegetarian', 'vegan', 'dairy_free'],
+        },
     ]

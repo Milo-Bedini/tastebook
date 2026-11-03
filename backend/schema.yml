@@ -654,7 +654,12 @@ components:
           type: string
           description: 'The UK name: courgette, coriander, plain flour.'
           maxLength: 100
+        grams_per_cup:
+          type: integer
+          readOnly: true
+          nullable: true
       required:
+      - grams_per_cup
       - name
       - slug
     IngredientGroup:
