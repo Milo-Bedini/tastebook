@@ -101,6 +101,22 @@ const JOIN_SAMS_HEADING = /^Join +Sam's household$/;
 
 const ONLY_MEMBER = "You'll leave Ann's household. You're its only member, so it will be deleted.";
 
+// The app has no page for adding a recipe yet, so the test writes one through the API, as the page's account.
+const writeRecipe = async (page: Page, title: string): Promise<void> => {
+  const csrf = (await page.context().cookies()).find((cookie) => cookie.name === 'csrftoken')?.value ?? '';
+  // Django checks the Referer of a request over HTTPS, as on previews.
+  const headers = { 'X-CSRFToken': csrf, Referer: page.url() };
+  const response = await page.request.post('/api/recipes/', { data: { title }, headers });
+  expect(response.status()).toBe(201);
+};
+
+const ANNS_RECIPE = "Ann's flatbreads";
+
+const expectRecipeListed = async (page: Page) => {
+  await page.goto(`/recipes?q=${encodeURIComponent(ANNS_RECIPE)}`);
+  await expect(page.getByRole('link', { name: new RegExp(ANNS_RECIPE) })).toBeVisible();
+};
+
 test('someone joins from an invite link, leaves, joins again and is removed', async ({
   page,
   browser,
@@ -146,8 +162,13 @@ test('someone joins from an invite link, leaves, joins again and is removed', as
   await expect(page.getByRole('textbox', { name: 'Household name' })).toHaveValue("Ann's household");
   await expect(page.getByRole('list', { name: 'Members' }).getByRole('listitem')).toHaveText([/Ann \(you\)$/]);
 
+  // A recipe Ann writes goes with her: copied into Sam's household when she joins, and copied out when she's removed.
+  await writeRecipe(page, ANNS_RECIPE);
   await page.goto(address);
   await page.getByRole('button', { name: 'Join household' }).click();
+  await expect(page.getByRole('alertdialog', { name: "Join Sam's household?" })).toHaveAccessibleDescription(
+    `${ONLY_MEMBER} Your 1 private recipe will be copied into Sam's household.`
+  );
   await page.getByRole('alertdialog').getByRole('button', { name: 'Join household' }).click();
   await expect(page.getByRole('list', { name: 'Members' }).getByRole('listitem')).toHaveText([
     /Ann \(you\)$/,
@@ -158,7 +179,9 @@ test('someone joins from an invite link, leaves, joins again and is removed', as
   await sam.getByRole('button', { name: 'Remove Ann' }).click();
   await sam.getByRole('alertdialog').getByRole('button', { name: 'Remove member' }).click();
   await expect(sam.getByRole('list', { name: 'Members' }).getByRole('listitem')).toHaveText([/Sam \(you\)$/]);
+  await expectRecipeListed(sam);
   await samsContext.close();
+  await expectRecipeListed(page);
 
   await page.goto(address);
   await expect(page.getByRole('heading', { level: 1, name: 'This invite link was cancelled' })).toBeVisible();

@@ -61,3 +61,7 @@ class JoinInviteSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=InviteStatus.choices)
     is_member = serializers.BooleanField()
     household = InvitedHouseholdSerializer(allow_null=True)
+    recipes_to_copy = serializers.IntegerField(
+        help_text='How many private recipes the viewer wrote in their household and would take a copy of by joining. '
+        '0 when the link offers them no household to join.'
+    )

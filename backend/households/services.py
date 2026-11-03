@@ -34,6 +34,7 @@ from households.models import (
     UnitSystem,
     User,
 )
+from households.signals import counting_recipes_to_copy, member_moved
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +104,8 @@ def rename_household(account: User, name: str) -> Household:
 
 
 def leave_household(account: User) -> User:
-    """Moves the account into a new household of one, named after it; deletes the household it left if that's now empty.
-    Returns the account as saved."""
+    """Moves the account into a new household of one, named after it, taking a copy of the private recipes it wrote;
+    deletes the household it left if that's now empty. Returns the account as saved."""
     with transaction.atomic():
         # Every move locks the household before any account, so moves in one household run in turn and can't deadlock.
         household = Household.objects.select_for_update().filter(pk=account.household_id).first()
@@ -114,13 +115,15 @@ def leave_household(account: User) -> User:
             return account
         account.household = Household.objects.create(name=household_name_for(account.name))
         account.save(update_fields=['household'])
+        member_moved.send(sender=User, account=account, left=household.pk)
         if not household.members.exists():
             household.delete()
     return account
 
 
 def remove_member(account: User, member_id: int) -> User:
-    """Moves another member of the account's household into a new household of one and emails them once that's saved.
+    """Moves another member of the account's household into a new household of one, with a copy of the private recipes
+    they wrote, and emails them once that's saved.
     Returns the account. Raises User.DoesNotExist when member_id isn't another member of the account's household."""
     with transaction.atomic():
         household = Household.objects.select_for_update().filter(pk=account.household_id).first()
@@ -135,6 +138,7 @@ def remove_member(account: User, member_id: int) -> User:
         new_household = Household.objects.create(name=household_name_for(member.name))
         member.household = new_household
         member.save(update_fields=['household'])
+        member_moved.send(sender=User, account=member, left=household.pk)
         transaction.on_commit(partial(tell_removed_member, member, account.name, household.name, new_household.name))
     return account
 
@@ -219,6 +223,12 @@ class InviteSeen:
     status: InviteStatus
     is_member: bool
     household: InvitedHousehold | None
+    recipes_to_copy: int
+
+
+def recipes_to_copy(account: User) -> int:
+    """How many private recipes the account would take with it into another household."""
+    return sum(count for _, count in counting_recipes_to_copy.send(sender=User, account=account))
 
 
 def invite_seen_by(token: str, viewer: User | None) -> InviteSeen:
@@ -233,11 +243,14 @@ def invite_seen_by(token: str, viewer: User | None) -> InviteSeen:
         if shows_household
         else None
     )
-    return InviteSeen(status=status, is_member=is_member, household=household)
+    # Only someone the link offers a household to is told what joining would copy.
+    copies = recipes_to_copy(viewer) if viewer is not None and household is not None and not is_member else 0
+    return InviteSeen(status=status, is_member=is_member, household=household, recipes_to_copy=copies)
 
 
 def join_household(account: User, token: str) -> User:
-    """Moves the account into the invite's household and deletes the household it left if that's now empty.
+    """Moves the account into the invite's household, taking a copy of the private recipes it wrote, and deletes the
+    household it left if that's now empty.
     Returns the account as saved. Raises Invite.DoesNotExist for an unknown token, InviteNotLiveError for a dead one."""
     with transaction.atomic():
         invite = Invite.objects.get(token=token)
@@ -260,6 +273,7 @@ def join_household(account: User, token: str) -> User:
         left = account.household_id
         account.household_id = invite.household_id
         account.save(update_fields=['household'])
+        member_moved.send(sender=User, account=account, left=left)
         if not User.objects.filter(household_id=left).exists():
             Household.objects.filter(pk=left).delete()
     return account

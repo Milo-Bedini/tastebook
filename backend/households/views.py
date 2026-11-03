@@ -157,8 +157,8 @@ class LeaveHouseholdView(APIView):
         operation_id='household_leave_create',
         request=None,
         responses={200: HouseholdSerializer, 403: None, 404: None},
-        description='Moves the signed-in account into a new household of one, named after it. A household left with '
-        'nobody in it is deleted.',
+        description='Moves the signed-in account into a new household of one, named after it, with a copy of each '
+        'private recipe it wrote; the household it left keeps its own. A household left with nobody in it is deleted.',
     )
     def post(self, request: Request) -> Response:
         return Response(household_body(leave_household(signed_in_member(request))))
@@ -169,8 +169,9 @@ class HouseholdMemberView(APIView):
         operation_id='household_members_destroy',
         parameters=[OpenApiParameter('member_id', int, OpenApiParameter.PATH)],
         responses={200: HouseholdSerializer, 403: None, 404: None},
-        description="Removes another member of the signed-in account's household into a new household of one, and "
-        "emails them. Any member may. 404 for anyone who isn't another member of it.",
+        description="Removes another member of the signed-in account's household into a new household of one, with a "
+        'copy of each private recipe they wrote (the household keeps its own), and emails them. Any member may. 404 '
+        "for anyone who isn't another member of it.",
     )
     def delete(self, request: Request, member_id: int) -> Response:
         try:
@@ -240,8 +241,9 @@ class JoinView(APIView):
         request=None,
         parameters=[OpenApiParameter('token', str, OpenApiParameter.PATH)],
         responses={200: HouseholdSerializer, 403: None, 404: None, 409: None},
-        description="Moves the signed-in account into the invite's household; a household left with nobody in it is "
-        'deleted. 404 for an unknown token, 409 when the link is cancelled or expired.',
+        description="Moves the signed-in account into the invite's household with a copy of each private recipe it "
+        'wrote; the household it left keeps its own, and is deleted if nobody is left in it. 404 for an unknown token, '
+        '409 when the link is cancelled or expired.',
     )
     def post(self, request: Request, token: str) -> Response:
         account = signed_in_member(request)

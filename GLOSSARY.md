@@ -53,9 +53,9 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Sign-in code | The 6-digit code emailed to sign in or sign up. Works once, for 10 minutes, and stops after 5 wrong tries. An address is sent at most 3 in 10 minutes. | `allauth`'s login code and email verification code |
 | Test account | A throwaway account at tastebook.test for end-to-end tests. Its codes are stored, not emailed, and production refuses it. | `StoredSignInCode`, `is_test_account()` |
 | Household | The people who cook together. Every account belongs to exactly one, once it has a name; a new one starts as "<name>'s household". It owns private recipes, the plan, the shopping list, the pantry and the household's equipment. | `Household` |
-| Member | An account in a household. Members are equal: any of them can rename it, remove another member or leave; whoever goes lands in a household of their own. | `User.household`, `Household.members` |
+| Member | An account in a household. Members are equal: any of them can rename it, remove another member or leave; whoever goes lands in a household of their own. Whoever moves, by leaving, being removed or joining, takes a copy of each private recipe they wrote, by them and linked to nothing; the household keeps its own. | `User.household`, `Household.members`, `member_moved` |
 | Invite | A link that lets anyone who has it join a household, for 7 days, until a member cancels it. A household has at most one live invite; removing a member cancels it too. | `Invite`, `make_invite()`, `cancel_invite()` |
-| Join | Moving into a household from its invite link. You leave your current household, which is deleted if nobody's left in it. | `join_household()` |
+| Join | Moving into a household from its invite link. You leave your current household, which is deleted if nobody's left in it, and take a copy of each private recipe you wrote. | `join_household()` |
 | Staff | An account that can use the admin pages (moderation, fixing data). Needs two-factor sign-in. | `User.is_staff`, `make_staff` |
 | Two-factor sign-in | Signing in with an email code or Google and then a 6-digit code from an authenticator app. Staff only; asked at every sign-in. | `allauth.mfa`, `passed_two_factors()` |
 | Recovery code | One of ten 8-digit codes shown once when two-factor sign-in is set up. Each signs in once in place of the app's code. | `allauth`'s recovery codes |
@@ -67,7 +67,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Save | Keeping a link to someone's public recipe, so you see the author's fixes. | `SavedRecipe` _planned_ |
 | List | A named collection of saved and own recipes. Personal or household. | `RecipeList` _planned_ |
 | Favourites | The list every account starts with. | `RecipeList` (default) _planned_ |
-| Copy | A private recipe made from another, to change it. Can be published as "Adapted from X by Y". | `Recipe.adapted_from` _planned_ |
+| Copy | A private recipe made from another, to change it. Can be published as "Adapted from X by Y". A recipe a member takes along when they move household is copied but isn't a Copy: it links to nothing. | `Recipe.adapted_from` _planned_ |
 | Share link | A read-only link to a private recipe you wrote, for someone outside the household. | `ShareLink` _planned_ |
 
 ## `kitchen`

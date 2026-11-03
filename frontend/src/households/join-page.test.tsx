@@ -24,7 +24,8 @@ const KIM = { id: 4, name: 'Kim', is_you: false };
 const LIVE: JoinInvite = {
   status: 'live',
   is_member: false,
-  household: { name: 'The Bedinis', members: [ANN, JO] }
+  household: { name: 'The Bedinis', members: [ANN, JO] },
+  recipes_to_copy: 0
 };
 
 const MILOS: Household = { id: 11, name: "Milo's household", members: [MILO], invite: null };
@@ -86,7 +87,7 @@ describe('JoinPage', () => {
   });
 
   it('shows someone signed out only that the link works, and Sign in to join', async () => {
-    answerLookup({ status: 'live', is_member: false, household: null });
+    answerLookup({ status: 'live', is_member: false, household: null, recipes_to_copy: 0 });
     renderRoute('/join/tok-123');
 
     expect(
@@ -115,7 +116,7 @@ describe('JoinPage', () => {
       http.get(LOOKUP, () =>
         status === 'unknown'
           ? new HttpResponse(null, { status: 404 })
-          : HttpResponse.json<JoinInvite>({ status, is_member: false, household: null })
+          : HttpResponse.json<JoinInvite>({ status, is_member: false, household: null, recipes_to_copy: 0 })
       )
     );
     renderRoute('/join/tok-123');
@@ -126,7 +127,12 @@ describe('JoinPage', () => {
 
   it('tells a member opening their own link that they are already in it', async () => {
     answerSignedIn();
-    answerLookup({ status: 'expired', is_member: true, household: { name: 'The Bedinis', members: [MILO, ANN] } });
+    answerLookup({
+      status: 'expired',
+      is_member: true,
+      household: { name: 'The Bedinis', members: [MILO, ANN] },
+      recipes_to_copy: 0
+    });
     renderRoute('/join/tok-123');
 
     expect(await screen.findByRole('heading', { level: 1, name: "You're already in The Bedinis" })).toBeInTheDocument();
@@ -156,6 +162,22 @@ describe('JoinPage', () => {
     answerSignedIn();
     answerLookup(LIVE);
     answerJoin({ ...MILOS, members });
+    renderRoute('/join/tok-123');
+
+    await userEvent.click(await joinButton());
+
+    expect(await screen.findByRole('alertdialog', { name: 'Join The Bedinis?' })).toHaveAccessibleDescription(
+      description
+    );
+  });
+
+  it.each([
+    [1, "You'll leave Milo's household. Kim stays in it. Your 1 private recipe will be copied into The Bedinis."],
+    [4, "You'll leave Milo's household. Kim stays in it. Your 4 private recipes will be copied into The Bedinis."]
+  ])('says %i private recipes you wrote will be copied into the household you join', async (count, description) => {
+    answerSignedIn();
+    answerLookup({ ...LIVE, recipes_to_copy: count });
+    answerJoin({ ...MILOS, members: [MILO, KIM] });
     renderRoute('/join/tok-123');
 
     await userEvent.click(await joinButton());
@@ -213,7 +235,7 @@ describe('JoinPage', () => {
     answerJoin();
     server.use(
       http.post(JOIN, () => {
-        state.invite = { status: 'cancelled', is_member: false, household: null };
+        state.invite = { status: 'cancelled', is_member: false, household: null, recipes_to_copy: 0 };
         return new HttpResponse(null, { status });
       })
     );

@@ -75,6 +75,7 @@ def test_a_live_link_shows_someone_signed_in_the_household_and_its_members() -> 
                     {'id': account_id('milo@example.com'), 'name': 'Milo', 'is_you': False},
                 ],
             },
+            'recipes_to_copy': 0,
         },
     )
 
@@ -90,7 +91,7 @@ def test_signed_out_a_link_shows_only_its_status(monkeypatch: pytest.MonkeyPatch
 
     assert (response.status_code, response.json()) == (
         200,
-        {'status': status, 'is_member': False, 'household': None},
+        {'status': status, 'is_member': False, 'household': None, 'recipes_to_copy': 0},
     )
 
 
@@ -105,7 +106,7 @@ def test_a_dead_link_shows_someone_signed_in_only_its_status(monkeypatch: pytest
 
     assert (response.status_code, response.json()) == (
         200,
-        {'status': status, 'is_member': False, 'household': None},
+        {'status': status, 'is_member': False, 'household': None, 'recipes_to_copy': 0},
     )
 
 
@@ -209,4 +210,9 @@ def test_a_removed_member_finds_the_link_cancelled() -> None:
     bedinis = bedinis_link()
     remove(bedinis.milo, member('ann@example.com'))
 
-    assert lookup(bedinis.ann, bedinis.token).json() == {'status': 'cancelled', 'is_member': False, 'household': None}
+    assert lookup(bedinis.ann, bedinis.token).json() == {
+        'status': 'cancelled',
+        'is_member': False,
+        'household': None,
+        'recipes_to_copy': 0,
+    }
