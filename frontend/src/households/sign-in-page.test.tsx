@@ -15,6 +15,7 @@ const AUTH = '/api/_allauth/browser/v1/auth';
 const baguette: Recipe = {
   id: 3,
   slug: 'baguette',
+  visibility: 'public',
   title: 'Baguette',
   description: '',
   cuisines: [],

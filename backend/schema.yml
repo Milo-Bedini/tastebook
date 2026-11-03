@@ -439,6 +439,9 @@ paths:
           then the others, alphabetically within each.
       tags:
       - recipes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
       responses:
         '200':
           content:
@@ -451,6 +454,39 @@ paths:
         '400':
           description: A difficulty, a diet, an include_match or a time limit is not
             one the list accepts.
+    post:
+      operationId: recipes_create
+      description: Adds a private recipe to the signed-in account's household. Only
+        the title is required. 403 when signed out or for an account with no household
+        yet.
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewRecipe'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NewRecipe'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NewRecipe'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+        '400':
+          description: A field, or a pair of them, is not one a recipe can hold.
+        '403':
+          description: Signed out, or the account has no household yet.
   /api/recipes/{slug}/:
     get:
       operationId: recipes_retrieve
@@ -462,6 +498,9 @@ paths:
         required: true
       tags:
       - recipes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
       responses:
         '200':
           content:
@@ -470,7 +509,7 @@ paths:
                 $ref: '#/components/schemas/Recipe'
           description: ''
         '404':
-          description: No recipe has this slug.
+          description: No recipe has this slug, or it's another household's.
   /api/test-accounts/code/:
     get:
       operationId: test_account_code_retrieve
@@ -837,6 +876,83 @@ components:
       - id
       - is_you
       - name
+    NewRecipe:
+      type: object
+      description: What the form sends to add a recipe. Only the title is required.
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 300
+        cuisines:
+          type: array
+          items:
+            type: string
+        courses:
+          type: array
+          items:
+            type: string
+        difficulty:
+          oneOf:
+          - $ref: '#/components/schemas/DifficultyEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        prep_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        cook_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        extra_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Waiting time, such as marinating or proving.
+        extra_label:
+          type: string
+          description: What the extra time is for, such as marinating, resting or
+            proving.
+          maxLength: 50
+        servings:
+          type: integer
+          maximum: 32767
+          minimum: 1
+          nullable: true
+          description: Leave empty when giving a yield.
+        yield_amount:
+          type: integer
+          maximum: 32767
+          minimum: 1
+          nullable: true
+          description: '"12" in "makes 12 cookies".'
+        yield_unit:
+          type: string
+          description: '"cookies" in "makes 12 cookies".'
+          maxLength: 50
+        one_pot:
+          type: boolean
+        source:
+          type: string
+          title: Source credit
+          description: 'Where the recipe came from: an author, a website or a book.'
+          maxLength: 300
+        source_url:
+          title: Source address
+          description: The original recipe's page, which the source credit links to.
+            Leave empty when there is none.
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+      required:
+      - title
     PatchedAccountChanges:
       type: object
       properties:
@@ -874,6 +990,10 @@ components:
           type: string
           readOnly: true
           pattern: ^[-a-zA-Z0-9_]+$
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/Visibility'
+          readOnly: true
         title:
           type: string
           maxLength: 200
@@ -886,10 +1006,13 @@ components:
             $ref: '#/components/schemas/Cuisine'
           readOnly: true
         difficulty:
-          $ref: '#/components/schemas/DifficultyEnum'
+          oneOf:
+          - $ref: '#/components/schemas/DifficultyEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         total_minutes:
           type: integer
           readOnly: true
+          nullable: true
         photo:
           allOf:
           - $ref: '#/components/schemas/RecipePhoto'
@@ -909,10 +1032,12 @@ components:
           type: integer
           maximum: 2147483647
           minimum: 0
+          nullable: true
         cook_minutes:
           type: integer
           maximum: 2147483647
           minimum: 0
+          nullable: true
         extra_minutes:
           type: integer
           maximum: 2147483647
@@ -1005,6 +1130,7 @@ components:
       - steps
       - title
       - total_minutes
+      - visibility
       - yield_amount
       - yield_unit
     RecipePhoto:
@@ -1040,6 +1166,10 @@ components:
           type: string
           readOnly: true
           pattern: ^[-a-zA-Z0-9_]+$
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/Visibility'
+          readOnly: true
         title:
           type: string
           maxLength: 200
@@ -1052,10 +1182,13 @@ components:
             $ref: '#/components/schemas/Cuisine'
           readOnly: true
         difficulty:
-          $ref: '#/components/schemas/DifficultyEnum'
+          oneOf:
+          - $ref: '#/components/schemas/DifficultyEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         total_minutes:
           type: integer
           readOnly: true
+          nullable: true
         photo:
           allOf:
           - $ref: '#/components/schemas/RecipePhoto'
@@ -1076,6 +1209,7 @@ components:
       - slug
       - title
       - total_minutes
+      - visibility
     SignInCode:
       type: object
       properties:
@@ -1138,6 +1272,14 @@ components:
       description: |-
         * `metric` - Metric
         * `us` - US customary
+    Visibility:
+      enum:
+      - public
+      - private
+      type: string
+      description: |-
+        * `public` - Public
+        * `private` - Private
   securitySchemes:
     basicAuth:
       type: http

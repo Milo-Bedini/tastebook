@@ -11,6 +11,7 @@ type RecipeSummary = components['schemas']['RecipeSummary'];
 const recipe: Recipe = {
   id: 1,
   slug: 'slow-roasted-pork-shoulder',
+  visibility: 'public',
   title: 'Slow-roasted pork shoulder with crackling, apple sauce and Yorkshire puddings',
   description: 'A Sunday roast for a crowd, with the crackling made the night before and the gravy from the pan.',
   cuisines: [
@@ -99,6 +100,7 @@ const recipe: Recipe = {
 const summary: RecipeSummary = {
   id: recipe.id,
   slug: recipe.slug,
+  visibility: recipe.visibility,
   title: recipe.title,
   description: recipe.description,
   cuisines: recipe.cuisines,

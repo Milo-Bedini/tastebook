@@ -13,6 +13,7 @@ type RecipeSummary = components['schemas']['RecipeSummary'];
 const appleTart: RecipeSummary = {
   id: 1,
   slug: 'apple-tart',
+  visibility: 'public',
   title: 'Apple tart',
   description: 'Sharp apples on buttery pastry.',
   cuisines: [{ slug: 'french', name: 'French' }],

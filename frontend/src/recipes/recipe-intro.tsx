@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react';
 import type { components } from '../api/schema';
 import { Squiggle, TimeBlobs } from '../dino';
 import { describeDietTagConflict } from './diet-tags';
-import { difficultyLabels } from './difficulty';
+import { difficultyLabel } from './difficulty';
 import { formatMinutes } from './format-minutes';
 import { hasIngredients } from './recipe-ingredients';
 
@@ -44,8 +44,8 @@ const servingsFact = (recipe: Recipe) => {
 // Starts with the total time, the same number the list shows under the polaroid; a part the recipe lacks is left out.
 const factsOf = (recipe: Recipe) =>
   [
-    formatMinutes(recipe.total_minutes),
-    difficultyLabels[recipe.difficulty],
+    recipe.total_minutes === null ? '' : formatMinutes(recipe.total_minutes),
+    difficultyLabel(recipe.difficulty),
     recipe.one_pot ? 'One-pot' : '',
     namesOf(recipe.cuisines),
     namesOf(recipe.courses),
@@ -64,18 +64,27 @@ const SourceCredit = ({ source, sourceUrl }: SourceCreditProps) => {
   return <a href={sourceUrl}>{source}</a>;
 };
 
+// TimeBlobs shows two or three times, so a recipe missing its prep or cook time shows none.
 const timesOf = ({
   prep_minutes,
   cook_minutes,
   extra_minutes,
   extra_label
-}: Recipe): ComponentProps<typeof TimeBlobs>['times'] => {
+}: Recipe): ComponentProps<typeof TimeBlobs>['times'] | null => {
+  if (prep_minutes === null || cook_minutes === null) {
+    return null;
+  }
   const prep = { label: 'Prep', value: formatMinutes(prep_minutes) };
   const cook = { label: 'Cook', value: formatMinutes(cook_minutes) };
   if (extra_minutes === 0) {
     return [prep, cook];
   }
   return [prep, cook, { label: capitalise(extra_label), value: formatMinutes(extra_minutes) }];
+};
+
+const RecipeTimes = ({ recipe }: RecipeProps) => {
+  const times = timesOf(recipe);
+  return times === null ? null : <TimeBlobs times={times} />;
 };
 
 export const RecipeIntro = ({ recipe }: RecipeProps) => (
@@ -92,6 +101,6 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => (
     {recipe.diet_tag_conflicts.map((conflict) => (
       <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
     ))}
-    <TimeBlobs times={timesOf(recipe)} />
+    <RecipeTimes recipe={recipe} />
   </div>
 );

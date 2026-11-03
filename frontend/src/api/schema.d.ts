@@ -199,7 +199,8 @@ export interface paths {
         };
         get: operations["recipes_list"];
         put?: never;
-        post?: never;
+        /** @description Adds a private recipe to the signed-in account's household. Only the title is required. 403 when signed out or for an account with no household yet. */
+        post: operations["recipes_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -390,6 +391,37 @@ export interface components {
             name: string;
             is_you: boolean;
         };
+        /** @description What the form sends to add a recipe. Only the title is required. */
+        NewRecipe: {
+            title: string;
+            description?: string;
+            cuisines?: string[];
+            courses?: string[];
+            difficulty?: components["schemas"]["DifficultyEnum"] | components["schemas"]["BlankEnum"];
+            prep_minutes?: number | null;
+            cook_minutes?: number | null;
+            /** @description Waiting time, such as marinating or proving. */
+            extra_minutes?: number;
+            /** @description What the extra time is for, such as marinating, resting or proving. */
+            extra_label?: string;
+            /** @description Leave empty when giving a yield. */
+            servings?: number | null;
+            /** @description "12" in "makes 12 cookies". */
+            yield_amount?: number | null;
+            /** @description "cookies" in "makes 12 cookies". */
+            yield_unit?: string;
+            one_pot?: boolean;
+            /**
+             * Source credit
+             * @description Where the recipe came from: an author, a website or a book.
+             */
+            source?: string;
+            /**
+             * Source address
+             * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
+             */
+            source_url?: string;
+        };
         PatchedAccountChanges: {
             name?: string;
             unit_system?: components["schemas"]["UnitSystem"];
@@ -405,16 +437,17 @@ export interface components {
         Recipe: {
             readonly id: number;
             readonly slug: string;
+            readonly visibility: components["schemas"]["Visibility"];
             title: string;
             description: string;
             readonly cuisines: components["schemas"]["Cuisine"][];
-            difficulty: components["schemas"]["DifficultyEnum"];
-            readonly total_minutes: number;
+            difficulty: components["schemas"]["DifficultyEnum"] | components["schemas"]["BlankEnum"];
+            readonly total_minutes: number | null;
             readonly photo: components["schemas"]["RecipePhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
             readonly courses: components["schemas"]["Course"][];
-            prep_minutes: number;
-            cook_minutes: number;
+            prep_minutes: number | null;
+            cook_minutes: number | null;
             /** @description Waiting time, such as marinating or proving. */
             extra_minutes: number;
             /** @description What the extra time is for, such as marinating, resting or proving. */
@@ -452,11 +485,12 @@ export interface components {
         RecipeSummary: {
             readonly id: number;
             readonly slug: string;
+            readonly visibility: components["schemas"]["Visibility"];
             title: string;
             description: string;
             readonly cuisines: components["schemas"]["Cuisine"][];
-            difficulty: components["schemas"]["DifficultyEnum"];
-            readonly total_minutes: number;
+            difficulty: components["schemas"]["DifficultyEnum"] | components["schemas"]["BlankEnum"];
+            readonly total_minutes: number | null;
             readonly photo: components["schemas"]["RecipePhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
         };
@@ -493,6 +527,12 @@ export interface components {
          * @enum {string}
          */
         UnitSystem: "metric" | "us";
+        /**
+         * @description * `public` - Public
+         *     * `private` - Private
+         * @enum {string}
+         */
+        Visibility: "public" | "private";
     };
     responses: never;
     parameters: never;
@@ -975,6 +1015,45 @@ export interface operations {
             };
         };
     };
+    recipes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewRecipe"];
+                "application/x-www-form-urlencoded": components["schemas"]["NewRecipe"];
+                "multipart/form-data": components["schemas"]["NewRecipe"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+            /** @description A field, or a pair of them, is not one a recipe can hold. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     recipes_retrieve: {
         parameters: {
             query?: never;
@@ -994,7 +1073,7 @@ export interface operations {
                     "application/json": components["schemas"]["Recipe"];
                 };
             };
-            /** @description No recipe has this slug. */
+            /** @description No recipe has this slug, or it's another household's. */
             404: {
                 headers: {
                     [name: string]: unknown;

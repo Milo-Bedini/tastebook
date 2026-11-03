@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
@@ -17,6 +17,7 @@ type UnitSystem = components['schemas']['UnitSystem'];
 const shakshuka: Recipe = {
   id: 7,
   slug: 'shakshuka',
+  visibility: 'public',
   title: 'Shakshuka',
   description: 'Eggs in spiced tomatoes.',
   cuisines: [],
@@ -305,6 +306,32 @@ describe('RecipePage', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
     expect(blobs()).toEqual(times);
+  });
+
+  it('shows no time blobs and no total time for a recipe missing its prep time', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', ({ params }) =>
+        HttpResponse.json<Recipe>(
+          params.slug === 'shakshuka'
+            ? { ...shakshuka, prep_minutes: null, total_minutes: null }
+            : { ...shakshuka, slug: 'flatbreads', title: 'Flatbreads', prep_minutes: 30, total_minutes: 55 }
+        )
+      )
+    );
+
+    const { router } = renderRoute('/recipes/shakshuka');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+    expect(screen.queryByRole('term')).not.toBeInTheDocument();
+    expect(paragraphs()).toContain('Easy · One-pot · Main · Serves 2');
+
+    await act(() => router.navigate('/recipes/flatbreads'));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Flatbreads' })).toBeInTheDocument();
+    expect(blobs()).toEqual([
+      ['Prep', '30 min'],
+      ['Cook', '25 min']
+    ]);
   });
 
   it('puts the squiggle under the longest word of the name', async () => {

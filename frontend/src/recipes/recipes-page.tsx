@@ -7,7 +7,7 @@ import type { components } from '../api/schema';
 import type { Lean } from '../dino';
 import { Button, EmptyState, ErrorWithRetry, Loading, Page, PolaroidCard, Sheet, Squiggle } from '../dino';
 import { ActiveFilters, countActiveFilters, useActiveFilters } from './active-filters';
-import { difficultyLabels } from './difficulty';
+import { difficultyLabel } from './difficulty';
 import { formatMinutes } from './format-minutes';
 import { RecipeFilterPanel } from './recipe-filter-panel';
 import type { RecipeFilters } from './recipe-filters';
@@ -32,7 +32,8 @@ type RecipeMetaProps = { recipe: RecipeSummary };
 
 const RecipeMeta = ({ recipe }: RecipeMetaProps) => {
   const cuisineNames = recipe.cuisines.map(({ name }) => name).join(', ');
-  const parts = [formatMinutes(recipe.total_minutes), difficultyLabels[recipe.difficulty], cuisineNames];
+  const totalTime = recipe.total_minutes === null ? '' : formatMinutes(recipe.total_minutes);
+  const parts = [totalTime, difficultyLabel(recipe.difficulty), cuisineNames];
   return <p className="tabular-nums">{parts.filter((part) => part !== '').join(' · ')}</p>;
 };
 
