@@ -595,7 +595,7 @@ def with_line(**line: Any) -> dict[str, Any]:
         ),
         (
             catalogue({**FLAPJACKS, 'servings': 4}),
-            'Recipe flapjacks: Give either servings or a yield with its unit, not both.',
+            'Recipe flapjacks: Give servings or a yield with its unit, not both.',
         ),
         (
             catalogue({**FLAPJACKS, 'extra_label': ''}),
@@ -611,7 +611,8 @@ def with_line(**line: Any) -> dict[str, Any]:
         ),
         (
             catalogue({**FLAPJACKS, 'source': ''}),
-            'Recipe flapjacks: This field cannot be blank.',
+            'Recipe flapjacks: A catalogue recipe needs a difficulty, prep and cook times, servings or a yield, '
+            'and a source credit.',
         ),
         (
             catalogue({**FLAPJACKS, **PHOTO, 'photo_licence': ''}),

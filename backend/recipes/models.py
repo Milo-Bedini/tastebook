@@ -2,13 +2,15 @@ from functools import reduce
 from operator import or_
 from typing import Any
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import Case, F, Q, Value, When
 from django.db.models.functions import Lower
 
+from households.models import Household, User
 from recipes.photos import COMMONS_FILE, COMMONS_FILE_PAGE, Photo
-from recipes.slugs import base_slug, first_free_slug
+from recipes.slugs import base_slug, first_free_slug, random_suffix
 
 
 class Cuisine(models.Model):
@@ -50,6 +52,11 @@ class Difficulty(models.TextChoices):
     EASY = 'easy', 'Easy'
     MEDIUM = 'medium', 'Medium'
     HARD = 'hard', 'Hard'
+
+
+class Visibility(models.TextChoices):
+    PUBLIC = 'public', 'Public'
+    PRIVATE = 'private', 'Private'
 
 
 class RecipeQuerySet(models.QuerySet['Recipe']):
@@ -150,16 +157,50 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
         taken = set(self.filter(slug__startswith=base).values_list('slug', flat=True))
         return first_free_slug(base, taken)
 
+    def private_slug_for(self, title: str) -> str:
+        """The title's slug and six random characters, so it says nothing about other households' titles."""
+        base = base_slug(title)
+        while True:
+            slug = f'{base}-{random_suffix()}'
+            if not self.filter(slug=slug).exists():
+                return slug
+
+    def catalogue(self) -> RecipeQuerySet:
+        return self.filter(household__isnull=True)
+
+    def visible_to(self, user: User | AnonymousUser) -> RecipeQuerySet:
+        """Catalogue recipes, and the recipes of the user's household when they're signed in to one."""
+        household_id = user.household_id if user.is_authenticated else None
+        if household_id is None:
+            return self.catalogue()
+        return self.filter(Q(household__isnull=True) | Q(household_id=household_id))
+
 
 class Recipe(models.Model):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=300, blank=True)
     slug = models.SlugField(max_length=255, unique=True, editable=False)
-    cuisines = models.ManyToManyField(Cuisine, related_name='recipes')
-    courses = models.ManyToManyField(Course, related_name='recipes')
-    difficulty = models.CharField(max_length=10, choices=Difficulty.choices)
-    prep_minutes = models.PositiveIntegerField()
-    cook_minutes = models.PositiveIntegerField()
+    household = models.ForeignKey(
+        Household,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        help_text='Empty for a catalogue recipe.',
+    )
+    created_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='recipes_written',
+        help_text='Who wrote it. Empty for a catalogue recipe.',
+    )
+    cuisines = models.ManyToManyField(Cuisine, related_name='recipes', blank=True)
+    courses = models.ManyToManyField(Course, related_name='recipes', blank=True)
+    difficulty = models.CharField(max_length=10, choices=Difficulty.choices, blank=True)
+    prep_minutes = models.PositiveIntegerField(null=True, blank=True)
+    cook_minutes = models.PositiveIntegerField(null=True, blank=True)
     extra_minutes = models.PositiveIntegerField(default=0, help_text='Waiting time, such as marinating or proving.')
     extra_label = models.CharField(
         max_length=50, blank=True, help_text='What the extra time is for, such as marinating, resting or proving.'
@@ -174,7 +215,10 @@ class Recipe(models.Model):
     equipment = models.ManyToManyField(Equipment, related_name='recipes', blank=True)
     one_pot = models.BooleanField('one-pot', default=False)
     source = models.CharField(
-        'source credit', max_length=300, help_text='Where the recipe came from: an author, a website or a book.'
+        'source credit',
+        max_length=300,
+        blank=True,
+        help_text='Where the recipe came from: an author, a website or a book.',
     )
     source_url = models.URLField(
         'source address',
@@ -227,9 +271,10 @@ class Recipe(models.Model):
                 condition=(
                     models.Q(servings__isnull=False, yield_amount__isnull=True, yield_unit='')
                     | models.Q(servings__isnull=True, yield_amount__isnull=False) & ~models.Q(yield_unit='')
+                    | models.Q(servings__isnull=True, yield_amount__isnull=True, yield_unit='')
                 ),
                 name='recipe_servings_or_yield',
-                violation_error_message='Give either servings or a yield with its unit, not both.',
+                violation_error_message='Give servings or a yield with its unit, not both.',
             ),
             models.CheckConstraint(
                 condition=(
@@ -250,6 +295,19 @@ class Recipe(models.Model):
                 name='recipe_photo_is_credited',
                 violation_error_message='Give a photo with its author, licence and source, or none of them.',
             ),
+            # The fields are optional for a household's recipe, so this keeps a catalogue file from leaving one out.
+            models.CheckConstraint(
+                condition=models.Q(household__isnull=False)
+                | ~models.Q(difficulty='')
+                & models.Q(prep_minutes__isnull=False, cook_minutes__isnull=False)
+                & ~models.Q(source='')
+                & (models.Q(servings__isnull=False) | models.Q(yield_amount__isnull=False)),
+                name='recipe_catalogue_is_complete',
+                violation_error_message=(
+                    'A catalogue recipe needs a difficulty, prep and cook times, servings or a yield, '
+                    'and a source credit.'
+                ),
+            ),
         ]
 
     def __str__(self) -> str:
@@ -262,7 +320,14 @@ class Recipe(models.Model):
         super().save(**kwargs)
 
     @property
-    def total_minutes(self) -> int:
+    def visibility(self) -> Visibility:
+        # Every household recipe is private until it can be published (TAS-119).
+        return Visibility.PUBLIC if self.household_id is None else Visibility.PRIVATE
+
+    @property
+    def total_minutes(self) -> int | None:
+        if self.prep_minutes is None or self.cook_minutes is None:
+            return None
         return self.prep_minutes + self.cook_minutes + self.extra_minutes
 
     @property
