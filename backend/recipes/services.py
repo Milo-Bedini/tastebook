@@ -86,6 +86,23 @@ def add_recipe(author: User, details: Record, cuisines: list[Cuisine], courses: 
     return recipe
 
 
+def edit_recipe(
+    recipe: Recipe, details: Record, cuisines: list[Cuisine] | None, courses: list[Course] | None
+) -> Recipe:
+    """Changes the details given and keeps the recipe's address. None leaves the cuisines or courses as they are.
+    Raises ValidationError when a pair is half given, as add_recipe does."""
+    with transaction.atomic():
+        for name, value in details.items():
+            setattr(recipe, name, value)
+        recipe.full_clean()
+        recipe.save()
+        if cuisines is not None:
+            recipe.cuisines.set(cuisines)
+        if courses is not None:
+            recipe.courses.set(courses)
+    return recipe
+
+
 def add_described_recipes(author: User, records: list[Record]) -> list[Recipe]:
     """Saves private recipes in the author's household, each from a record shaped as a recipe in the catalogue file
     without its slug. Raises CatalogueError naming the recipe and what the database can't hold in it."""

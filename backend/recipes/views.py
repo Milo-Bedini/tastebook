@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -12,11 +13,12 @@ from recipes.serializers import (
     CuisineSerializer,
     IngredientOptionSerializer,
     NewRecipeSerializer,
+    RecipeChangesSerializer,
     RecipeFiltersSerializer,
     RecipeSerializer,
     RecipeSummarySerializer,
 )
-from recipes.services import add_recipe
+from recipes.services import add_recipe, edit_recipe
 
 
 class RecipeListView(ListAPIView):
@@ -87,16 +89,57 @@ class RecipeListView(ListAPIView):
         return recipes.prefetch_related('cuisines').with_diet_tags()
 
 
-@extend_schema(
-    responses={
-        200: RecipeSerializer,
-        404: OpenApiResponse(description="No recipe has this slug, or it's another household's."),
-    }
-)
 class RecipeDetailView(RetrieveAPIView):
     permission_classes = []
     serializer_class = RecipeSerializer
     lookup_field = 'slug'
+
+    @extend_schema(
+        responses={
+            200: RecipeSerializer,
+            404: OpenApiResponse(description="No recipe has this slug, or it's another household's."),
+        }
+    )
+    def get(self, request: Request, slug: str) -> Response:
+        return super().get(request, slug=slug)
+
+    @extend_schema(
+        operation_id='recipes_partial_update',
+        request=RecipeChangesSerializer,
+        responses={
+            200: RecipeSerializer,
+            400: OpenApiResponse(description='A field, or a pair of them, is not one a recipe can hold.'),
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            404: OpenApiResponse(
+                description="No recipe has this slug in the account's household: there's none, "
+                "it's another household's, or it's a catalogue recipe."
+            ),
+        },
+        description="Edits a recipe of the signed-in account's household; any member may, whoever wrote it. "
+        'Only the fields sent change, and the address stays as it is.',
+    )
+    def patch(self, request: Request, slug: str) -> Response:
+        # Refused before the lookup, so a signed-out answer says nothing about the slug.
+        if not request.user.is_authenticated or request.user.household_id is None:
+            raise PermissionDenied
+        recipe = get_object_or_404(Recipe.objects.editable_by(request.user), slug=slug)
+        given = RecipeChangesSerializer(data=request.data, partial=True)
+        given.is_valid(raise_exception=True)
+        details = dict(given.validated_data)
+        cuisines, courses = details.pop('cuisines', None), details.pop('courses', None)
+        try:
+            edit_recipe(recipe, details, cuisines, courses)
+        except DjangoValidationError as error:
+            errors = error.message_dict
+            raise ValidationError(
+                {('non_field_errors' if key == '__all__' else key): messages for key, messages in errors.items()}
+            ) from error
+        edited = (
+            Recipe.objects.prefetch_related('cuisines', 'courses', 'equipment')
+            .with_ingredients_and_method()
+            .get(pk=recipe.pk)
+        )
+        return Response(RecipeSerializer(edited).data)
 
     def get_queryset(self) -> RecipeQuerySet:
         # Another household's recipe answers 404, the same as no recipe.

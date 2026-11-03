@@ -332,3 +332,7 @@ class NewRecipeSerializer(serializers.ModelSerializer):
             'source',
             'source_url',
         ]
+
+
+class RecipeChangesSerializer(NewRecipeSerializer):
+    """What the form sends to edit a recipe: the fields it has, each optional. The title can't be blanked."""

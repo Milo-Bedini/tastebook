@@ -123,7 +123,11 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         get('/api/recipes/?cuisine=french'),
         post('/api/recipes/', {'title': 'Taken'}),
     ),
-    'api/recipes/<slug:slug>/': (get('/api/recipes/no-such-recipe/'), get('/api/recipes/{recipe}/')),
+    'api/recipes/<slug:slug>/': (
+        get('/api/recipes/no-such-recipe/'),
+        get('/api/recipes/{recipe}/'),
+        patch('/api/recipes/{recipe}/', {'title': 'Taken'}),
+    ),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),
     'api/ingredients/': (get('/api/ingredients/'),),

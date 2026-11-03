@@ -215,6 +215,13 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
             return self.catalogue()
         return self.filter(Q(household__isnull=True) | Q(household_id=household_id))
 
+    def editable_by(self, member: User) -> RecipeQuerySet:
+        """The recipes a member may edit: every recipe of their household, whoever wrote it."""
+        # filter(household_id=None) would match the catalogue's recipes.
+        if member.household_id is None:
+            return self.none()
+        return self.filter(household_id=member.household_id)
+
 
 class Recipe(models.Model):
     title = models.CharField(max_length=200)

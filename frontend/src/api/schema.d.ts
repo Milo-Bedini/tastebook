@@ -220,7 +220,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** @description Edits a recipe of the signed-in account's household; any member may, whoever wrote it. Only the fields sent change, and the address stays as it is. */
+        patch: operations["recipes_partial_update"];
         trace?: never;
     };
     "/api/test-accounts/code/": {
@@ -447,6 +448,37 @@ export interface components {
         };
         PatchedHouseholdChanges: {
             name?: string;
+        };
+        /** @description What the form sends to edit a recipe: the fields it has, each optional. The title can't be blanked. */
+        PatchedRecipeChanges: {
+            title?: string;
+            description?: string;
+            cuisines?: string[];
+            courses?: string[];
+            difficulty?: components["schemas"]["DifficultyEnum"] | components["schemas"]["BlankEnum"];
+            prep_minutes?: number | null;
+            cook_minutes?: number | null;
+            /** @description Waiting time, such as marinating or proving. */
+            extra_minutes?: number;
+            /** @description What the extra time is for, such as marinating, resting or proving. */
+            extra_label?: string;
+            /** @description Leave empty when giving a yield. */
+            servings?: number | null;
+            /** @description "12" in "makes 12 cookies". */
+            yield_amount?: number | null;
+            /** @description "cookies" in "makes 12 cookies". */
+            yield_unit?: string;
+            one_pot?: boolean;
+            /**
+             * Source credit
+             * @description Where the recipe came from: an author, a website or a book.
+             */
+            source?: string;
+            /**
+             * Source address
+             * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
+             */
+            source_url?: string;
         };
         PhotoThumbnail: {
             readonly width: number;
@@ -1131,6 +1163,54 @@ export interface operations {
                 };
             };
             /** @description No recipe has this slug, or it's another household's. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recipes_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedRecipeChanges"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedRecipeChanges"];
+                "multipart/form-data": components["schemas"]["PatchedRecipeChanges"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+            /** @description A field, or a pair of them, is not one a recipe can hold. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug in the account's household: there's none, it's another household's, or it's a catalogue recipe. */
             404: {
                 headers: {
                     [name: string]: unknown;
