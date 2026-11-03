@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Add a recipe: checking, saving and waiting</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:780px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800;cursor:pointer}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px}
+.head{display:flex;flex-direction:column;gap:12px}
+.lede{margin:0;color:var(--color-muted)}
+.form{display:flex;flex-direction:column;gap:40px}
+.grp{display:flex;flex-direction:column;gap:24px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.is-focus input{outline:1px solid var(--color-ink);outline-offset:0}
+.is-focus input:not([aria-invalid="true"]){border-color:var(--color-ink)}
+.chips{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.chips legend{padding:0;margin:0 0 8px;font-size:15px;line-height:20px;font-weight:800}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.num{display:flex;align-items:center;gap:10px}
+.num .box{width:96px;flex-shrink:0}
+.unit{color:var(--color-muted)}
+.scrolled{position:absolute;top:0;left:0;right:0;padding:8px 20px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-bottom:1px dashed var(--color-line);background:var(--color-ground);z-index:1}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.ring{outline:3px solid var(--color-ink);outline-offset:0;border-radius:var(--radius-note)}
+.boards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1800px; height: 2320px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-114 part 2 · /recipes/new · phone, 390 px · what Save recipe checks, while it saves, and what the page shows before it knows who you are</span>
+    <h1 class="ttl">Checking, saving and waiting</h1>
+    <span class="cap">Checks run on Save, before any request: every message shows under its field at once, and focus goes to the first field in error. Frames without a top bar are scrolled down the same page.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Save with no title</b> · focus on Title; the field’s border and message in Danger</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="head">
+            <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+            <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+          </div>
+          <form class="form" novalidate>
+            <div class="grp">
+              <div class="fld is-focus">
+                <label for="a-title" class="lbl">Title</label>
+                <x-import component-from-global-scope="Dino.Input" id="a-title" type="text" required="{{yes}}" default-value="" aria-invalid="true" aria-describedby="a-title-err"></x-import>
+                <p id="a-title-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Give the recipe a title, like Grandma’s curry.</p>
+              </div>
+              <div class="fld">
+                <label for="a-desc" class="lbl">Description</label>
+                <x-import component-from-global-scope="Dino.TextArea" id="a-desc" default-value="Mild, with potatoes and peas. Better the next day." aria-describedby="a-desc-help"></x-import>
+                <p id="a-desc-help" class="help">A line or two about it.</p>
+              </div>
+              <fieldset class="chips">
+                <legend>Cuisines</legend>
+                <div class="wrap">
+                  <sc-for list="{{cuisines}}" as="c" hint-placeholder-count="18">
+                    <x-import component-from-global-scope="Dino.FilterChip" pressed="{{c.on}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+                  </sc-for>
+                </div>
+              </fieldset>
+            </div>
+          </form>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>A time that isn’t whole minutes, extra time with no reason</b> · focus on Prep time, the first in error</span>
+      <div class="frame">
+        <div class="scrolled">Scrolled to Times</div>
+        <main class="page" style="padding-top: 56px"><div class="stack">
+          <form class="form" novalidate>
+            <section class="grp" aria-labelledby="b-h-times">
+              <h2 id="b-h-times">Times</h2>
+              <div class="pair">
+                <div class="fld is-focus">
+                  <label for="b-prep" class="lbl">Prep time</label>
+                  <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="b-prep" type="text" input-mode="numeric" default-value="ten" aria-invalid="true" aria-describedby="b-prep-unit b-prep-err"></x-import></div><span id="b-prep-unit" class="unit">minutes</span></div>
+                  <p id="b-prep-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Enter whole minutes, like 20.</p>
+                </div>
+                <div class="fld">
+                  <label for="b-cook" class="lbl">Cook time</label>
+                  <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="b-cook" type="text" input-mode="numeric" default-value="45" aria-describedby="b-cook-unit"></x-import></div><span id="b-cook-unit" class="unit">minutes</span></div>
+                </div>
+              </div>
+              <div class="fld">
+                <label for="b-extra" class="lbl">Extra time</label>
+                <div class="num"><div class="box"><x-import component-from-global-scope="Dino.Input" id="b-extra" type="text" input-mode="numeric" default-value="30" aria-describedby="b-extra-unit"></x-import></div><span id="b-extra-unit" class="unit">minutes</span></div>
+              </div>
+              <div class="fld">
+                <label for="b-extra-for" class="lbl">What it’s for</label>
+                <x-import component-from-global-scope="Dino.Input" id="b-extra-for" type="text" default-value="" aria-invalid="true" aria-describedby="b-extra-err"></x-import>
+                <p id="b-extra-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Say what the extra time is for, like marinating.</p>
+              </div>
+            </section>
+            <section class="grp" aria-labelledby="b-h-serves">
+              <h2 id="b-h-serves">Serves or makes</h2>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="serves" on-value-change="{{noop}}"></x-import></div>
+              <div class="fld">
+                <label for="b-serves" class="lbl">How many people</label>
+                <div style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="b-serves" type="text" input-mode="numeric" default-value="0" aria-invalid="true" aria-describedby="b-serves-err"></x-import></div>
+                <p id="b-serves-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Enter a number, like 4.</p>
+              </div>
+            </section>
+          </form>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Makes, with nothing it makes</b> · the only error, so focus is on What it makes</span>
+      <div class="frame">
+        <div class="scrolled">Scrolled to Serves or makes</div>
+        <main class="page" style="padding-top: 56px"><div class="stack">
+          <form class="form" novalidate>
+            <section class="grp" aria-labelledby="c-h-serves">
+              <h2 id="c-h-serves">Serves or makes</h2>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="makes" on-value-change="{{noop}}"></x-import></div>
+              <div class="fld">
+                <label for="c-amount" class="lbl">How many</label>
+                <div style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="c-amount" type="text" input-mode="numeric" default-value="12"></x-import></div>
+              </div>
+              <div class="fld is-focus">
+                <label for="c-unit" class="lbl">What it makes</label>
+                <x-import component-from-global-scope="Dino.Input" id="c-unit" type="text" default-value="" aria-invalid="true" aria-describedby="c-unit-err"></x-import>
+                <p id="c-unit-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import>Say what it makes, like cookies.</p>
+              </div>
+            </section>
+            <section class="grp" aria-labelledby="c-h-source">
+              <h2 id="c-h-source">Where it’s from</h2>
+              <div class="fld">
+                <label for="c-source" class="lbl">Source credit</label>
+                <x-import component-from-global-scope="Dino.Input" id="c-source" type="text" default-value="" aria-describedby="c-source-help"></x-import>
+                <p id="c-source-help" class="help">Who wrote it: a book, a website or a person.</p>
+              </div>
+            </section>
+            <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save recipe</x-import></div>
+          </form>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Saving</b> · the button keeps its size, says “Saving…” and ignores presses</span>
+      <div class="frame">
+        <div class="scrolled">Scrolled to the foot</div>
+        <main class="page" style="padding-top: 56px"><div class="stack">
+          <form class="form" novalidate>
+            <section class="grp" aria-labelledby="d-h-serves">
+              <h2 id="d-h-serves">Serves or makes</h2>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="serves" on-value-change="{{noop}}"></x-import></div>
+              <div class="fld">
+                <label for="d-serves" class="lbl">How many people</label>
+                <div style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="d-serves" type="text" input-mode="numeric" default-value="4"></x-import></div>
+              </div>
+            </section>
+            <section class="grp" aria-labelledby="d-h-source">
+              <h2 id="d-h-source">Where it’s from</h2>
+              <div class="fld">
+                <label for="d-source" class="lbl">Source credit</label>
+                <x-import component-from-global-scope="Dino.Input" id="d-source" type="text" default-value="Grandma Bedini" aria-describedby="d-source-help"></x-import>
+                <p id="d-source-help" class="help">Who wrote it: a book, a website or a person.</p>
+              </div>
+              <div class="fld">
+                <label for="d-url" class="lbl">Source address</label>
+                <x-import component-from-global-scope="Dino.Input" id="d-url" type="url" default-value=""></x-import>
+              </div>
+            </section>
+            <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{yes}}" loading-label="Saving…">Save recipe</x-import></div>
+          </form>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Refused by Tastebook</b> · a 400 with no field: a danger Banner above Save, which takes focus</span>
+      <div class="frame">
+        <div class="scrolled">Scrolled to the foot</div>
+        <main class="page" style="padding-top: 56px"><div class="stack">
+          <form class="form" novalidate>
+            <section class="grp" aria-labelledby="e-h-serves">
+              <h2 id="e-h-serves">Serves or makes</h2>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="makes" on-value-change="{{noop}}"></x-import></div>
+              <div class="fld">
+                <label for="e-amount" class="lbl">How many</label>
+                <div style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="e-amount" type="text" input-mode="numeric" default-value="12"></x-import></div>
+              </div>
+              <div class="fld">
+                <label for="e-unit" class="lbl">What it makes</label>
+                <x-import component-from-global-scope="Dino.Input" id="e-unit" type="text" default-value="flatbreads"></x-import>
+              </div>
+            </section>
+            <div style="display: flex; flex-direction: column; gap: 20px; align-items: stretch">
+              <div class="ring"><x-import component-from-global-scope="Dino.Banner" tone="danger" title="Couldn’t save the recipe">Give servings or a yield with its unit, not both.</x-import></div>
+              <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save recipe</x-import></div>
+            </div>
+          </form>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t reach Tastebook</b> · offline or a 5xx; a toast, and everything typed stays</span>
+      <div class="frame">
+        <div class="scrolled">Scrolled to the foot</div>
+        <main class="page" style="padding-top: 56px"><div class="stack">
+          <form class="form" novalidate>
+            <section class="grp" aria-labelledby="f-h-serves">
+              <h2 id="f-h-serves">Serves or makes</h2>
+              <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Serves or makes" options="{{servesOrMakes}}" value="serves" on-value-change="{{noop}}"></x-import></div>
+              <div class="fld">
+                <label for="f-serves" class="lbl">How many people</label>
+                <div style="width: 96px"><x-import component-from-global-scope="Dino.Input" id="f-serves" type="text" input-mode="numeric" default-value="4"></x-import></div>
+              </div>
+            </section>
+            <section class="grp" aria-labelledby="f-h-source">
+              <h2 id="f-h-source">Where it’s from</h2>
+              <div class="fld">
+                <label for="f-source" class="lbl">Source credit</label>
+                <x-import component-from-global-scope="Dino.Input" id="f-source" type="text" default-value="Grandma Bedini" aria-describedby="f-source-help"></x-import>
+                <p id="f-source-help" class="help">Who wrote it: a book, a website or a person.</p>
+              </div>
+            </section>
+            <div><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{no}}" loading-label="Saving…">Save recipe</x-import></div>
+          </form>
+        </div></main>
+        <div class="toast" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg><span>Couldn’t save the recipe. Check your connection and try again.</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Checking you’re signed in</b> · the bar shows no account end until it’s known; the line shows after half a second</span>
+      <div class="frame">
+        <header class="bar"><div class="in" style="grid-template-columns: minmax(0,1fr) auto">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.Loading">Opening the form…</x-import>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t check you’re signed in</b> · Try again asks for the session again</span>
+      <div class="frame">
+        <header class="bar"><div class="in" style="grid-template-columns: minmax(0,1fr) auto">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+        </div></header>
+        <main class="page"><div class="stack">
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t check you’re signed in" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+        </div></main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>Errors sit in the field’s own line</b>, as on the account page: the help line gives way to the message, in Danger with its icon, and the field takes Danger’s border. Every check’s message says how to fix it with an example (Voice). A 400 naming a field puts its message under that field the same way.</p>
+    <p><b>Servings of 0 is refused</b> with the spec’s “Enter a number, like 4.”, since the check is “a whole number from 1”; a blank number field is never an error, as every detail but the title is optional.</p>
+    <p><b>A refusal that names no field</b> (the servings-or-yield rule, normally caught first by the form) is a danger Banner titled “Couldn’t save the recipe” with Tastebook’s message under it, right above Save, and focus moves to it (the ring shows where). It goes when Save is pressed again.</p>
+    <p><b>A failed request is a toast, not a Banner</b>, as on the account page: the form is still open with everything typed, so Save recipe again is the retry. On success there’s no toast: the recipe’s own page opening is the confirmation.</p>
+    <p><b>Signed out</b>, the page sends you to sign-in and back (<code>/sign-in?next=%2Frecipes%2Fnew</code>), so there’s nothing to draw; the sign-in boards already cover that page. A 403 on Save does the same once the session says you’re signed out.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":2320}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var names = ['American', 'British', 'Caribbean', 'Chinese', 'French', 'German', 'Greek', 'Indian', 'Italian', 'Japanese', 'Korean', 'Mexican', 'Middle Eastern', 'Moroccan', 'Spanish', 'Thai', 'Turkish', 'Vietnamese'];
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.5,
+      noop: function () {}, retry: function () { return Promise.resolve(); },
+      cuisines: names.map(function (name) { return { name: name, on: name === 'Indian' }; }),
+      servesOrMakes: [{ value: 'serves', label: 'Serves' }, { value: 'makes', label: 'Makes' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

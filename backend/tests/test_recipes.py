@@ -7,6 +7,7 @@ from django.urls import reverse
 from pytest_django import DjangoAssertNumQueries
 from rest_framework.test import APIClient
 
+from households.models import Household, User
 from recipes.models import (
     Course,
     Cuisine,
@@ -83,6 +84,7 @@ def test_returns_a_summary_of_each_recipe_with_its_total_time_and_difficulty() -
         {
             'id': recipe.id,
             'slug': 'shakshuka',
+            'visibility': 'public',
             'title': 'Shakshuka',
             'description': 'Eggs in spiced tomatoes.',
             'cuisines': [],
@@ -165,6 +167,7 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
     assert response.json() == {
         'id': recipe.id,
         'slug': 'shakshuka',
+        'visibility': 'public',
         'title': 'Shakshuka',
         'description': 'Eggs in spiced tomatoes.',
         'cuisines': [{'slug': 'italian', 'name': 'Italian'}],
@@ -377,6 +380,16 @@ def test_the_catalogue_pages_in_the_admin_show_each_row_read_only_and_say_where_
     assert name in change
     assert (CATALOGUE_NOTICE in changelist, CATALOGUE_NOTICE in change) == (says_where_it_changes,) * 2
     assert (f'name="{shown_by}"' in change) is not says_where_it_changes
+
+
+@pytest.mark.django_db
+def test_the_recipe_list_in_the_admin_shows_catalogue_recipes_only(admin_client: Client) -> None:
+    make_recipe(title='Shakshuka')
+    make_recipe(title="Grandma's curry", household=Household.objects.create(name='The Quillfeathers'))
+
+    page = admin_client.get(reverse('admin:recipes_recipe_changelist')).content.decode()
+
+    assert ('Shakshuka' in page, 'Grandma&#x27;s curry' in page) == (True, False)
 
 
 @pytest.mark.django_db
@@ -731,21 +744,28 @@ def test_returns_a_yield_instead_of_servings() -> None:
         (15, 0, 0, '', 15),
         (0, 0, 0, '', 0),
         (20, 45, 120, 'marinating', 185),
+        (None, 20, 0, '', None),
+        (10, None, 0, '', None),
     ],
 )
 def test_total_time_is_prep_plus_cook_plus_extra(
-    prep_minutes: int, cook_minutes: int, extra_minutes: int, extra_label: str, total_minutes: int
+    prep_minutes: int | None, cook_minutes: int | None, extra_minutes: int, extra_label: str, total_minutes: int | None
 ) -> None:
+    # A household's recipe, as only those may leave a time out.
+    household = Household.objects.create(name='The Quillfeathers')
     make_recipe(
         title='Shakshuka',
+        household=household,
         prep_minutes=prep_minutes,
         cook_minutes=cook_minutes,
         extra_minutes=extra_minutes,
         extra_label=extra_label,
     )
+    member = APIClient()
+    member.force_login(User.objects.create_user('milo@example.com', name='Milo', household=household))
 
-    listed = APIClient().get(reverse('recipe-list')).json()[0]
-    detail = APIClient().get(reverse('recipe-detail', args=['shakshuka'])).json()
+    listed = member.get(reverse('recipe-list')).json()[0]
+    detail = member.get(reverse('recipe-detail', args=['shakshuka'])).json()
 
     assert (listed['total_minutes'], detail['total_minutes']) == (total_minutes, total_minutes)
 

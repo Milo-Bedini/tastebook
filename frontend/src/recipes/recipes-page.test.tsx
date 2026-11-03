@@ -19,6 +19,7 @@ const failRecipes = () => server.use(http.get('/api/recipes/', () => new HttpRes
 const appleTart: Recipe = {
   id: 1,
   slug: 'apple-tart',
+  visibility: 'public',
   title: 'Apple tart',
   description: 'Sharp apples on buttery pastry.',
   cuisines: [{ slug: 'french', name: 'French' }],
@@ -30,6 +31,7 @@ const appleTart: Recipe = {
 const bananaBread: Recipe = {
   id: 2,
   slug: 'banana-bread',
+  visibility: 'public',
   title: 'Banana bread',
   description: '',
   cuisines: [],
@@ -191,6 +193,7 @@ describe('RecipesPage', () => {
         {
           id: 7,
           slug: 'shakshuka',
+          visibility: 'public',
           title: 'Shakshuka',
           description: 'Eggs in spiced tomatoes.',
           cuisines: [],
@@ -202,6 +205,7 @@ describe('RecipesPage', () => {
         {
           id: 3,
           slug: 'apple-tart',
+          visibility: 'public',
           title: 'Apple tart',
           description: '',
           cuisines: [],
@@ -241,6 +245,7 @@ describe('RecipesPage', () => {
           {
             id: 4,
             slug: 'ramen-tacos',
+            visibility: 'public',
             title: 'Ramen tacos',
             description: '',
             cuisines: [
@@ -263,6 +268,37 @@ describe('RecipesPage', () => {
     );
     expect(screen.getByRole('heading', { name: 'Ramen tacos' }).closest('li')).toHaveTextContent(
       /^Ramen tacos25 min · Easy · Japanese, Mexican$/
+    );
+  });
+
+  it('leaves out of a card the total time and difficulty its recipe lacks', async () => {
+    server.use(
+      http.get('/api/recipes/', () =>
+        HttpResponse.json<Recipe[]>([
+          {
+            id: 5,
+            slug: 'grandmas-curry-k7m2qx',
+            visibility: 'private',
+            title: "Grandma's curry",
+            description: '',
+            cuisines: [{ slug: 'italian', name: 'Italian' }],
+            difficulty: '',
+            total_minutes: null,
+            photo: null,
+            diet_tags: []
+          },
+          appleTart
+        ])
+      )
+    );
+
+    renderRoute('/recipes');
+
+    expect((await screen.findByRole('heading', { name: "Grandma's curry" })).closest('li')).toHaveTextContent(
+      /^Grandma's curryItalian$/
+    );
+    expect(screen.getByRole('heading', { name: 'Apple tart' }).closest('li')).toHaveTextContent(
+      /^Apple tart1 hr 40 min · Medium · French$/
     );
   });
 
@@ -521,6 +557,7 @@ describe('RecipesPage', () => {
         {
           id: 7,
           slug: 'shakshuka',
+          visibility: 'public',
           title: 'Shakshuka',
           description: 'Eggs in spiced tomatoes.',
           cuisines: [],

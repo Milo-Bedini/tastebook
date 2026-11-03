@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>TimeBlobs: one to three</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.cols{display:grid;grid-template-columns:350px minmax(0,1fr);gap:56px;align-items:start}
+.stackp{display:flex;flex-direction:column;gap:24px}
+.item{display:flex;flex-direction:column;gap:8px}
+.phone{width:350px}
+/* The board is wider than a phone, so TimeBlobs would take its laptop columns: hold the phone column to three equal ones. */
+.phone dl{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+.laptop{width:650px}
+.hc{background:#000000;color:#ffffff;border-radius:16px;padding:20px;width:390px;box-sizing:border-box}
+.hc dl{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.hc .blob{border:2px solid #ffffff;padding:12px 8px;display:flex;flex-direction:column-reverse;align-items:center;text-align:center}
+.hc dt{font-size:13px;line-height:17px;font-weight:700}
+.hc dd{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic}
+.lt{width:350px}
+.lt dl{margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.lt .blob{background:var(--color-peach);color:var(--color-on-pastel);border:2px solid transparent;border-radius:var(--radius-blob-1);padding:12px 8px;display:flex;flex-direction:column-reverse;align-items:center;text-align:center}
+.lt dt{font-size:26px;line-height:34px;font-weight:700}
+.lt dd{margin:0;font-family:var(--font-serif);font-size:56px;line-height:60px;font-style:italic}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1300px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">Dino · changed · frontend/src/dino/time-blobs.tsx · times: one to three blobs (was two or three)</span>
+    <h1 class="ttl">TimeBlobs: one to three</h1>
+    <span class="cap">A household recipe may have only a prep or only a cook time. The grid doesn’t change: each blob keeps its third of the row, so one blob is the first of three, never stretched.</span>
+  </header>
+
+  <div class="cols">
+    <div class="stackp">
+      <span class="cap"><b>Phone</b> · the intro column, 350 px</span>
+      <div class="item"><span class="cap">One: a prep time only</span><div class="phone"><x-import component-from-global-scope="Dino.TimeBlobs" times="{{prepOnly}}"></x-import></div></div>
+      <div class="item"><span class="cap">One: a cook time only (first, so peach and the first shape)</span><div class="phone"><x-import component-from-global-scope="Dino.TimeBlobs" times="{{cookOnly}}"></x-import></div></div>
+      <div class="item"><span class="cap">Two: prep and cook, as today</span><div class="phone"><x-import component-from-global-scope="Dino.TimeBlobs" times="{{two}}"></x-import></div></div>
+      <div class="item"><span class="cap">Two: cook and extra, no prep</span><div class="phone"><x-import component-from-global-scope="Dino.TimeBlobs" times="{{cookExtra}}"></x-import></div></div>
+      <div class="item"><span class="cap">Three, as today</span><div class="phone"><x-import component-from-global-scope="Dino.TimeBlobs" times="{{three}}"></x-import></div></div>
+    </div>
+
+    <div class="stackp">
+      <span class="cap"><b>Laptop</b> · three 150 px columns at the start of the intro column</span>
+      <div class="item"><span class="cap">One</span><div class="laptop"><x-import component-from-global-scope="Dino.TimeBlobs" times="{{prepOnly}}"></x-import></div></div>
+      <div class="item"><span class="cap">Three</span><div class="laptop"><x-import component-from-global-scope="Dino.TimeBlobs" times="{{three}}"></x-import></div></div>
+      <div style="display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap">
+        <div class="item">
+          <span class="cap"><b>Large text</b> · 200%: one column, as for two or three</span>
+          <div class="lt"><dl><div class="blob"><dt>Prep</dt><dd>20 min</dd></div></dl></div>
+        </div>
+        <div class="item">
+          <span class="cap"><b>Forced colours</b> · the transparent border is drawn</span>
+          <div class="hc"><dl>
+            <div class="blob" style="border-radius: var(--radius-blob-1)"><dt>Prep</dt><dd>20 min</dd></div>
+          </dl></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Colour and shape go by position, as today</b>: the first blob is peach with the first shape, whatever time it holds, so a recipe with only a cook time shows a peach “Cook”. The label says which time it is; the blobs only say “time”. That keeps the component’s one rule and needs no new prop.</p>
+    <p><b>The change is the type only</b>: <code>times</code> becomes one to three blobs (<code>[TimeBlob] | [TimeBlob, TimeBlob] | [TimeBlob, TimeBlob, TimeBlob]</code>). No blobs means no TimeBlobs: the page leaves it out. New stories: one blob, at phone and laptop widths, at 200% text and under forced colours.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      prepOnly: [{ label: 'Prep', value: '20 min' }],
+      cookOnly: [{ label: 'Cook', value: '45 min' }],
+      two: [{ label: 'Prep', value: '15 min' }, { label: 'Cook', value: '1 hr 30' }],
+      cookExtra: [{ label: 'Cook', value: '25 min' }, { label: 'Marinating', value: '2 hrs' }],
+      three: [{ label: 'Prep', value: '15 min' }, { label: 'Cook', value: '30 min' }, { label: 'Proving', value: '1 hr' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

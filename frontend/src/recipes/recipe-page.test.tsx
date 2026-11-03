@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
@@ -17,6 +17,7 @@ type UnitSystem = components['schemas']['UnitSystem'];
 const shakshuka: Recipe = {
   id: 7,
   slug: 'shakshuka',
+  visibility: 'public',
   title: 'Shakshuka',
   description: 'Eggs in spiced tomatoes.',
   cuisines: [],
@@ -305,6 +306,69 @@ describe('RecipePage', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
     expect(blobs()).toEqual(times);
+  });
+
+  it('shows no time blobs and no total time for a recipe missing its prep time', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', ({ params }) =>
+        HttpResponse.json<Recipe>(
+          params.slug === 'shakshuka'
+            ? { ...shakshuka, prep_minutes: null, total_minutes: null }
+            : { ...shakshuka, slug: 'flatbreads', title: 'Flatbreads', prep_minutes: 30, total_minutes: 55 }
+        )
+      )
+    );
+
+    const { router } = renderRoute('/recipes/shakshuka');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+    expect(screen.queryByRole('term')).not.toBeInTheDocument();
+    expect(paragraphs()).toContain('Easy · One-pot · Main · Serves 2');
+
+    await act(() => router.navigate('/recipes/flatbreads'));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Flatbreads' })).toBeInTheDocument();
+    expect(blobs()).toEqual([
+      ['Prep', '30 min'],
+      ['Cook', '25 min']
+    ]);
+  });
+
+  it('leaves a private recipe for "Recipe not found" when its household member signs out on it', async () => {
+    const signOuts: string[] = [];
+    const curry: Recipe = {
+      ...shakshuka,
+      slug: 'grandmas-curry-k7m2qx',
+      visibility: 'private',
+      title: "Grandma's curry"
+    };
+    server.use(
+      http.get('/api/account/', () =>
+        HttpResponse.json<CurrentAccount>({
+          account: signOuts.length > 0 ? null : { email: 'sam@example.com', name: 'Sam', unit_system: 'metric' }
+        })
+      ),
+      // allauth answers a sign out with 401: nobody is signed in now.
+      http.delete('/api/_allauth/browser/v1/auth/session', ({ request }) => {
+        signOuts.push(new URL(request.url).pathname);
+        return HttpResponse.json(
+          { status: 401, data: { flows: [] }, meta: { is_authenticated: false } },
+          { status: 401 }
+        );
+      }),
+      // Only a member of its household is shown it: signed out, it isn't found.
+      http.get('/api/recipes/:slug/', () =>
+        signOuts.length > 0 ? new HttpResponse(null, { status: 404 }) : HttpResponse.json<Recipe>(curry)
+      )
+    );
+    renderRoute('/recipes/grandmas-curry-k7m2qx');
+    expect(await screen.findByRole('heading', { level: 1, name: "Grandma's curry" })).toBeInTheDocument();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Account for Sam' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
+
+    expect(await screen.findByRole('heading', { name: 'Recipe not found' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: "Grandma's curry" })).not.toBeInTheDocument();
   });
 
   it('puts the squiggle under the longest word of the name', async () => {

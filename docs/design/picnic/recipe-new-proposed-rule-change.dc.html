@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Proposed rule change</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.change{display:grid;grid-template-columns:260px minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;padding:24px 0;border-top:1px solid var(--color-line)}
+.where{display:flex;flex-direction:column;gap:6px}
+.where b{font-size:15px;line-height:20px;font-weight:800}
+.box{border:1px solid var(--color-line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px}
+.box p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.old{color:var(--color-muted)}
+.new ins{text-decoration:none;background:var(--color-surface);border-radius:4px;padding:0 3px;color:var(--color-ink);font-weight:800}
+.why{margin:0;font-size:13px;line-height:18px;font-weight:700;color:var(--color-muted)}
+.lab{font-size:13px;line-height:17px;font-weight:800;color:var(--color-muted)}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1200px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-114 · docs/design.md · for Design Review; the boards are drawn within today’s rules</span>
+    <h1 class="ttl">Proposed rule change</h1>
+    <span class="cap">The private mark is the first label in Dino that is neither a control nor a sticker, so the shape rules have no corner for it. These edits name it, and record the uses the boards rely on. Highlighted words are new.</span>
+  </header>
+
+  <div style="display: flex; flex-direction: column">
+
+    <div class="change">
+      <div class="where"><b>Rules › Shape</b><p class="why">Why: a pill says “press me”, and the list has no corner for something you only read. 10 px is the nearest existing token, so no new token.</p></div>
+      <div class="box"><span class="lab">Now</span><p class="old">Pills for controls (one-line fields among them), 24 px for cards and text areas, 32 px for sheets, 10 px for checkboxes, square for polaroids.</p></div>
+      <div class="box new"><span class="lab">Proposed</span><p>Pills for controls (one-line fields among them), 24 px for cards and text areas, 32 px for sheets, 10 px for checkboxes <ins>and marks</ins>, square for polaroids.</p></div>
+    </div>
+
+    <div class="change">
+      <div class="where"><b>Space and shape › Corners</b><p class="why">Why: the same change where the corners are listed in full.</p></div>
+      <div class="box"><span class="lab">Now</span><p class="old">… 20 px for notes and banners; 10 px for checkboxes; 14 px for a checkbox row’s hover fill …</p></div>
+      <div class="box new"><span class="lab">Proposed</span><p>… 20 px for notes and banners; 10 px for checkboxes <ins>and a mark (the private mark)</ins>; 14 px for a checkbox row’s hover fill …</p></div>
+    </div>
+
+    <div class="change">
+      <div class="where"><b>Components › a new row</b><p class="why">Why: the spec asks for the mark in the Components table; this is the board’s rule in words.</p></div>
+      <div class="box"><span class="lab">Now</span><p class="old">No row.</p></div>
+      <div class="box new"><span class="lab">Proposed</span><p><ins>Private mark</ins>: a Lucide lock and “Private” in Small Ink, on Surface with a 2 px transparent border and 10 px corners. On a private recipe’s card, above its meta, and under its title on its page; a public recipe has none. It describes and is never a control: no hover, no tilt, never a pastel.</p></div>
+    </div>
+
+    <div class="change">
+      <div class="where"><b>Components › Banner</b><p class="why">Why: a private recipe’s missing parts are the same job as an import’s gaps, so they share the warning Banner rather than a butter Note, which means time.</p></div>
+      <div class="box"><span class="lab">Now</span><p class="old">… warning for an import’s gaps, success for a clean import, danger for a failure …</p></div>
+      <div class="box new"><span class="lab">Proposed</span><p>… warning for an import’s gaps <ins>or what a private recipe is still missing</ins>, success for a clean import, danger for a failure …</p></div>
+    </div>
+
+    <div class="change">
+      <div class="where"><b>The fun, rationed › Blobs</b><p class="why">Why: the spec asks the doc to name the one-blob TimeBlobs.</p></div>
+      <div class="box"><span class="lab">Now</span><p class="old">Blobs (three fixed irregular shapes in peach, butter and mint) hold a recipe’s prep, cook and soaking times, and nothing else.</p></div>
+      <div class="box new"><span class="lab">Proposed</span><p>Blobs (three fixed irregular shapes in peach, butter and mint) hold a recipe’s prep, cook and soaking times, and nothing else. <ins>A recipe shows only the times it has, one to three, in that order; each keeps its third of the row, and the colours and shapes go by position.</ins></p></div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

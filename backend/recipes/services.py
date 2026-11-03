@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
 
+from households.models import User
 from recipes.models import (
     RULED_OUT_BY,
     Course,
@@ -61,11 +62,28 @@ def load_catalogue(path: Path = CATALOGUE_PATH) -> LoadedCatalogue:
         )
         _load_synonyms(names.ingredients, catalogue['ingredients'])
         recipes = _load_recipes(catalogue['recipes'], names)
-        # Every recipe is in the catalogue until households have private recipes, so the file's are the only ones.
-        Recipe.objects.exclude(pk__in=[recipe.pk for recipe in recipes]).delete()
+        # Catalogue recipes the file no longer lists go; household recipes aren't the file's.
+        Recipe.objects.catalogue().exclude(pk__in=[recipe.pk for recipe in recipes]).delete()
         Equipment.objects.exclude(pk__in=[row.pk for row in names.equipment.values()]).delete()
         Ingredient.objects.exclude(pk__in=[row.pk for row in names.ingredients.values()]).delete()
     return LoadedCatalogue(recipes=len(recipes), ingredients=len(names.ingredients), equipment=len(names.equipment))
+
+
+def add_recipe(author: User, details: Record, cuisines: list[Cuisine], courses: list[Course]) -> Recipe:
+    """Saves a private recipe in the author's household. Raises ValidationError when a pair is half given
+    (servings or a yield, extra time and its label)."""
+    with transaction.atomic():
+        recipe = Recipe(
+            household_id=author.household_id,
+            created_by=author,
+            slug=Recipe.objects.private_slug_for(details['title']),
+            **details,
+        )
+        recipe.full_clean()
+        recipe.save()
+        recipe.cuisines.set(cuisines)
+        recipe.courses.set(courses)
+    return recipe
 
 
 def _read(path: Path) -> Record:
@@ -81,6 +99,10 @@ def _read(path: Path) -> Record:
     if '' in slugs:
         raise CatalogueError('Every recipe needs a slug: it keeps the recipe the same recipe from one load to the next')
     _refuse_repeats(slugs, 'Recipe slugs')
+    if 'new' in slugs:
+        raise CatalogueError(
+            'The recipe slug "new" is the address of the form for adding a recipe; give the recipe another slug'
+        )
     return catalogue
 
 
@@ -138,7 +160,7 @@ def _load_synonyms(ingredients: dict[str, Ingredient], records: list[Record]) ->
 
 def _load_recipes(records: list[Record], names: _Names) -> list[Recipe]:
     references = {'slug', 'cuisines', 'courses', 'equipment', 'ingredient_lines', 'ingredient_groups', 'steps'}
-    existing = dict(Recipe.objects.values_list('slug', 'pk'))
+    existing = dict(Recipe.objects.catalogue().values_list('slug', 'pk'))
     loaded: list[tuple[Recipe, Record, str]] = []
     for record in records:
         where = f'Recipe {record["slug"]}'
@@ -225,15 +247,14 @@ def _look_up[M: models.Model](rows: dict[str, M], names: list[str], where: str, 
 
 
 def _link(field_name: str, links: list[tuple[Recipe, list[Any]]]) -> None:
-    """Makes each recipe's rows through a many-to-many field the given ones."""
+    """Makes each catalogue recipe's rows through a many-to-many field the given ones."""
     field = Recipe._meta.get_field(field_name)
     assert isinstance(field, models.ManyToManyField)
     through = field.remote_field.through
     source, target = f'{field.m2m_field_name()}_id', f'{field.m2m_reverse_field_name()}_id'
     wanted = {(recipe.pk, row.pk) for recipe, rows in links for row in rows}
-    existing = {
-        (source_id, target_id): pk for pk, source_id, target_id in through.objects.values_list('pk', source, target)
-    }
+    catalogues = through.objects.filter(**{f'{field.m2m_field_name()}__household__isnull': True})
+    existing = {(source_id, target_id): pk for pk, source_id, target_id in catalogues.values_list('pk', source, target)}
     through.objects.filter(pk__in=[pk for pair, pk in existing.items() if pair not in wanted]).delete()
     through.objects.bulk_create([through(**{source: a, target: b}) for a, b in sorted(wanted - existing.keys())])
 

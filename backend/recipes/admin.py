@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Model
+from django.db.models import Model, QuerySet
 from django.forms import BaseInlineFormSet, ModelForm
 from django.http import HttpRequest
 
@@ -112,3 +112,7 @@ class RecipeAdmin(CatalogueAdmin):
         ('Photo', {'fields': ('photo_url', 'photo_author', 'photo_licence', 'photo_source_url')}),
     )
     inlines = (IngredientGroupInline, IngredientLineInline, StepInline)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Recipe]:
+        # Households' recipes aren't the catalogue's, and staff have no need to read them.
+        return super().get_queryset(request).filter(household__isnull=True)

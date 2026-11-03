@@ -31,6 +31,7 @@ const recipes: Recipe[] = [
   {
     id: 1,
     slug: 'apple-tart',
+    visibility: 'public',
     title: 'Apple tart',
     description: 'Sharp apples on buttery pastry.',
     cuisines: [{ slug: 'french', name: 'French' }],
@@ -58,6 +59,7 @@ const recipes: Recipe[] = [
   {
     id: 2,
     slug: 'banana-bread',
+    visibility: 'public',
     title: 'Banana bread',
     description: '',
     cuisines: [],
@@ -87,6 +89,7 @@ const recipes: Recipe[] = [
 const toSummary = ({
   id,
   slug,
+  visibility,
   title,
   description,
   cuisines,
@@ -97,6 +100,7 @@ const toSummary = ({
 }: Recipe): RecipeSummary => ({
   id,
   slug,
+  visibility,
   title,
   description,
   cuisines,
