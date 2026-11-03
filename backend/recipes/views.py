@@ -134,11 +134,7 @@ class RecipeDetailView(RetrieveAPIView):
             raise ValidationError(
                 {('non_field_errors' if key == '__all__' else key): messages for key, messages in errors.items()}
             ) from error
-        edited = (
-            Recipe.objects.prefetch_related('cuisines', 'courses', 'equipment')
-            .with_ingredients_and_method()
-            .get(pk=recipe.pk)
-        )
+        edited = self.get_queryset().get(pk=recipe.pk)
         return Response(RecipeSerializer(edited).data)
 
     def get_queryset(self) -> RecipeQuerySet:
