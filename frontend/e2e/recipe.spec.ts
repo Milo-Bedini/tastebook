@@ -50,7 +50,26 @@ test('switching to US customary converts a catalogue recipe through the real API
 
   await units.getByRole('radio', { name: 'US' }).check();
 
-  await expect(page.getByRole('region', { name: 'Ingredients' }).getByRole('listitem')).toHaveText([
+  const lines = page.getByRole('region', { name: 'Ingredients' }).getByRole('listitem');
+  await expect(lines).toHaveText([
+    'Unsalted butter, softened 4.5 oz',
+    'Light brown soft sugar 0.75 cup',
+    'Golden syrup 2 tbsp',
+    'Plain flour 1 cup',
+    'Bicarbonate of soda 0.5 tsp',
+    'Ground cinnamon (optional) 1 tsp',
+    'Salt 1 pinch',
+    'Porridge oats 1.75 cups',
+    'Raisins 0.75 cup'
+  ]);
+  await expect(page.getByRole('region', { name: 'Method' }).getByRole('listitem').nth(3)).toContainText(
+    'Heat the oven to 355°F (320°F fan)'
+  );
+  await accessibility.check();
+
+  await page.getByRole('button', { name: 'Grams to cups' }).click();
+
+  await expect(lines).toHaveText([
     'Unsalted butter, softened 4.5 oz',
     'Light brown soft sugar 5.25 oz',
     'Golden syrup 2 tbsp',
@@ -61,9 +80,22 @@ test('switching to US customary converts a catalogue recipe through the real API
     'Porridge oats 5.25 oz',
     'Raisins 3.5 oz'
   ]);
-  await expect(page.getByRole('region', { name: 'Method' }).getByRole('listitem').nth(3)).toContainText(
-    'Heat the oven to 355°F (320°F fan)'
-  );
+  await accessibility.check();
+});
+
+test("converting to grams reads a catalogue recipe's cups and millilitres as grams through the real API", async ({
+  page,
+  accessibility
+}) => {
+  await page.goto('/recipes/tabbouleh');
+
+  const bulgur = page.getByRole('region', { name: 'Ingredients' }).getByRole('listitem').first();
+  await expect(bulgur).toHaveText('Bulgur wheat, fine, or medium 75 g');
+  await accessibility.check();
+
+  await page.getByRole('button', { name: 'Cups to grams' }).click();
+
+  await expect(bulgur).toHaveText('Bulgur wheat, fine, or medium 125 ml');
   await accessibility.check();
 });
 

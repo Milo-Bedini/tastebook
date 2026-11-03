@@ -19,7 +19,9 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Optional ingredient | An ingredient line the recipe works without. It doesn't count against a match or change diet tags. | `IngredientLine.optional` |
 | Amount | How much of an ingredient: a number, a range (2–3) or none ("to taste"). | `IngredientLine.amount`, `amount_max` |
 | Unit | A unit from Tastebook's fixed list (g, ml, tsp, cup…), or none ("2 eggs"). | `Unit` |
-| Unit system | Metric (the default) or US customary, for reading amounts. Amounts convert within a dimension (volume or weight); count units never convert. An account's choice opens every recipe page in it. | `UnitSystem`, `convert()`, `User.unit_system` |
+| Unit system | Metric (the default) or US customary, for reading amounts. Amounts convert within a dimension (volume or weight), except a dry good's (see Cups to grams); count units never convert. An account's choice opens every recipe page in it. | `UnitSystem`, `convert()`, `crossesDimensions`, `User.unit_system` |
+| Grams per cup | What a US cup of a dry good weighs, from USDA FoodData Central. Only dry goods have one. | `Ingredient.grams_per_cup` |
+| Cups to grams | Reading a dry good with grams per cup across dimensions: in metric its cups and millilitres read as grams, in US customary its grams as spoons and cups. On when a recipe opens; its chip ("Cups to grams", or "Grams to cups" in US customary) turns it off for the visit. | `Reading.crossesDimensions`, `canCrossDimensions()` |
 | Step | One step of a recipe's method, in order. | `Step` |
 | Method | A recipe's steps, in order. | `Recipe.steps` |
 | Equipment | A tool from the shared equipment list (oven, hob, stand mixer…) that a recipe needs. | `Equipment` |

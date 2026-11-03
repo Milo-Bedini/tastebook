@@ -196,6 +196,11 @@ test('a recipe page fits a 375 px phone screen without scrolling sideways', asyn
   await expect(page.getByRole('heading', { name: 'Method' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Show original' })).toBeVisible();
   expect(await sidewaysScroll(page)).toBe(0);
+
+  await page.getByRole('group', { name: 'Units' }).getByRole('radio', { name: 'US' }).check();
+
+  await expect(page.getByRole('button', { name: 'Grams to cups' })).toBeVisible();
+  expect(await sidewaysScroll(page)).toBe(0);
 });
 
 test('searches from the top bar on a 375 px phone screen', async ({ page }) => {
