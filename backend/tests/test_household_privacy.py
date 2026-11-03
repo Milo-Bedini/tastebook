@@ -15,6 +15,7 @@ from django.http import HttpResponse
 from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, resolve
 
 from households.models import Household, Invite, User
+from recipes.models import Recipe
 from tests.test_accounts import BrowserClient
 from tests.test_household import HOUSEHOLD, cancel_link, join, make_link, signed_up
 
@@ -25,8 +26,8 @@ HOUSEHOLD_NAME = 'The Quillfeathers'
 
 @dataclass(frozen=True)
 class Probe:
-    """One request an outsider might try. `{member}`, `{dead_token}` and `{zebedee}` in its path or body are filled in
-    with the Quillfeathers' own."""
+    """One request an outsider might try. `{member}`, `{dead_token}`, `{zebedee}` and `{recipe}` in its path or body
+    are filled in with the Quillfeathers' own."""
 
     method: str
     path: str
@@ -115,8 +116,13 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
     'api/accounts/google/login/': (get('/api/accounts/google/login/'),),
     'api/accounts/google/login/callback/': (get('/api/accounts/google/login/callback/'),),
     'api/accounts/google/login/token/': (post('/api/accounts/google/login/token/'),),
-    'api/recipes/': (get('/api/recipes/'),),
-    'api/recipes/<slug:slug>/': (get('/api/recipes/no-such-recipe/'),),
+    'api/recipes/': (
+        get('/api/recipes/'),
+        get('/api/recipes/?q=crumble'),
+        get('/api/recipes/?cuisine=french'),
+        post('/api/recipes/', {'title': 'Taken'}),
+    ),
+    'api/recipes/<slug:slug>/': (get('/api/recipes/no-such-recipe/'), get('/api/recipes/{recipe}/')),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),
     'api/ingredients/': (get('/api/ingredients/'),),
@@ -145,21 +151,30 @@ class Quillfeathers:
     member: int
     live_token: str
     dead_token: str
+    recipe: str
 
 
 def the_quillfeathers() -> Quillfeathers:
-    """Zebedee's household, renamed The Quillfeathers, with Philippa in it, a cancelled link and a live one."""
+    """Zebedee's household, renamed The Quillfeathers, with Philippa in it, a cancelled link and a live one, and a
+    private recipe."""
     zebedee = signed_up(ZEBEDEE, 'Zebedee')
     signed_up(PHILIPPA, 'Philippa')
     join(PHILIPPA, ZEBEDEE)
     zebedee.client.patch(HOUSEHOLD, {'name': HOUSEHOLD_NAME}, format='json', **zebedee.csrf_header())
     dead_token = make_link(zebedee).json()['invite']['token']
     cancel_link(zebedee)
+    recipe = zebedee.client.post(
+        '/api/recipes/',
+        {'title': 'Quillfeather crumble', 'cuisines': ['french']},
+        format='json',
+        **zebedee.csrf_header(),
+    )
     return Quillfeathers(
         household=User.objects.get(email=ZEBEDEE).household_id,
         member=User.objects.get(email=PHILIPPA).pk,
         live_token=make_link(zebedee).json()['invite']['token'],
         dead_token=dead_token,
+        recipe=recipe.json()['slug'],
     )
 
 
@@ -172,6 +187,7 @@ def what_they_hold(quillfeathers: Quillfeathers) -> dict[str, Any]:
             EmailAddress.objects.filter(user__household=household).values_list('user__email', 'email', 'verified')
         ),
         'invites': sorted(Invite.objects.filter(household=household).values_list('token', 'cancelled_at')),
+        'recipes': sorted(Recipe.objects.filter(household=household).values_list('slug', 'title')),
     }
 
 
@@ -180,6 +196,7 @@ def call(browser: BrowserClient, probe: Probe, quillfeathers: Quillfeathers) -> 
         'member': quillfeathers.member,
         'dead_token': quillfeathers.dead_token,
         'zebedee': ZEBEDEE,
+        'recipe': quillfeathers.recipe,
     }
     body = {key: value.format(**values) for key, value in probe.body.items()}
     # A server error is answered as a browser gets it, so its body is checked like any other.
@@ -196,8 +213,8 @@ def outsider_in_another_household() -> BrowserClient:
     return signed_up('jo@example.com', 'Jo')
 
 
-# What a member sees of their household, and nobody else should: names, addresses and the live link.
-SECRETS = (HOUSEHOLD_NAME, 'Zebedee', 'Philippa', ZEBEDEE, PHILIPPA)
+# What a member sees of their household, and nobody else should: names, addresses, the live link and its recipes.
+SECRETS = (HOUSEHOLD_NAME, 'Zebedee', 'Philippa', ZEBEDEE, PHILIPPA, 'Quillfeather crumble')
 
 PROBES = [
     pytest.param(probe, id=f'{probe.method.upper()} {probe.path}') for probes in ENDPOINTS.values() for probe in probes
@@ -205,7 +222,7 @@ PROBES = [
 
 
 def resolved_route(probe: Probe) -> str:
-    stand_ins = {'member': 1, 'dead_token': 'a-dead-token', 'zebedee': ZEBEDEE}
+    stand_ins = {'member': 1, 'dead_token': 'a-dead-token', 'zebedee': ZEBEDEE, 'recipe': 'a-private-recipe'}
     try:
         return resolve(urlsplit(probe.path.format(**stand_ins)).path).route
     except Resolver404:
@@ -241,7 +258,14 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
     zebedee = BrowserClient()
     zebedee.client.force_login(User.objects.get(email=ZEBEDEE))
 
+    philippa = BrowserClient()
+    philippa.client.force_login(User.objects.get(email=PHILIPPA))
+
     seen = zebedee.client.get(HOUSEHOLD).content.decode()
+    recipes = [
+        philippa.client.get(path).content.decode()
+        for path in (f'/api/recipes/{quillfeathers.recipe}/', '/api/recipes/?q=crumble')
+    ]
 
     assert [secret for secret in (*SECRETS, quillfeathers.live_token) if secret in seen] == [
         HOUSEHOLD_NAME,
@@ -249,6 +273,7 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
         'Philippa',
         quillfeathers.live_token,
     ]
+    assert ['Quillfeather crumble' in page for page in recipes] == [True, True]
 
 
 @pytest.mark.django_db
