@@ -54,9 +54,14 @@ export * as icons from 'lucide-react';`;
 const virtualModules: Record<string, string> = {
   'react/jsx-runtime': jsxRuntime,
   'react/jsx-dev-runtime': jsxRuntime,
-  // react-router needs React 19, and nothing navigates on a canvas: a link is a plain anchor.
+  // react-router needs React 19, and nothing navigates on a canvas: a link is a plain anchor, and a NavLink one that's
+  // never active. Stub here anything else from react-router that Dino imports, or the bundle fails.
   'react-router': `import { createElement } from 'react';
-export const Link = ({ to, ...props }) => createElement('a', { ...props, href: to });`
+export const Link = ({ to, ...props }) => createElement('a', { ...props, href: to });
+const inactive = { isActive: false, isPending: false, isTransitioning: false };
+const resolve = (value) => (typeof value === 'function' ? value(inactive) : value);
+export const NavLink = ({ to, end, caseSensitive, className, style, children, ...props }) =>
+  createElement('a', { ...props, href: to, className: resolve(className), style: resolve(style) }, resolve(children));`
 };
 
 const virtual = (): Plugin => ({
