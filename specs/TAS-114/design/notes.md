@@ -4,15 +4,17 @@ Canvas: https://claude.ai/artifact/CvpfZUdCyMcDjEfbpZ75p2 (approved at Design Re
 
 ## Boards
 
-- `Main.dc.html`: Add a recipe, phone (390 px). The form as it opens, filled in, with the chip groups still loading, and with the cuisines failing to load.
-- `form-states.dc.html`: Checking, saving and waiting, phone. Save with no title, bad times and extra time with no reason, Makes with nothing it makes, Saving…, a 400 with no field (danger Banner), a network failure (toast), checking you're signed in, and that check failing.
-- `form-laptop.dc.html`: Add a recipe, laptop (1280 px). The same 640 px column; only prep, cook and extra time share a row.
-- `recipe-list.dc.html`: The list. "Add a recipe" under the title (signed in and signed out, phone and laptop), and the private mark on private recipes' cards.
-- `private-recipe.dc.html`: A private recipe, phone. Only a title; a prep time only (one blob); every detail the form takes. The private mark under the title, then a warning Banner listing what's missing.
-- `private-recipe-laptop.dc.html`: A private recipe, laptop. Two columns, 5 to 7; the mark and the Banner sit in the intro column.
-- `private-mark.dc.html`: Private mark (new Dino component): at size, anatomy, beside a sticker and a chip, on a card, on the recipe page, at 200% text and under forced colours.
-- `time-blobs.dc.html`: TimeBlobs (changed): one to three blobs, at phone and laptop widths, 200% text and forced colours.
-- `proposed-rule-change.dc.html`: Proposed edits to `docs/design.md`.
+Moved from this folder into `docs/design/picnic/`, where `biome check` doesn't lint board markup.
+
+- `docs/design/picnic/recipe-new.dc.html`: Add a recipe, phone (390 px). The form as it opens, filled in, with the chip groups still loading, and with the cuisines failing to load.
+- `docs/design/picnic/recipe-new-states.dc.html`: Checking, saving and waiting, phone. Save with no title, bad times and extra time with no reason, Makes with nothing it makes, Saving…, a 400 with no field (danger Banner), a network failure (toast), checking you're signed in, and that check failing.
+- `docs/design/picnic/recipe-new-laptop.dc.html`: Add a recipe, laptop (1280 px). The same 640 px column; only prep, cook and extra time share a row.
+- `docs/design/picnic/recipe-new-list.dc.html`: The list. "Add a recipe" under the title (signed in and signed out, phone and laptop), and the private mark on private recipes' cards.
+- `docs/design/picnic/recipe-new-private-recipe.dc.html`: A private recipe, phone. Only a title; a prep time only (one blob); every detail the form takes. The private mark under the title, then a warning Banner listing what's missing.
+- `docs/design/picnic/recipe-new-private-recipe-laptop.dc.html`: A private recipe, laptop. Two columns, 5 to 7; the mark and the Banner sit in the intro column.
+- `docs/design/picnic/recipe-new-private-mark.dc.html`: Private mark (new Dino component): at size, anatomy, beside a sticker and a chip, on a card, on the recipe page, at 200% text and under forced colours.
+- `docs/design/picnic/recipe-new-time-blobs.dc.html`: TimeBlobs (changed): one to three blobs, at phone and laptop widths, 200% text and forced colours.
+- `docs/design/picnic/recipe-new-proposed-rule-change.dc.html`: Proposed edits to `docs/design.md`.
 
 ## Decisions
 
