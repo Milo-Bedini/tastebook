@@ -3,6 +3,9 @@ name: Mutation testing
 # Mutation-tests the source files changed on main since a date, and times each side. Run by hand; the factory's
 # weekly clean-up calls the same two commands.
 on:
+  # Temporary: times the first run on this branch, since a workflow can be dispatched only once it's on main.
+  push:
+    branches: [tastebook/tas-155-mutation-test-the-weeks-changed-code]
   workflow_dispatch:
     inputs:
       since:
