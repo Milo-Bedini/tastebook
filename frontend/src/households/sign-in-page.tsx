@@ -1,6 +1,6 @@
 import { type FormEvent, type RefObject, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { Navigate, useNavigate, useSearchParams } from 'react-router';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 
 import { Banner, Button, Field, Input, Loading, Page } from '../dino';
 import type { CodeFlow } from './auth-api';
@@ -416,6 +416,9 @@ export const SignInPage = () => {
         {step.name === 'two-factor' && (
           <TwoFactorStep headingRef={headingRef} onSignedIn={goToNext} onStartAgain={showEmailStep} />
         )}
+        <p>
+          <Link to="/privacy">How Tastebook uses your data</Link>
+        </p>
       </div>
     </Page>
   );

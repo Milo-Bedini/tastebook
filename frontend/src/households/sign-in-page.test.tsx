@@ -416,6 +416,23 @@ describe('SignInPage with two factors', () => {
     expect(emailField()).toHaveFocus();
   });
 
+  it('links to the privacy page at every step', async () => {
+    answerAllauth();
+    renderRoute('/sign-in?next=/recipes/baguette');
+    const privacyLink = () => screen.getByRole('link', { name: 'How Tastebook uses your data' });
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument();
+    expect(privacyLink()).toHaveAttribute('href', '/privacy');
+
+    await sendCode('staff@example.com');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Check your email' })).toBeInTheDocument();
+    expect(privacyLink()).toHaveAttribute('href', '/privacy');
+
+    await signInWith('123456');
+    expect(await twoFactorHeading()).toBeInTheDocument();
+    expect(privacyLink()).toHaveAttribute('href', '/privacy');
+  });
+
   it('asks staff back from Google for their authenticator code', async () => {
     answerAllauth();
     server.use(http.get(`${AUTH}/session`, () => pending('mfa_authenticate')));
