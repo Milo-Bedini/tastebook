@@ -12,7 +12,12 @@ const fade =
 // The share of its height a sheet has to be dragged down to close, as phone sheets commonly do.
 const closingShare = 0.25;
 
-type SheetPanelProps = {
+type FocusEvents = {
+  onOpenAutoFocus?: (event: Event) => void;
+  onCloseAutoFocus?: (event: Event) => void;
+};
+
+type SheetPanelProps = FocusEvents & {
   title: string;
   description?: string;
   children: ReactNode;
@@ -22,7 +27,15 @@ type SheetPanelProps = {
 };
 
 // Its own component so the drag starts afresh each time the sheet opens: Radix unmounts it once it has closed.
-const SheetPanel = ({ title, description, children, close, ref }: SheetPanelProps) => {
+const SheetPanel = ({
+  title,
+  description,
+  children,
+  close,
+  ref,
+  onOpenAutoFocus,
+  onCloseAutoFocus
+}: SheetPanelProps) => {
   // Only the pointer that started the drag moves or ends it: a second finger on the strip is ignored.
   const [drag, setDrag] = useState<{ pointerId: number; startY: number } | null>(null);
   const [offset, setOffset] = useState(0);
@@ -72,6 +85,8 @@ const SheetPanel = ({ title, description, children, close, ref }: SheetPanelProp
       // Radix warns about a missing description unless told there is none; with one, keep its own link.
       {...(description === undefined && { 'aria-describedby': undefined })}
       onEscapeKeyDown={(event) => event.preventDefault()}
+      onOpenAutoFocus={onOpenAutoFocus}
+      onCloseAutoFocus={onCloseAutoFocus}
       onKeyDown={closeOnEscape}
       style={offset > 0 ? { transform: `translateY(${offset}px)` } : undefined}
       className={cn(
@@ -108,8 +123,9 @@ const SheetPanel = ({ title, description, children, close, ref }: SheetPanelProp
   );
 };
 
-type SheetProps = {
-  trigger: ReactElement;
+type SheetProps = FocusEvents & {
+  // Without one, the caller opens it with `open` and says where focus goes on close with onCloseAutoFocus.
+  trigger?: ReactElement;
   title: string;
   description?: string;
   children: ReactNode;
@@ -118,7 +134,16 @@ type SheetProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-export const Sheet = ({ trigger, title, description, children, open, onOpenChange }: SheetProps) => {
+export const Sheet = ({
+  trigger,
+  title,
+  description,
+  children,
+  open,
+  onOpenChange,
+  onOpenAutoFocus,
+  onCloseAutoFocus
+}: SheetProps) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isOpen = open ?? uncontrolledOpen;
   const setOpen = (next: boolean) => {
@@ -128,10 +153,16 @@ export const Sheet = ({ trigger, title, description, children, open, onOpenChang
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
+      {trigger !== undefined && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}
       <Dialog.Portal>
         <Dialog.Overlay data-slot="sheet-scrim" className={cn('fixed inset-0 z-50 bg-scrim', fade)} />
-        <SheetPanel title={title} description={description} close={() => setOpen(false)}>
+        <SheetPanel
+          title={title}
+          description={description}
+          close={() => setOpen(false)}
+          onOpenAutoFocus={onOpenAutoFocus}
+          onCloseAutoFocus={onCloseAutoFocus}
+        >
           {children}
         </SheetPanel>
       </Dialog.Portal>

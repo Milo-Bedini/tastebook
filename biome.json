@@ -67,7 +67,11 @@
       }
     }
   },
-  "plugins": ["./tools/biome/no-arbitrary-radius.grit", "./tools/biome/no-let.grit"],
+  "plugins": [
+    "./tools/biome/no-arbitrary-radius.grit",
+    "./tools/biome/no-let.grit",
+    "./tools/biome/button-pressed-state.grit"
+  ],
   "linter": {
     "enabled": true,
     "domains": {

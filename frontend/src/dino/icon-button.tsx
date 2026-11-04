@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { LucideIcon } from 'lucide-react';
-import type { ButtonHTMLAttributes, MouseEvent } from 'react';
+import type { ComponentProps, MouseEvent } from 'react';
 
 import { cn } from '@/dino/cn';
 
@@ -19,7 +19,7 @@ type IconButtonProps = {
   pressed?: boolean;
   disabled?: boolean;
 } & VariantProps<typeof iconButtonVariants> &
-  Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'aria-label' | 'aria-pressed' | 'disabled'>;
+  Omit<ComponentProps<'button'>, 'children' | 'aria-label' | 'aria-pressed' | 'disabled'>;
 
 export const IconButton = ({
   icon: Icon,

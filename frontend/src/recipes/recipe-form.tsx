@@ -23,6 +23,16 @@ import { useCuisines } from './cuisines-api';
 import { difficulties, difficultyLabels } from './difficulty';
 import { toggled } from './recipe-filters';
 import type { NewRecipe, RecipeErrors, RecipeSaving } from './recipe-form-api';
+import {
+  checkIngredients,
+  type IngredientEntry,
+  IngredientsSection,
+  type IngredientsView,
+  ingredientEntriesOf,
+  ingredientFieldIds,
+  toIngredientPayload,
+  viewOfField
+} from './recipe-form-ingredients';
 
 type Recipe = components['schemas']['Recipe'];
 
@@ -50,6 +60,7 @@ type Draft = {
   yieldUnit: string;
   source: string;
   sourceUrl: string;
+  ingredients: IngredientEntry[];
 };
 
 const emptyDraft: Draft = {
@@ -68,7 +79,8 @@ const emptyDraft: Draft = {
   yieldAmount: '',
   yieldUnit: '',
   source: '',
-  sourceUrl: ''
+  sourceUrl: '',
+  ingredients: []
 };
 
 // A recipe as the form shows it: numbers as text, a missing one empty, and Makes chosen when it has a yield.
@@ -88,10 +100,12 @@ const draftOf = (recipe: Recipe): Draft => ({
   yieldAmount: recipe.yield_amount?.toString() ?? '',
   yieldUnit: recipe.yield_unit,
   source: recipe.source,
-  sourceUrl: recipe.source_url
+  sourceUrl: recipe.source_url,
+  ingredients: ingredientEntriesOf(recipe)
 });
 
-// The fields that take focus, in the form's order, so the first in error is the first here.
+// The fields that take focus, in the form's order, so the first in error is the first here; the ingredients' come
+// between the description and the times.
 const typedFields = [
   'title',
   'description',
@@ -105,8 +119,6 @@ const typedFields = [
   'source',
   'source_url'
 ] as const;
-
-type TypedField = (typeof typedFields)[number];
 
 const BLANK_TITLE = "Give the recipe a title, like Grandma's curry.";
 const NOT_MINUTES = 'Enter whole minutes, like 20.';
@@ -139,7 +151,8 @@ const checkDraft = (draft: Draft): RecipeErrors => {
   return Object.fromEntries(checks.filter(([, fails]) => fails).map(([field, , message]) => [field, message]));
 };
 
-// Only the chosen one of servings and a yield is sent, though both keep what was typed.
+// Only the chosen one of servings and a yield is sent, though both keep what was typed. Both ingredient lists are
+// always sent, so an edit replaces the recipe's ingredients with what the form shows.
 const toNewRecipe = (draft: Draft): NewRecipe => ({
   title: draft.title.trim(),
   description: draft.description.trim(),
@@ -155,12 +168,19 @@ const toNewRecipe = (draft: Draft): NewRecipe => ({
   yield_unit: draft.amount === 'makes' ? draft.yieldUnit.trim() : '',
   one_pot: draft.onePot,
   source: draft.source.trim(),
-  source_url: draft.sourceUrl.trim()
+  source_url: draft.sourceUrl.trim(),
+  ...toIngredientPayload(draft.ingredients)
 });
 
 // A refusal for a part with no field of its own (the chips, difficulty, a pair half given) shows in the banner.
 const bannerMessage = (errors: RecipeErrors) =>
-  errors.non_field_errors ?? errors.cuisines ?? errors.courses ?? errors.difficulty ?? errors.one_pot;
+  errors.non_field_errors ??
+  errors.ingredient_lines ??
+  errors.ingredient_groups ??
+  errors.cuisines ??
+  errors.courses ??
+  errors.difficulty ??
+  errors.one_pot;
 
 const difficultyOptions: { value: Difficulty | ''; label: string }[] = [
   { value: '', label: 'None' },
@@ -285,33 +305,49 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
   // Set once, so a background refetch of the recipe never overwrites what's being typed.
   const [draft, setDraft] = useState(() => (recipe === undefined ? emptyDraft : draftOf(recipe)));
   const [errors, setErrors] = useState<RecipeErrors>({});
-  const fields = useRef<Partial<Record<TypedField, HTMLElement | null>>>({});
+  const [ingredientErrors, setIngredientErrors] = useState<Record<string, string>>({});
+  // Save opens an ingredient's sheet and leaves the Reorder mode, so the form owns what the section shows.
+  const [ingredientsView, setIngredientsView] = useState<IngredientsView>({ kind: 'list' });
+  // Keyed by field id: a typed field's name, or an ingredient's field id, which holds its row.
+  const fields = useRef<Record<string, HTMLElement | null>>({});
 
   const change =
     <Key extends keyof Draft>(key: Key) =>
     (value: Draft[Key]) =>
       setDraft((current) => ({ ...current, [key]: value }));
-  const refFor = (field: TypedField) => (element: HTMLElement | null) => {
+  const refFor = (field: string) => (element: HTMLElement | null) => {
     fields.current[field] = element;
   };
 
-  // Shows every message at once; focus goes to the first field in error, or the banner when no field is.
-  const refuse = (refused: RecipeErrors) => {
+  // Shows every message at once; focus goes to the first field in error, or the banner when no field is. An
+  // ingredient in error has its row focused, then its sheet opened on the field, so closing it lands on the row.
+  const refuse = (refused: RecipeErrors, refusedIngredients: Record<string, string> = {}) => {
     setErrors(refused);
-    const first = typedFields.find((field) => refused[field] !== undefined);
+    setIngredientErrors(refusedIngredients);
+    const [title, description, ...rest] = typedFields;
+    const order: string[] = [title, description, ...ingredientFieldIds(draft.ingredients), ...rest];
+    const messages: Record<string, string | undefined> = { ...refused, ...refusedIngredients };
+    const first = order.find((field) => messages[field] !== undefined);
     if (first !== undefined) {
       fields.current[first]?.focus();
+    }
+    if (first !== undefined && refusedIngredients[first] !== undefined) {
+      setIngredientsView(viewOfField(first));
+    } else if (ingredientsView.kind === 'reordering') {
+      setIngredientsView({ kind: 'list' });
     }
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const checked = checkDraft(draft);
-    if (Object.keys(checked).length > 0) {
-      refuse(checked);
+    const checkedIngredients = checkIngredients(draft.ingredients);
+    if (Object.keys(checked).length > 0 || Object.keys(checkedIngredients).length > 0) {
+      refuse(checked, checkedIngredients);
       return;
     }
     setErrors({});
+    setIngredientErrors({});
     try {
       const result = await onSave(toNewRecipe(draft));
       if (result.kind === 'saved') {
@@ -403,6 +439,20 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
           </Switch>
         </div>
       </div>
+
+      <IngredientsSection
+        entries={draft.ingredients}
+        onChange={(update) =>
+          setDraft((current) => ({
+            ...current,
+            ingredients: typeof update === 'function' ? update(current.ingredients) : update
+          }))
+        }
+        view={ingredientsView}
+        onViewChange={setIngredientsView}
+        errors={ingredientErrors}
+        fieldRef={refFor}
+      />
 
       <Section id="recipe-form-times" heading="Times">
         {/* Prep and cook share a row on a phone; on a laptop the extra time joins them. */}

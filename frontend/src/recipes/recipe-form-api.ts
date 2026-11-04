@@ -17,13 +17,19 @@ export type RecipeSaving =
   | { kind: 'signed-out' }
   | { kind: 'gone' };
 
+const SOME_INGREDIENTS = "Some ingredients couldn't be saved. Check them and try again.";
+
 // DRF answers a refusal as {"<field>": ["…"], "non_field_errors": ["…"]}; the page shows each key's first message.
+// A list of lines or groups answers an object keyed by the index of each one refused, which the page sums up.
 const firstMessages = (body: unknown): RecipeErrors =>
   typeof body === 'object' && body !== null
     ? Object.fromEntries(
-        Object.entries(body).flatMap(([key, messages]) =>
-          Array.isArray(messages) && typeof messages[0] === 'string' ? [[key, messages[0]]] : []
-        )
+        Object.entries(body).flatMap(([key, messages]) => {
+          if (Array.isArray(messages)) {
+            return typeof messages[0] === 'string' ? [[key, messages[0]]] : [];
+          }
+          return typeof messages === 'object' && messages !== null ? [[key, SOME_INGREDIENTS]] : [];
+        })
       )
     : {};
 

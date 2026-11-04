@@ -23,6 +23,12 @@ const unitNames: Record<Unit, { one: string; many: string }> = {
   handful: { one: 'handful', many: 'handfuls' }
 };
 
+// Every unit, in the order Tastebook lists them.
+export const units = Object.keys(unitNames) as Unit[];
+
+// A unit as the recipe page writes one of it.
+export const unitLabel = (unit: Unit) => unitNames[unit].one;
+
 const number = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 3 });
 
 type Quantity = Pick<IngredientLine, 'amount' | 'amount_max' | 'unit'>;

@@ -1,6 +1,7 @@
-import { CornerDownLeft } from 'lucide-react';
-import { type ChangeEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
+import { CornerDownLeft, Plus } from 'lucide-react';
+import { type ChangeEvent, type KeyboardEvent, type Ref, useEffect, useId, useRef, useState } from 'react';
 
+import { cn } from '@/dino/cn';
 import { Field } from '@/dino/field';
 import { Input } from '@/dino/input';
 import { matchRange } from '@/dino/match-range';
@@ -23,9 +24,31 @@ type ComboboxProps = {
   emptyText: string;
   // Opens the list on first render; the open-list story needs it, since play's focus is blurred before the shot.
   defaultOpen?: boolean;
+  // A last option below the matches, such as "Add “chipotle paste”"; the caller decides when there is one.
+  addOption?: { label: string; onAdd: () => void };
+  // Set on the input alongside the combobox's own, so a caller can put focus back on it.
+  inputRef?: Ref<HTMLInputElement>;
 };
 
+// The add option is one more item after the options, so it has no value of its own.
+type Active = { kind: 'option'; value: string } | { kind: 'add' } | null;
+
 const optionId = (comboboxId: string, index: number) => `${comboboxId}-option-${index}`;
+
+const addOptionId = (comboboxId: string) => `${comboboxId}-add`;
+
+const setRef = <T,>(ref: Ref<T> | undefined, value: T | null) => {
+  if (typeof ref === 'function') {
+    ref(value);
+  } else if (ref) {
+    ref.current = value;
+  }
+};
+
+const optionClassName =
+  'flex min-h-12 cursor-pointer items-center justify-between gap-2 rounded-option px-3.5 py-3 text-body text-ink aria-selected:bg-line aria-selected:outline-3 aria-selected:-outline-offset-3 aria-selected:outline-ink';
+
+const ActiveMark = () => <CornerDownLeft aria-hidden="true" strokeWidth={2.5} className="size-4 shrink-0" />;
 
 const Highlighted = ({ text, range }: { text: string; range: ReturnType<typeof matchRange> }) => {
   if (range === null || range.start === range.end) {
@@ -71,32 +94,55 @@ export const Combobox = ({
   onRemove,
   removeLabel,
   emptyText,
-  defaultOpen = false
+  defaultOpen = false,
+  addOption,
+  inputRef: callerInputRef
 }: ComboboxProps) => {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(defaultOpen);
-  const [activeValue, setActiveValue] = useState<string | null>(null);
+  const [active, setActive] = useState<Active>(null);
 
-  const expanded = open && options.length > 0;
-  // With no active value, or one that left the list, the first option is active.
-  const activeIndex = Math.max(
-    0,
-    options.findIndex((option) => option.value === activeValue)
-  );
+  const itemCount = options.length + (addOption === undefined ? 0 : 1);
+  const expanded = open && itemCount > 0;
+  // With nothing active, or an option that left the list, the first item is active.
+  const activeIndex =
+    active?.kind === 'add' && addOption !== undefined
+      ? options.length
+      : Math.max(
+          0,
+          options.findIndex((option) => active?.kind === 'option' && option.value === active.value)
+        );
+  const itemId = (index: number) => (index < options.length ? optionId(id, index) : addOptionId(id));
+  const activeId = itemId(activeIndex);
   const listboxId = `${id}-listbox`;
 
   useEffect(() => {
     if (expanded) {
-      document.getElementById(optionId(id, activeIndex))?.scrollIntoView({ block: 'nearest' });
+      document.getElementById(activeId)?.scrollIntoView({ block: 'nearest' });
     }
-  }, [id, expanded, activeIndex]);
+  }, [expanded, activeId]);
+
+  const activeAt = (index: number): Active => {
+    const option = options[index];
+    if (option !== undefined) {
+      return { kind: 'option', value: option.value };
+    }
+    return addOption === undefined ? null : { kind: 'add' };
+  };
 
   const choose = (value: string) => {
     onChoose(value);
     onSearchChange('');
     setOpen(false);
-    setActiveValue(null);
+    setActive(null);
+  };
+
+  // The search stays: the caller clears it once what it adds is in.
+  const add = () => {
+    addOption?.onAdd();
+    setOpen(false);
+    setActive(null);
   };
 
   const remove = (value: string) => {
@@ -108,17 +154,16 @@ export const Combobox = ({
   const type = (event: ChangeEvent<HTMLInputElement>) => {
     onSearchChange(event.target.value);
     setOpen(true);
-    setActiveValue(null);
+    setActive(null);
   };
 
   const move = (step: 1 | -1) => {
     if (!expanded) {
       setOpen(true);
-      setActiveValue((step === 1 ? options[0] : options.at(-1))?.value ?? null);
+      setActive(activeAt(step === 1 ? 0 : itemCount - 1));
       return;
     }
-    const next = (activeIndex + step + options.length) % options.length;
-    setActiveValue(options[next]?.value ?? null);
+    setActive(activeAt((activeIndex + step + itemCount) % itemCount));
   };
 
   const closeOrClear = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -141,9 +186,11 @@ export const Combobox = ({
       move(event.key === 'ArrowDown' ? 1 : -1);
     } else if (event.key === 'Enter' && expanded) {
       event.preventDefault();
-      const active = options[activeIndex];
-      if (active) {
-        choose(active.value);
+      const option = options[activeIndex];
+      if (option) {
+        choose(option.value);
+      } else {
+        add();
       }
     } else if (event.key === 'Escape') {
       closeOrClear(event);
@@ -166,12 +213,15 @@ export const Combobox = ({
           <div>
             <Input
               {...control}
-              ref={inputRef}
+              ref={(element) => {
+                inputRef.current = element;
+                setRef(callerInputRef, element);
+              }}
               role="combobox"
               aria-labelledby={labelId}
               aria-expanded={expanded}
               aria-controls={expanded ? listboxId : undefined}
-              aria-activedescendant={expanded ? optionId(id, activeIndex) : undefined}
+              aria-activedescendant={expanded ? activeId : undefined}
               aria-autocomplete="list"
               autoComplete="off"
               placeholder={placeholder}
@@ -197,24 +247,52 @@ export const Combobox = ({
                     role="option"
                     aria-selected={index === activeIndex}
                     tabIndex={-1}
-                    onMouseMove={() => setActiveValue(value)}
+                    onMouseMove={() => setActive({ kind: 'option', value })}
                     onMouseDown={(event) => {
                       // Focus stays in the input, so its blur doesn't close the list before the pick.
                       event.preventDefault();
                       choose(value);
                     }}
-                    className="flex min-h-12 cursor-pointer items-center justify-between gap-2 rounded-option px-3.5 py-3 text-body text-ink aria-selected:bg-line aria-selected:outline-3 aria-selected:-outline-offset-3 aria-selected:outline-ink"
+                    className={optionClassName}
                   >
                     <OptionText name={name} hint={hint} search={search} />
-                    {index === activeIndex && (
-                      <CornerDownLeft aria-hidden="true" strokeWidth={2.5} className="size-4 shrink-0" />
-                    )}
+                    {index === activeIndex && <ActiveMark />}
                   </li>
                 ))}
+                {addOption !== undefined && (
+                  <li
+                    id={addOptionId(id)}
+                    // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: the ARIA listbox pattern, as on the fields board
+                    role="option"
+                    aria-selected={activeIndex === options.length}
+                    tabIndex={-1}
+                    onMouseMove={() => setActive({ kind: 'add' })}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      add();
+                    }}
+                    className={cn(optionClassName, options.length > 0 && 'relative mt-1.75')}
+                  >
+                    {/* Below matches, a hairline sets it apart; alone, it needs none. */}
+                    {options.length > 0 && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-x-3.5 -top-1.25 h-px bg-line forced-colors:bg-[CanvasText]"
+                      />
+                    )}
+                    <span className="inline-flex items-center gap-2">
+                      <Plus aria-hidden="true" strokeWidth={2.5} className="size-4.5 shrink-0" />
+                      <span>
+                        <Highlighted text={addOption.label} range={matchRange(addOption.label, search)} />
+                      </span>
+                    </span>
+                    {activeIndex === options.length && <ActiveMark />}
+                  </li>
+                )}
               </ul>
             )}
             <div role="status">
-              {open && options.length === 0 && (
+              {open && itemCount === 0 && (
                 <p className="mt-2 rounded-card border-2 border-field bg-surface px-3.5 py-3 text-muted">{emptyText}</p>
               )}
             </div>

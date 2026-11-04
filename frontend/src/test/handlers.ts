@@ -7,6 +7,7 @@ type Cuisine = components['schemas']['Cuisine'];
 type CurrentAccount = components['schemas']['CurrentAccount'];
 type Health = components['schemas']['Health'];
 type IngredientOption = components['schemas']['IngredientOption'];
+type NewIngredient = components['schemas']['NewIngredient'];
 type Recipe = components['schemas']['Recipe'];
 type RecipeSummary = components['schemas']['RecipeSummary'];
 
@@ -119,6 +120,14 @@ export const handlers = [
   http.get('/api/courses/', () => HttpResponse.json<Course[]>(courses)),
   http.get('/api/cuisines/', () => HttpResponse.json<Cuisine[]>(cuisines)),
   http.get('/api/ingredients/', () => HttpResponse.json<IngredientOption[]>(ingredients)),
+  // Adds every name as a new ingredient awaiting review.
+  http.post('/api/ingredients/', async ({ request }) => {
+    const { name } = (await request.json()) as NewIngredient;
+    return HttpResponse.json<IngredientOption>(
+      { slug: name.toLowerCase().replaceAll(' ', '-'), name, synonyms: [] },
+      { status: 201 }
+    );
+  }),
   http.get('/api/recipes/', () => HttpResponse.json<RecipeSummary[]>(recipes.map(toSummary))),
   http.get('/api/recipes/:slug/', ({ params }) => {
     const recipe = recipes.find(({ slug }) => slug === params.slug);

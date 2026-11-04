@@ -151,7 +151,9 @@ describe('EditRecipePage', () => {
         yield_unit: 'flatbreads',
         one_pot: true,
         source: "Nonna's notebook",
-        source_url: 'https://example.com/flatbreads'
+        source_url: 'https://example.com/flatbreads',
+        ingredient_lines: [],
+        ingredient_groups: []
       }
     ]);
   });
@@ -195,7 +197,9 @@ describe('EditRecipePage', () => {
       yield_unit: '',
       one_pot: false,
       source: '',
-      source_url: ''
+      source_url: '',
+      ingredient_lines: [],
+      ingredient_groups: []
     });
   });
 
@@ -360,5 +364,88 @@ describe('EditRecipePage', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Apple tart' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/recipes/apple-tart');
     expect(screen.queryByRole('textbox', { name: 'Title' })).not.toBeInTheDocument();
+  });
+
+  it("opens with the recipe's ingredients as rows, and sends them back as they were", async () => {
+    const ingredient = (slug: string, name: string) => ({ slug, name, grams_per_cup: null, awaiting_review: false });
+    const sent = answerEditing({
+      ...flatbreads,
+      ingredient_lines: [
+        {
+          id: 7,
+          amount: 2,
+          amount_max: 3,
+          unit: 'tbsp',
+          ingredient: ingredient('olive-oil', 'olive oil'),
+          note: '',
+          optional: false,
+          original_text: '2-3 tbsp good olive oil'
+        }
+      ],
+      ingredient_groups: [
+        {
+          id: 3,
+          name: 'For the sauce',
+          lines: [
+            {
+              id: 8,
+              amount: 0.5,
+              amount_max: null,
+              unit: '',
+              ingredient: ingredient('garlic', 'garlic'),
+              note: '',
+              optional: false,
+              original_text: ''
+            }
+          ]
+        }
+      ]
+    });
+    await openForm();
+
+    expect(screen.getByRole('button', { name: 'Olive oil 2–3 tbsp' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Garlic 0.5' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'For the sauce' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Olive oil 2–3 tbsp' }));
+    const line = screen.getByRole('dialog', { name: 'Olive oil' });
+    expect(within(line).getByRole('textbox', { name: 'Amount' })).toHaveValue('2-3');
+    expect(within(line).getByRole('combobox', { name: 'Unit' })).toHaveValue('tbsp');
+    await userEvent.keyboard('{Escape}');
+    await userEvent.click(screen.getByRole('button', { name: 'For the sauce' }));
+    expect(
+      within(screen.getByRole('dialog', { name: 'Group' })).getByRole('textbox', { name: 'Group name' })
+    ).toHaveValue('For the sauce');
+    await userEvent.keyboard('{Escape}');
+    await save();
+
+    await waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0]?.ingredient_lines).toEqual([
+      {
+        amount: 2,
+        amount_max: 3,
+        unit: 'tbsp',
+        ingredient: 'olive-oil',
+        note: '',
+        optional: false,
+        original_text: '2-3 tbsp good olive oil'
+      }
+    ]);
+    expect(sent[0]?.ingredient_groups).toEqual([
+      {
+        name: 'For the sauce',
+        lines: [
+          {
+            amount: 0.5,
+            amount_max: null,
+            unit: '',
+            ingredient: 'garlic',
+            note: '',
+            optional: false,
+            original_text: ''
+          }
+        ]
+      }
+    ]);
   });
 });

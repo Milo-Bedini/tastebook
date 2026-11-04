@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 
 import type { components } from '../api/schema';
 import { Button, PrivateMark, Squiggle, TimeBlobs } from '../dino';
+import { capitalise } from './capitalise';
 import { describeDietTagConflict } from './diet-tags';
 import { difficultyLabel } from './difficulty';
 import { formatMinutes } from './format-minutes';
@@ -13,8 +14,6 @@ import { hasIngredients } from './recipe-ingredients';
 type Recipe = components['schemas']['Recipe'];
 
 type RecipeProps = { recipe: Recipe };
-
-const capitalise = (text: string) => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 const namesOf = (names: { name: string }[]) => names.map(({ name }) => name).join(', ');
 

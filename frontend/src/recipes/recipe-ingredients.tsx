@@ -2,6 +2,7 @@ import { useId } from 'react';
 
 import type { components } from '../api/schema';
 import { AmountList } from '../dino';
+import { capitalise } from './capitalise';
 import { convert, type UnitSystem } from './convert';
 import { formatQuantity } from './format-quantity';
 import { isLaptopQuery, useMediaQuery } from './use-media-query';
@@ -23,9 +24,6 @@ const describeLine = (line: IngredientLine, reading: Reading) => {
 // A line written by hand has no original wording, so it reads as Tastebook shows it.
 const differsFromOriginal = (line: IngredientLine, reading: Reading) =>
   line.original_text !== '' && line.original_text !== describeLine(line, reading);
-
-// Names are stored in lower case; the list shows them capitalised.
-const capitalise = (text: string) => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 const itemOf = (line: IngredientLine, reading: Reading) => {
   if (reading.showOriginal && line.original_text !== '') {
