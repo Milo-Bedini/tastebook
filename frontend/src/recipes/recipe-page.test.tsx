@@ -1,9 +1,10 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { components } from '../api/schema';
+import { toast } from '../dino';
 import { setLaptop } from '../test/media';
 import { renderRoute } from '../test/render-route';
 import { server } from '../test/server';
@@ -1174,5 +1175,182 @@ describe('RecipePage', () => {
     await userEvent.click(screen.getByRole('link', { name: linkName }));
 
     expect(await screen.findByRole('heading', { level: 1, name: headingName })).toBeInTheDocument();
+  });
+});
+
+const ours: Recipe = {
+  ...shakshuka,
+  slug: 'shakshuka-k7m2qx',
+  visibility: 'private',
+  title: 'Our shakshuka',
+  ingredient_lines: [line(1, 'eggs', { amount: 4 }), line(2, 'chopped tomatoes', { amount: 1, unit: 'tin' })],
+  steps: [
+    { id: 1, text: 'Simmer the tomatoes.' },
+    { id: 2, text: 'Crack in the eggs and cover.' }
+  ],
+  can_delete: true
+};
+
+const NOT_DELETED = "Couldn't delete Our shakshuka. Check your connection and try again.";
+
+// Answers the recipe, and DELETE with `answer`, recording the path of each DELETE sent.
+const answerDeleting = (answer: () => Response | Promise<Response>) => {
+  const deletes: string[] = [];
+  server.use(
+    http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>(ours)),
+    http.delete('/api/recipes/:slug/', ({ request }) => {
+      deletes.push(new URL(request.url).pathname);
+      return answer();
+    })
+  );
+  return deletes;
+};
+
+const answerSession = (signedIn: () => boolean) =>
+  server.use(
+    http.get('/api/account/', () =>
+      HttpResponse.json<CurrentAccount>({
+        account: signedIn() ? { email: 'sam@example.com', name: 'Sam', unit_system: 'metric' } : null
+      })
+    )
+  );
+
+const deleteTrigger = () => screen.getByRole('button', { name: 'Delete recipe' });
+
+const openDeleteDialog = async () => {
+  const rendered = renderRoute('/recipes/shakshuka-k7m2qx');
+  await userEvent.click(await screen.findByRole('button', { name: 'Delete recipe' }));
+  return { ...rendered, dialog: await screen.findByRole('alertdialog', { name: 'Delete this recipe?' }) };
+};
+
+const confirmDelete = (dialog: HTMLElement) =>
+  userEvent.click(within(dialog).getByRole('button', { name: 'Delete recipe' }));
+
+describe('Deleting a recipe', () => {
+  // Sonner keeps its toasts outside React, so one test's toast would still show in the next.
+  afterEach(() => {
+    toast.dismiss();
+  });
+
+  it('offers to delete only to someone who may', async () => {
+    server.use(
+      http.get('/api/recipes/:slug/', ({ params }) =>
+        HttpResponse.json<Recipe>(
+          params.slug === 'shakshuka-k7m2qx' ? ours : { ...ours, slug: 'bens-shakshuka-b3n8vd', can_delete: false }
+        )
+      )
+    );
+    const { router, queryClient } = renderRoute('/recipes/shakshuka-k7m2qx');
+
+    expect(await screen.findByRole('button', { name: 'Delete recipe' })).toBeInTheDocument();
+
+    await act(() => router.navigate('/recipes/bens-shakshuka-b3n8vd'));
+
+    expect(await screen.findByRole('link', { name: 'Edit recipe' })).toHaveAttribute(
+      'href',
+      '/recipes/bens-shakshuka-b3n8vd/edit'
+    );
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(screen.queryByRole('button', { name: 'Delete recipe' })).not.toBeInTheDocument();
+  });
+
+  it('says what goes before deleting', async () => {
+    answerDeleting(() => new HttpResponse(null, { status: 204 }));
+    const { dialog } = await openDeleteDialog();
+
+    expect(dialog).toHaveAccessibleDescription(
+      "Our shakshuka, its 2 ingredients and 2 steps will be deleted for everyone in your household. You can't undo this."
+    );
+    expect(
+      within(dialog)
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['Cancel', 'Delete recipe']);
+  });
+
+  it('deletes nothing on Cancel and puts focus back on Delete recipe', async () => {
+    const deletes = answerDeleting(() => new HttpResponse(null, { status: 204 }));
+    const { dialog } = await openDeleteDialog();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(deleteTrigger()).toHaveFocus());
+    expect(deletes).toEqual([]);
+  });
+
+  it('deletes the recipe and goes to the recipe list', async () => {
+    const deletes = answerDeleting(() => new HttpResponse(null, { status: 204 }));
+    const { dialog, router } = await openDeleteDialog();
+
+    await confirmDelete(dialog);
+
+    expect(await screen.findByText('Deleted Our shakshuka')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/recipes');
+    expect(deletes).toEqual(['/api/recipes/shakshuka-k7m2qx/']);
+  });
+
+  it('shows the delete is running while it is', async () => {
+    const gate = { release: () => {} };
+    const released = new Promise<void>((resolve) => {
+      gate.release = resolve;
+    });
+    answerDeleting(async () => {
+      await released;
+      return new HttpResponse(null, { status: 204 });
+    });
+    const { dialog } = await openDeleteDialog();
+
+    await confirmDelete(dialog);
+
+    expect(await screen.findByRole('button', { name: 'Deleting…' })).toBeInTheDocument();
+    gate.release();
+    expect(await screen.findByText('Deleted Our shakshuka')).toBeInTheDocument();
+  });
+
+  it('goes to the recipe list when the recipe had already gone', async () => {
+    answerDeleting(() => new HttpResponse(null, { status: 404 }));
+    const { dialog, router } = await openDeleteDialog();
+
+    await confirmDelete(dialog);
+
+    expect(
+      await screen.findByText("Our shakshuka has already been deleted, or you can't delete it any more.")
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/recipes');
+  });
+
+  it('sends you to sign in, and back to the recipe after, when Tastebook says you are signed out', async () => {
+    const state = { signedOut: false };
+    answerDeleting(() => {
+      state.signedOut = true;
+      return new HttpResponse(null, { status: 403 });
+    });
+    answerSession(() => !state.signedOut);
+    const { dialog, router } = await openDeleteDialog();
+
+    await confirmDelete(dialog);
+
+    await waitFor(() =>
+      expect(router.state.location.pathname + router.state.location.search).toBe(
+        '/sign-in?next=%2Frecipes%2Fshakshuka-k7m2qx'
+      )
+    );
+  });
+
+  it.each<[string, () => Response]>([
+    ['refused while still signed in', () => new HttpResponse(null, { status: 403 })],
+    ['answered with a server error', () => new HttpResponse(null, { status: 500 })],
+    ['not answered', () => HttpResponse.error()]
+  ])('says the recipe was not deleted when the delete is %s, and stays', async (_, answer) => {
+    answerDeleting(answer);
+    answerSession(() => true);
+    const { dialog } = await openDeleteDialog();
+
+    await confirmDelete(dialog);
+
+    expect(await screen.findByText(NOT_DELETED)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Our shakshuka' })).toBeInTheDocument();
+    await waitFor(() => expect(deleteTrigger()).toHaveFocus());
   });
 });

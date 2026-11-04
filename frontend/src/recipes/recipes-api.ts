@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '../api/client';
 import type { RecipeFilters } from './recipe-filters';
@@ -52,3 +52,35 @@ export const useRecipe = (slug: string) =>
       return data;
     }
   });
+
+export type RecipeDeletion = { kind: 'deleted' } | { kind: 'signed-out' } | { kind: 'gone' };
+
+export const useDeleteRecipe = (slug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<RecipeDeletion> => {
+      const { response } = await api.DELETE('/api/recipes/{slug}/', { params: { path: { slug } } });
+      if (response.status === 204) {
+        return { kind: 'deleted' };
+      }
+      // Signed out, or no household any more: the page asks the session again.
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // Deleted already, or the account may not delete it any more (its author came back, or it moved household).
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Deleting a recipe failed with ${response.status}`);
+    },
+    onSuccess: async (result) => {
+      if (result.kind === 'signed-out') {
+        return;
+      }
+      // Removed rather than set to null, so the page still on screen doesn't say "Recipe not found" before it
+      // navigates away; the next visit asks again.
+      queryClient.removeQueries({ queryKey: ['recipes', slug], exact: true });
+      await queryClient.invalidateQueries({ queryKey: ['recipes'], predicate: ({ queryKey }) => queryKey[1] !== slug });
+    }
+  });
+};
