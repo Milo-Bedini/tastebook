@@ -146,6 +146,12 @@ def edit_recipe(
     return recipe
 
 
+def delete_recipe(recipe: Recipe) -> None:
+    """Deletes the recipe with its ingredient lines, groups and steps. An added ingredient only it used stays,
+    awaiting review."""
+    recipe.delete()
+
+
 def _set_ingredients(recipe: Recipe, ingredients: IngredientList) -> None:
     """Replaces the recipe's lines and groups in four queries, however many there are. The serializer has checked
     each line, so the database's constraints are only a backstop."""

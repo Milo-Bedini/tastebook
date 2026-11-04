@@ -191,6 +191,7 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
         'ingredient_groups': [],
         'steps': [],
         'diet_tag_conflicts': [],
+        'can_delete': False,
     }
 
 

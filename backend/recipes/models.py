@@ -228,6 +228,16 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
             return self.none()
         return self.filter(household_id=member.household_id)
 
+    def deletable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
+        """The recipes an account may delete: those of its household it wrote, and those whose author has left it.
+        A catalogue recipe has no household, so nobody may."""
+        household_id = user.household_id if user.is_authenticated else None
+        if household_id is None:
+            return self.none()
+        # A deleted account leaves created_by empty; one that moved has another household (or, briefly, none).
+        author_gone = Q(created_by__isnull=True) | ~Q(created_by__household_id=household_id)
+        return self.filter(household_id=household_id).filter(Q(created_by=user) | author_gone)
+
 
 class Recipe(models.Model):
     title = models.CharField(max_length=200)

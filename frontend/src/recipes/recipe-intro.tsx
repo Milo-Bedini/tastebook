@@ -8,6 +8,7 @@ import { capitalise } from './capitalise';
 import { describeDietTagConflict } from './diet-tags';
 import { difficultyLabel } from './difficulty';
 import { formatMinutes } from './format-minutes';
+import { DeleteRecipe } from './recipe-delete';
 import { RecipeGaps } from './recipe-gaps';
 import { hasIngredients } from './recipe-ingredients';
 
@@ -109,14 +110,19 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
       ))}
       <RecipeTimes recipe={recipe} />
       <RecipeGaps recipe={recipe} />
-      {/* A private recipe reaches its page only for its own household, so anyone seeing it may edit it. */}
-      {recipe.visibility === 'private' && (
-        <Button asChild variant="secondary" className="self-start">
-          <Link to={`/recipes/${recipe.slug}/edit`}>
-            <Pencil aria-hidden="true" strokeWidth={2.5} />
-            Edit recipe
-          </Link>
-        </Button>
+      {(recipe.visibility === 'private' || recipe.can_delete) && (
+        <div className="flex flex-wrap gap-2">
+          {/* A private recipe reaches its page only for its own household, so anyone seeing it may edit it. */}
+          {recipe.visibility === 'private' && (
+            <Button asChild variant="secondary">
+              <Link to={`/recipes/${recipe.slug}/edit`}>
+                <Pencil aria-hidden="true" strokeWidth={2.5} />
+                Edit recipe
+              </Link>
+            </Button>
+          )}
+          {recipe.can_delete && <DeleteRecipe recipe={recipe} />}
+        </div>
       )}
     </div>
   );

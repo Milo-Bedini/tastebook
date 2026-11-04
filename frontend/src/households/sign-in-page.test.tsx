@@ -38,7 +38,8 @@ const baguette: Recipe = {
   ingredient_lines: [],
   ingredient_groups: [],
   steps: [],
-  diet_tag_conflicts: []
+  diet_tag_conflicts: [],
+  can_delete: false
 };
 
 const signedIn = (email: string) =>

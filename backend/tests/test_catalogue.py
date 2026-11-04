@@ -262,6 +262,7 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
                 'diet_tags': ['vegan'],
             }
         ],
+        'can_delete': False,
     }
     assert [
         (group['name'], [(line['amount'], line['amount_max'], line['ingredient']['name']) for line in group['lines']])
