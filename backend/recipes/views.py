@@ -20,7 +20,7 @@ from recipes.serializers import (
     RecipeSerializer,
     RecipeSummarySerializer,
 )
-from recipes.services import IngredientList, add_ingredient, add_recipe, edit_recipe
+from recipes.services import IngredientList, add_ingredient, add_recipe, delete_recipe, edit_recipe
 
 INGREDIENT_FIELDS = tuple(RecipeIngredientsSerializer().fields)
 
@@ -72,7 +72,7 @@ class RecipeListView(ListAPIView):
             .with_ingredients_and_method()
             .get(pk=recipe.pk)
         )
-        return Response(RecipeSerializer(added).data, status=status.HTTP_201_CREATED)
+        return Response(RecipeSerializer(added, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self) -> RecipeQuerySet:
         filters = RecipeFiltersSerializer(data=self.request.query_params)
@@ -156,7 +156,28 @@ class RecipeDetailView(RetrieveAPIView):
                 {('non_field_errors' if key == '__all__' else key): messages for key, messages in errors.items()}
             ) from error
         edited = self.get_queryset().get(pk=recipe.pk)
-        return Response(RecipeSerializer(edited).data)
+        return Response(RecipeSerializer(edited, context={'request': request}).data)
+
+    @extend_schema(
+        operation_id='recipes_destroy',
+        responses={
+            204: None,
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            404: OpenApiResponse(
+                description="No recipe has this slug that the account may delete: there's none, it's another "
+                "household's or a catalogue recipe, or another member wrote it and is still in the household."
+            ),
+        },
+        description="Deletes a recipe of the signed-in account's household, with its ingredients and method. "
+        'Only its author may, or any member once the author has left the household.',
+    )
+    def delete(self, request: Request, slug: str) -> Response:
+        # Refused before the lookup, so a signed-out answer says nothing about the slug.
+        if not request.user.is_authenticated or request.user.household_id is None:
+            raise PermissionDenied
+        recipe = get_object_or_404(Recipe.objects.deletable_by(request.user), slug=slug)
+        delete_recipe(recipe)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self) -> RecipeQuerySet:
         # Another household's recipe answers 404, the same as no recipe.

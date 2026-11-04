@@ -599,6 +599,31 @@ paths:
         '404':
           description: 'No recipe has this slug in the account''s household: there''s
             none, it''s another household''s, or it''s a catalogue recipe.'
+    delete:
+      operationId: recipes_destroy
+      description: Deletes a recipe of the signed-in account's household, with its
+        ingredients and method. Only its author may, or any member once the author
+        has left the household.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - recipes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+        '403':
+          description: Signed out, or the account has no household yet.
+        '404':
+          description: 'No recipe has this slug that the account may delete: there''s
+            none, it''s another household''s or a catalogue recipe, or another member
+            wrote it and is still in the household.'
   /api/test-accounts/code/:
     get:
       operationId: test_account_code_retrieve
@@ -1391,7 +1416,13 @@ components:
           items:
             $ref: '#/components/schemas/DietTagConflict'
           readOnly: true
+        can_delete:
+          type: boolean
+          readOnly: true
+          description: 'Whether the signed-in account may delete this recipe: its
+            author, or any member of its household once the author has left it.'
       required:
+      - can_delete
       - cook_minutes
       - courses
       - cuisines

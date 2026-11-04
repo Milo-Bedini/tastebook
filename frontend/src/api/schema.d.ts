@@ -219,7 +219,8 @@ export interface paths {
         get: operations["recipes_retrieve"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** @description Deletes a recipe of the signed-in account's household, with its ingredients and method. Only its author may, or any member once the author has left the household. */
+        delete: operations["recipes_destroy"];
         options?: never;
         head?: never;
         /** @description Edits a recipe of the signed-in account's household; any member may, whoever wrote it. Only the fields sent change, and the address stays as it is. Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. */
@@ -551,6 +552,8 @@ export interface components {
             readonly ingredient_groups: components["schemas"]["IngredientGroup"][];
             readonly steps: components["schemas"]["Step"][];
             readonly diet_tag_conflicts: components["schemas"]["DietTagConflict"][];
+            /** @description Whether the signed-in account may delete this recipe: its author, or any member of its household once the author has left it. */
+            readonly can_delete: boolean;
         };
         RecipePhoto: {
             readonly thumbnails: components["schemas"]["PhotoThumbnail"][];
@@ -1238,6 +1241,40 @@ export interface operations {
                 };
             };
             /** @description No recipe has this slug, or it's another household's. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recipes_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account may delete: there's none, it's another household's or a catalogue recipe, or another member wrote it and is still in the household. */
             404: {
                 headers: {
                     [name: string]: unknown;

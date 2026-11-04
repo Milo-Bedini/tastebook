@@ -11,7 +11,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Recipe | A dish with its ingredients, method and details. Public or private. | `Recipe` |
 | Public recipe | A recipe anyone can find and save. Only recipes written by their author (or by Claude for them) can be public. | `Recipe.visibility` (worked out from `Recipe.household` until a household's recipe can be published) |
 | Private recipe | A recipe only its household can see. Imported recipes are always private. | `Recipe.visibility` (worked out from `Recipe.household` until a household's recipe can be published) |
-| Household recipe | A recipe a household owns, private until it's published; any of its members can edit it, and the catalogue load leaves it alone. | `Recipe.household` |
+| Household recipe | A recipe a household owns, private until it's published; any of its members can edit it, only its author can delete it (or any member once the author has left the household), and the catalogue load leaves it alone. | `Recipe.household`, `RecipeQuerySet.deletable_by` |
 | Author | The account that wrote a recipe. | `Recipe.created_by` |
 | Ingredient | A food in the shared ingredient list, under its UK name (courgette, coriander, plain flour). Records whether it contains meat, fish, dairy, animal rennet, egg, another animal product or gluten. | `Ingredient`, `contains_meat`, `contains_fish`, `contains_dairy`, `contains_animal_rennet`, `contains_egg`, `contains_other_animal_product`, `contains_gluten` |
 | Synonym | Another name for an ingredient, including US names (zucchini for courgette). Search finds the ingredient by any of them. | `IngredientSynonym` |

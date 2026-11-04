@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import Any
 
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -252,6 +253,10 @@ class RecipeSerializer(RecipeSummarySerializer):
     steps = StepSerializer(many=True, read_only=True)
     # The optional ingredients that would take a diet tag away: "leave out the parmesan to keep it vegan".
     diet_tag_conflicts = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField(
+        help_text='Whether the signed-in account may delete this recipe: its author, '
+        'or any member of its household once the author has left it.'
+    )
 
     class Meta(RecipeSummarySerializer.Meta):
         fields = [
@@ -272,6 +277,7 @@ class RecipeSerializer(RecipeSummarySerializer):
             'ingredient_groups',
             'steps',
             'diet_tag_conflicts',
+            'can_delete',
         ]
         # The API always sends these, even when they're '', null or their default, so the schema marks them required.
         extra_kwargs = {
@@ -302,6 +308,10 @@ class RecipeSerializer(RecipeSummarySerializer):
     @extend_schema_field(DietTagConflictSerializer(many=True))
     def get_diet_tag_conflicts(self, recipe: Recipe) -> list[dict[str, object]]:
         return DietTagConflictSerializer(services.diet_tag_conflicts(self._all_lines(recipe)), many=True).data
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_can_delete(self, recipe: Recipe) -> bool:
+        return Recipe.objects.deletable_by(self.context['request'].user).filter(pk=recipe.pk).exists()
 
 
 NO_INGREDIENT_NAME = "Type the ingredient's name."

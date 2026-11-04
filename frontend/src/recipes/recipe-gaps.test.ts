@@ -48,7 +48,8 @@ const complete: Recipe = {
   ingredient_lines: [line],
   ingredient_groups: [],
   steps: [{ id: 1, text: 'Knead the dough.' }],
-  diet_tag_conflicts: []
+  diet_tag_conflicts: [],
+  can_delete: false
 };
 
 describe('recipeGaps', () => {

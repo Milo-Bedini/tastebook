@@ -128,6 +128,7 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         get('/api/recipes/no-such-recipe/'),
         get('/api/recipes/{recipe}/'),
         patch('/api/recipes/{recipe}/', {'title': 'Taken'}),
+        delete('/api/recipes/{recipe}/'),
     ),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),

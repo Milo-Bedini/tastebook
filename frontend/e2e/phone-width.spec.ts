@@ -94,7 +94,8 @@ const recipe: Recipe = {
     { id: 1, text: 'The night before, rub the skin with salt and leave the pork uncovered in the fridge.' },
     { id: 2, text: 'Roast at 220°C for 30 minutes, then turn the oven down to 160°C for five and a half hours.' }
   ],
-  diet_tag_conflicts: []
+  diet_tag_conflicts: [],
+  can_delete: false
 };
 
 const summary: RecipeSummary = {

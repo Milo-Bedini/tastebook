@@ -55,7 +55,8 @@ const recipes: Recipe[] = [
     ingredient_lines: [],
     ingredient_groups: [],
     steps: [],
-    diet_tag_conflicts: []
+    diet_tag_conflicts: [],
+    can_delete: false
   },
   {
     id: 2,
@@ -83,7 +84,8 @@ const recipes: Recipe[] = [
     ingredient_lines: [],
     ingredient_groups: [],
     steps: [],
-    diet_tag_conflicts: []
+    diet_tag_conflicts: [],
+    can_delete: false
   }
 ];
 

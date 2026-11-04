@@ -45,7 +45,8 @@ const saved: Recipe = {
   ingredient_lines: [],
   ingredient_groups: [],
   steps: [],
-  diet_tag_conflicts: []
+  diet_tag_conflicts: [],
+  can_delete: false
 };
 
 // Signed in, with each POST body recorded and answered by `respond`; the saved recipe's page answers with it.
