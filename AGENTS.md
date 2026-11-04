@@ -135,7 +135,10 @@ From the repo root unless noted.
 | Story screenshots            | `pnpm --filter frontend test:visual` (after `build-storybook`); new baselines: a factory run makes them on its own runner with `pnpm --filter frontend test:visual:update`; a person runs the **Update screenshots** workflow on their branch, then `pnpm --filter frontend screenshots:commit <PR number>` to commit them as themselves |
 | Backend tests                | `uv run pytest` (in `backend/`)                                                             |
 | End-to-end tests             | `pnpm test:e2e` (starts both servers; needs Postgres)                                       |
+| Mutation testing             | `pnpm mutation:frontend [--out summary.json] <files…>` and `pnpm mutation:backend [--out summary.json] <files…>` (backend needs Postgres): mutate only the listed source files (Stryker over the jsdom tests; mutmut over pytest) and write a JSON summary of the run time and each surviving mutant's file, line and change, to stdout without `--out`. Other files are skipped and survivors still exit 0. The **Mutation testing** workflow runs both on what changed on `main` in the past week |
 | Regenerate the API contract  | `uv run --env-file .env python manage.py spectacular --file schema.yml` (in `backend/`), then `pnpm generate:api` |
+
+A **surviving mutant** is a change to the code (a flipped condition, a dropped call) that no test noticed: a behaviour the tests run but don't check. `no-coverage` in a summary means no test ran that code at all.
 
 [a] run the linters and the tests for every area you changed before you commit.
 
