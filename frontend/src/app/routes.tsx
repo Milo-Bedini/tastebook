@@ -5,8 +5,10 @@ import { EditRecipePage, NewRecipePage, RecipePage, RecipesPage } from '../recip
 import { AppLayout } from './app-layout';
 import { HomePage } from './home-page';
 import { NotFoundPage } from './not-found-page';
+import { PrivacyPage } from './privacy-page';
 
-// The layout route has no path, so every page keeps its address and gets the top bar.
+// The layout route has no path, so every page keeps its address and gets the top bar. The privacy page sits outside
+// the name gate, so someone asked for their name can read what it's used for first.
 export const routes: RouteObject[] = [
   {
     Component: AppLayout,
@@ -26,7 +28,8 @@ export const routes: RouteObject[] = [
           { path: '/welcome', Component: WelcomePage },
           { path: '*', Component: NotFoundPage }
         ]
-      }
+      },
+      { path: '/privacy', Component: PrivacyPage }
     ]
   }
 ];
