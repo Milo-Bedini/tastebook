@@ -107,11 +107,9 @@ type JoinDialogProps = {
 
 const JoinDialog = ({ household, recipesToCopy, yours, joining, onJoin }: JoinDialogProps) => (
   <ConfirmDialog
-    trigger={
-      <Button loading={joining} loadingLabel="Joining…">
-        Join household
-      </Button>
-    }
+    trigger={<Button>Join household</Button>}
+    pending={joining}
+    pendingLabel="Joining…"
     title={`Join ${household.name}?`}
     description={whatHappensTo(yours) + whatComesWithYou(recipesToCopy, household)}
     confirmLabel="Join household"

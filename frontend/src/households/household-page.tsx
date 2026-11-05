@@ -79,10 +79,12 @@ type RemoveMemberProps = { member: Member; householdName: string; removing: bool
 const RemoveMember = ({ member, householdName, removing, onRemove }: RemoveMemberProps) => (
   <ConfirmDialog
     trigger={
-      <Button variant="secondary" loading={removing} loadingLabel="Removing…">
+      <Button variant="secondary">
         Remove <span className="sr-only">{member.name}</span>
       </Button>
     }
+    pending={removing}
+    pendingLabel="Removing…"
     title={`Remove ${member.name} from ${householdName}?`}
     description={`${member.name} will move to a household of their own, and we'll email them to say you removed them.`}
     confirmLabel="Remove member"
@@ -200,11 +202,9 @@ const LiveLink = ({ invite, takesFocus, cancelling, onCancel }: LiveLinkProps) =
           Copy link
         </Button>
         <ConfirmDialog
-          trigger={
-            <Button variant="ghost" loading={cancelling} loadingLabel="Cancelling…">
-              Cancel link
-            </Button>
-          }
+          trigger={<Button variant="ghost">Cancel link</Button>}
+          pending={cancelling}
+          pendingLabel="Cancelling…"
           title="Cancel this invite link?"
           description="Anyone who opens it will be told it no longer works. You can make a new link afterwards."
           confirmLabel="Cancel link"
@@ -322,11 +322,9 @@ const LeaveHousehold = ({ household, onLeft }: { household: Household; onLeft: (
       <p>Move to a household of your own. Everyone else stays in {household.name}.</p>
       <div className="flex flex-wrap items-start gap-2">
         <ConfirmDialog
-          trigger={
-            <Button variant="secondary" loading={leaveHousehold.isPending} loadingLabel="Leaving…">
-              Leave household
-            </Button>
-          }
+          trigger={<Button variant="secondary">Leave household</Button>}
+          pending={leaveHousehold.isPending}
+          pendingLabel="Leaving…"
           title={`Leave ${household.name}?`}
           description={`You'll move to a household of your own. ${whoStays(household)}`}
           confirmLabel="Leave household"

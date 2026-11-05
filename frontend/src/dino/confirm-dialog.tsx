@@ -1,11 +1,14 @@
 import { AlertDialog } from 'radix-ui';
-import type { ReactElement } from 'react';
+import { type ComponentProps, cloneElement, type ReactElement } from 'react';
 
 import { AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/dino/alert-dialog';
 import { Button } from '@/dino/button';
 
 type ConfirmDialogProps = {
-  trigger: ReactElement;
+  trigger: ReactElement<ComponentProps<typeof Button>>;
+  // The confirm sends a request, so the trigger shows it while it runs with an "-ing" label ("Removing…").
+  pending: boolean;
+  pendingLabel: string;
   title: string;
   description: string;
   confirmLabel: string;
@@ -16,6 +19,8 @@ type ConfirmDialogProps = {
 
 export const ConfirmDialog = ({
   trigger,
+  pending,
+  pendingLabel,
   title,
   description,
   confirmLabel,
@@ -23,7 +28,9 @@ export const ConfirmDialog = ({
   onConfirm
 }: ConfirmDialogProps) => (
   <AlertDialog.Root>
-    <AlertDialog.Trigger asChild>{trigger}</AlertDialog.Trigger>
+    <AlertDialog.Trigger asChild>
+      {cloneElement(trigger, { loading: pending, loadingLabel: pendingLabel })}
+    </AlertDialog.Trigger>
     <AlertDialogContent>
       <AlertDialogTitle>{title}</AlertDialogTitle>
       <AlertDialogDescription>{description}</AlertDialogDescription>
