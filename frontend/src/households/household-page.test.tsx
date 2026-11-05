@@ -439,6 +439,38 @@ describe('HouseholdPage', () => {
     expect(nameField()).toHaveValue('The Bedinis');
   });
 
+  it.each([
+    ['Removing…', 'Remove Ann', 'Remove member', http.delete, `${HOUSEHOLD}members/:id/`, 'Removed Ann'],
+    ['Leaving…', 'Leave household', 'Leave household', http.post, `${HOUSEHOLD}leave/`, 'You left The Bedinis']
+  ])('shows %s on the %s trigger until the server answers', async (busy, trigger, confirm, method, path, done) => {
+    answerSignedIn();
+    answerBedinis();
+    const gate = { release: () => {} };
+    const released = new Promise<void>((resolve) => {
+      gate.release = resolve;
+    });
+    // Holds the request, then lets answerBedinis's handler answer it.
+    server.use(
+      method(path, async () => {
+        await released;
+        return undefined;
+      })
+    );
+    renderRoute('/household');
+
+    await userEvent.click(await screen.findByRole('button', { name: trigger }));
+    await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: confirm }));
+
+    const pending = await screen.findByRole('button', { name: busy });
+    expect(pending).toHaveAttribute('aria-busy', 'true');
+    await userEvent.click(pending);
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+
+    gate.release();
+
+    expect(await screen.findByText(done)).toBeInTheDocument();
+  });
+
   it('makes an invite link and shows it with the day it stops working', async () => {
     answerSignedIn();
     const sent = answerInvite(null);

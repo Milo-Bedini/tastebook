@@ -43,11 +43,13 @@ export const DeleteRecipe = ({ recipe }: { recipe: Recipe }) => {
   return (
     <ConfirmDialog
       trigger={
-        <Button variant="secondary" loading={deleteRecipe.isPending} loadingLabel="Deleting…">
+        <Button variant="secondary">
           <Trash2 aria-hidden="true" strokeWidth={2.5} />
           Delete recipe
         </Button>
       }
+      pending={deleteRecipe.isPending}
+      pendingLabel="Deleting…"
       title="Delete this recipe?"
       description={deletionWarning(recipe)}
       confirmLabel="Delete recipe"

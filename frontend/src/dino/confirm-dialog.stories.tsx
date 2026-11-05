@@ -9,6 +9,8 @@ const meta = {
   component: ConfirmDialog,
   args: {
     trigger: <Button variant="danger">Delete recipe</Button>,
+    pending: false,
+    pendingLabel: 'Deleting…',
     title: 'Delete this recipe?',
     description:
       'Chana masala and its 2 notes will be deleted for everyone in your household. The 6 things it put on the shopping list stay.',
@@ -52,6 +54,7 @@ export const Open = {
 export const KeepLabel = {
   args: {
     trigger: <Button variant="ghost">Cancel link</Button>,
+    pendingLabel: 'Cancelling…',
     title: 'Cancel this invite link?',
     description: 'Anyone who opens it will be told it no longer works. You can make a new link afterwards.',
     confirmLabel: 'Cancel link',
@@ -67,5 +70,17 @@ export const KeepLabel = {
 
     await expect(buttons.map((button) => button.textContent)).toEqual(['Keep link', 'Cancel link']);
     await expect(within(dialog).getByRole('button', { name: 'Keep link' })).toHaveFocus();
+  }
+} satisfies Story;
+
+export const Pending = {
+  args: { pending: true },
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const trigger = within(canvasElement).getByRole('button', { name: 'Deleting…' });
+
+    await expect(trigger).toHaveAttribute('aria-busy', 'true');
+    await userEvent.click(trigger);
+    await expect(body.queryByRole('alertdialog')).not.toBeInTheDocument();
   }
 } satisfies Story;
