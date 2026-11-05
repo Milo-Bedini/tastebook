@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from django.test import override_settings
 
 BACKEND = Path(__file__).resolve().parent.parent
 
@@ -166,3 +167,11 @@ def test_google_is_set_up_only_with_its_client_id_and_secret(google: dict[str, s
     settings = settings_with({'DJANGO_SECRET_KEY': 'test-only', 'VERCEL_ENV': 'preview', **google})
 
     assert settings['GOOGLE_APPS'] == expected
+
+
+def test_a_deprecated_django_setting_fails_the_tests_with_its_warning() -> None:
+    with (
+        pytest.raises(Warning, match='The EMAIL_HOST setting is deprecated'),
+        override_settings(EMAIL_HOST='smtp.resend.com'),
+    ):
+        pass

@@ -2,11 +2,13 @@ line-length = 120
 target-version = "py314"
 
 [lint]
-select = ["F", "E", "W", "I", "N", "UP", "B", "C4", "T10", "PIE", "PT", "RET", "SIM", "PERF", "FURB", "DJ", "PTH", "RUF"]
-ignore = ["RUF012"]
+select = ["F", "E", "W", "I", "N", "UP", "B", "C4", "T10", "PIE", "PT", "RET", "SIM", "PERF", "FURB", "DJ", "PTH", "RUF", "ANN", "PLC0415"]
+# Any is allowed: AGENTS.md asks for type hints, not for avoiding Any.
+ignore = ["RUF012", "ANN401"]
 
 [lint.per-file-ignores]
-"*/migrations/*" = ["E501", "RUF"]
+"*/migrations/*" = ["E501", "RUF", "ANN"]
+"tests/*" = ["ANN"]
 
 [format]
 quote-style = "single"
