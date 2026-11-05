@@ -21,6 +21,7 @@
     "generate:api": "pnpm --filter frontend generate:api",
     "lint:biome": "biome check .",
     "lint": "pnpm lint:biome && pnpm type-check",
+    "lint:workflows": "uvx zizmor@1.32.0 --offline . && pnpm --filter @tastebook/workflows check",
     "format": "biome check --write .",
     "prepare": "husky"
   },
