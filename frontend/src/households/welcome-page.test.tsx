@@ -97,6 +97,7 @@ describe('WelcomePage', () => {
 
   it.each([
     ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the session has ended', () => new HttpResponse(null, { status: 403 })],
     ['the network fails', () => HttpResponse.error()]
   ])("says Tastebook couldn't be reached and keeps the name when %s", async (_, answer) => {
     answerNameless();

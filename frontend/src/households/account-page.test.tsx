@@ -150,6 +150,7 @@ describe('AccountPage', () => {
 
   it.each([
     ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the session has ended', () => new HttpResponse(null, { status: 403 })],
     ['the network fails', () => HttpResponse.error()]
   ])("says the name couldn't be saved and keeps it when %s", async (_, answer) => {
     answerSignedIn();
@@ -176,9 +177,12 @@ describe('AccountPage', () => {
     expect(within(unitsGroup()).getByRole('radio', { name: 'US customary' })).toBeChecked();
   });
 
-  it("puts the saved units back when they can't be saved", async () => {
+  it.each([
+    ['the server fails', 500],
+    ['the session has ended', 403]
+  ])("puts the saved units back when they can't be saved because %s", async (_, status) => {
     answerSignedIn();
-    server.use(http.patch(ACCOUNT, () => new HttpResponse(null, { status: 500 })));
+    server.use(http.patch(ACCOUNT, () => new HttpResponse(null, { status })));
     renderRoute('/account');
 
     await chooseUnits('US customary');
