@@ -70,7 +70,11 @@
   "plugins": [
     "./tools/biome/no-arbitrary-radius.grit",
     "./tools/biome/no-let.grit",
-    "./tools/biome/button-pressed-state.grit"
+    "./tools/biome/button-pressed-state.grit",
+    "./tools/biome/no-function-declaration.grit",
+    "./tools/biome/token-only-styling.grit",
+    "./tools/biome/token-only-styling-css.grit",
+    "./tools/biome/area-boundaries.grit"
   ],
   "linter": {
     "enabled": true,
@@ -119,6 +123,54 @@
           },
           "nursery": {
             "noFloatingPromises": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["frontend/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noForEach": "error"
+          },
+          "style": {
+            "useFilenamingConvention": {
+              "level": "error",
+              "options": {
+                "filenameCases": ["kebab-case"]
+              }
+            },
+            "noDefaultExport": "error",
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "react": {
+                    "importNames": ["default", "*"],
+                    "message": "Import what you need from 'react' by name, not React as a whole (AGENTS.md › Frontend)."
+                  },
+                  "cn": {
+                    "message": "Import cn from '@/dino/cn', not the cn package: shadcn's registry adds it (specs/lessons/shadcn-registry-imports-cn-package.md)."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "frontend/**/*.stories.tsx",
+        "frontend/*.config.ts",
+        "frontend/.storybook/main.ts",
+        "frontend/.storybook/preview.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
           }
         }
       }

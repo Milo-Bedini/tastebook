@@ -28,11 +28,11 @@ What the product does and won't do is in the Linear team's Vision document; each
 
 - [a] write TypeScript with strict types; [n] use `any`.
 - [a] use `import type` / `export type` for type-only imports.
-- [a] use arrow functions, named exports and kebab-case file names (`home-page.tsx`).
-- [a] prefer `const` with `map`, `filter` and `reduce`; [n] use `let` or `forEach`.
-- [n] `import React from 'react'`; import what you need by name.
+- [a] use arrow functions, named exports and kebab-case file names (`home-page.tsx`). `pnpm lint` enforces all three; a default export is allowed only where a tool needs one (stories and the Vite, Vitest, Playwright and Storybook config), by path in `biome.json`'s `overrides`.
+- [a] prefer `const` with `map`, `filter` and `reduce`; [n] use `let` or `forEach`. `pnpm lint` enforces both.
+- [n] `import React from 'react'` (or `import * as React`); import what you need by name. `pnpm lint` enforces it.
 - [n] reach for `useEffect` to derive state or respond to events. Derive during render or handle it in the event handler.
-- [a] build UI from the design system's tokens and components and follow [`docs/design.md`](docs/design.md); [n] use a literal colour, font or radius.
+- [a] build UI from the design system's tokens and components and follow [`docs/design.md`](docs/design.md); [n] use a literal colour, font or radius. `pnpm lint` refuses a literal colour (hex, `rgb()`, `hsl()`, `oklch()`) and an arbitrary radius, spacing, font size, line height or font family (`p-[7px]`, `text-[13px]`); an arbitrary value built from tokens (`var(--…)`, `--spacing(n)`, `env(…)`) and a forced-colours system colour (`bg-[CanvasText]`) are fine. Stories and tests may assert a computed `rgb()`.
 - [a] give every request a loading and an error state, using a TanStack Query hook in the area's folder.
 - [n] edit `src/api/schema.d.ts` by hand. It's generated from `backend/schema.yml` (see [API contract](#api-contract)).
 - [a] mock HTTP in tests with MSW (`src/test/handlers.ts` for defaults, `server.use(...)` per test). [n] mock `fetch` or the API client directly.
@@ -89,6 +89,8 @@ The code is organised by domain area, the same areas on both sides, named in the
 - [a] reach another area's behaviour through its public surface: its `services.py` (and querysets) in the backend, its `index.ts` exports in the frontend. Foreign keys to another area's models are fine.
 - [n] import another area's internals (views, serializers, private helpers, components it doesn't export).
 - Dependencies point one way: every area may depend on `households` (who owns what); `collections`, `kitchen` and `importing` depend on `recipes`; `planning` depends on `recipes` and `kitchen`; `households` depends on no other area. [n] add a dependency that points back.
+- [n] import an area from `src/dino/` (Dino knows no feature), or `src/app/` from an area (`src/app/` imports the areas' `index.ts`).
+- In the frontend, `pnpm lint` enforces these boundaries (`tools/biome/area-boundaries.grit`, which lists the allowed directions): an import of another area's internals, an area from Dino, `src/app/` from an area, or an area against the direction fails, through `@/` or a relative path. Every folder in `src/` except `api`, `app`, `dino`, `lib` and `test` counts as an area.
 - When `households` needs another area to act (a member moving takes the recipes they wrote), it sends a signal from `households/signals.py` and that area's receiver, connected in its `models.py`, does the work.
 
 ## Layout
@@ -112,7 +114,7 @@ backend/
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; no `let` in frontend/; no hand-built button with a hover style and no pressed one)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one; the frontend's area boundaries)
 specs/              one spec per issue, plus lessons/
 ```
 

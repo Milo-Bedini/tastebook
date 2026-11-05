@@ -1,0 +1,9 @@
+language js
+
+or {
+  JsFunctionDeclaration(),
+  JsFunctionExportDefaultDeclaration()
+} as $declaration where {
+  $filename <: r".*frontend/src/.*",
+  register_diagnostic(span=$declaration, message="Write a named const arrow function, not a function declaration (AGENTS.md › Frontend).")
+}

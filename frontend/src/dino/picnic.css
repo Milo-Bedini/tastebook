@@ -77,6 +77,14 @@
   --text-label-l: 1.1875rem;
   --text-label-l--line-height: 1.5rem;
   --text-label-l--font-weight: 800;
+  /* docs/design.md, Components › Method: the step's number, 32 px on a phone and 38 px on a laptop, and its text on a
+     laptop at 17/27. They take their face and weight from where they're used. */
+  --text-method-number: 2rem;
+  --text-method-number--line-height: 1.875rem;
+  --text-method-number-laptop: 2.375rem;
+  --text-method-number-laptop--line-height: 1.875rem;
+  --text-method-laptop: 1.0625rem;
+  --text-method-laptop--line-height: 1.6875rem;
 
   /* Picnic's 4 px base; its steps (4 to 48 px) are spacing 1, 2, 3, 4, 5, 6, 8 and 12. */
   --spacing: 0.25rem;
