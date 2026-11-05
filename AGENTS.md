@@ -39,9 +39,9 @@ What the product does and won't do is in the Linear team's Vision document; each
 
 **Backend (`backend/`)**
 
-- [a] add type hints.
+- [a] add type hints. `uv run ruff check .` enforces it (its `ANN` rules) everywhere but tests and migrations; `Any` is allowed.
 - [n] put business logic in views or serializers. Views orchestrate; logic goes in the app's `services.py` or a queryset/manager.
-- [n] import inside functions; keep imports at module level.
+- [n] import inside functions; keep imports at module level. `uv run ruff check .` enforces it (`PLC0415`); an exception takes a `noqa` with its reason.
 - [a] describe every endpoint's request and response with serializers (or `@extend_schema`), so the OpenAPI schema is complete.
 - [a] commit a migration with every model change; CI runs `makemigrations --check`.
 - [a] keep settings fail-closed: `DEBUG` is off unless `DJANGO_DEBUG=true`, and production needs `DJANGO_SECRET_KEY`. Local commands load `backend/.env` with `uv run --env-file .env`.
