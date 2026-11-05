@@ -1,0 +1,70 @@
+language js
+
+// The frontend's area boundaries (AGENTS.md › Domain areas). Every folder in frontend/src/ is an area except these,
+// so a new area is checked from its first file.
+pattern not_an_area() {
+  or {
+    "api",
+    "app",
+    "dino",
+    "lib",
+    "test"
+  }
+}
+
+or {
+  JsModuleSource() as $source,
+  JsImportCallExpression(arguments=JsCallArguments(args=[JsStringLiteralExpression() as $source]))
+} where {
+  $filename <: r".*frontend/src/([^/]+)/(.+)"($from, $path),
+  // A relative path leaves its top folder after as many ../ as the importing file sits below it.
+  or {
+    $source <: r"['\x22]@/([^/'\x22]+)(/[^'\x22]*|)['\x22]"($to, $deep),
+    and { $path <: r"[^/]+", $source <: r"['\x22]\.\./([^/'\x22]+)(/[^'\x22]*|)['\x22]"($to, $deep) },
+    and { $path <: r"[^/]+/[^/]+", $source <: r"['\x22]\.\./\.\./([^/'\x22]+)(/[^'\x22]*|)['\x22]"($to, $deep) },
+    and {
+      $path <: r"[^/]+/[^/]+/[^/]+",
+      $source <: r"['\x22]\.\./\.\./\.\./([^/'\x22]+)(/[^'\x22]*|)['\x22]"($to, $deep)
+    }
+  },
+  not $to <: $from,
+  or {
+    and {
+      $from <: "dino",
+      not $to <: not_an_area(),
+      register_diagnostic(span=$source, message="Dino knows no feature: nothing in src/dino/ imports from an area (AGENTS.md › Domain areas).")
+    },
+    and {
+      not $from <: not_an_area(),
+      $to <: "app",
+      register_diagnostic(span=$source, message="An area doesn't import from src/app/; the app imports the areas (AGENTS.md › Domain areas).")
+    },
+    // The one list of the directions areas may depend on each other in.
+    and {
+      not $from <: not_an_area(),
+      not $to <: not_an_area(),
+      not $to <: "households",
+      not and {
+        $from <: or {
+          "collections",
+          "kitchen",
+          "importing"
+        },
+        $to <: "recipes"
+      },
+      not and {
+        $from <: "planning",
+        $to <: or {
+          "recipes",
+          "kitchen"
+        }
+      },
+      register_diagnostic(span=$source, message="Dependencies between areas point one way: any area may depend on households; collections, kitchen and importing on recipes; planning on recipes and kitchen (AGENTS.md › Domain areas).")
+    },
+    and {
+      not $to <: not_an_area(),
+      not $deep <: "",
+      register_diagnostic(span=$source, message="Reach another area through its index.ts ('@/<area>' or '../<area>'), not its internals (AGENTS.md › Domain areas).")
+    }
+  }
+}

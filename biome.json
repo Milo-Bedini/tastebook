@@ -73,7 +73,8 @@
     "./tools/biome/button-pressed-state.grit",
     "./tools/biome/no-function-declaration.grit",
     "./tools/biome/token-only-styling.grit",
-    "./tools/biome/token-only-styling-css.grit"
+    "./tools/biome/token-only-styling-css.grit",
+    "./tools/biome/area-boundaries.grit"
   ],
   "linter": {
     "enabled": true,
