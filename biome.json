@@ -70,7 +70,9 @@
   "plugins": [
     "./tools/biome/no-arbitrary-radius.grit",
     "./tools/biome/no-let.grit",
-    "./tools/biome/button-pressed-state.grit"
+    "./tools/biome/button-pressed-state.grit",
+    "./tools/biome/token-only-styling.grit",
+    "./tools/biome/token-only-styling-css.grit"
   ],
   "linter": {
     "enabled": true,

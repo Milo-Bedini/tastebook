@@ -32,7 +32,7 @@ What the product does and won't do is in the Linear team's Vision document; each
 - [a] prefer `const` with `map`, `filter` and `reduce`; [n] use `let` or `forEach`.
 - [n] `import React from 'react'`; import what you need by name.
 - [n] reach for `useEffect` to derive state or respond to events. Derive during render or handle it in the event handler.
-- [a] build UI from the design system's tokens and components and follow [`docs/design.md`](docs/design.md); [n] use a literal colour, font or radius.
+- [a] build UI from the design system's tokens and components and follow [`docs/design.md`](docs/design.md); [n] use a literal colour, font or radius. `pnpm lint` refuses a literal colour (hex, `rgb()`, `hsl()`, `oklch()`) and an arbitrary radius, spacing, font size, line height or font family (`p-[7px]`, `text-[13px]`); an arbitrary value built from tokens (`var(--…)`, `--spacing(n)`, `env(…)`) and a forced-colours system colour (`bg-[CanvasText]`) are fine. Stories and tests may assert a computed `rgb()`.
 - [a] give every request a loading and an error state, using a TanStack Query hook in the area's folder.
 - [n] edit `src/api/schema.d.ts` by hand. It's generated from `backend/schema.yml` (see [API contract](#api-contract)).
 - [a] mock HTTP in tests with MSW (`src/test/handlers.ts` for defaults, `server.use(...)` per test). [n] mock `fetch` or the API client directly.
@@ -112,7 +112,7 @@ backend/
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; no `let` in frontend/; no hand-built button with a hover style and no pressed one)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no hand-built button with a hover style and no pressed one)
 specs/              one spec per issue, plus lessons/
 ```
 
