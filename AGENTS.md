@@ -91,6 +91,7 @@ The code is organised by domain area, the same areas on both sides, named in the
 - Dependencies point one way: every area may depend on `households` (who owns what); `collections`, `kitchen` and `importing` depend on `recipes`; `planning` depends on `recipes` and `kitchen`; `households` depends on no other area. [n] add a dependency that points back.
 - [n] import an area from `src/dino/` (Dino knows no feature), or `src/app/` from an area (`src/app/` imports the areas' `index.ts`).
 - In the frontend, `pnpm lint` enforces these boundaries (`tools/biome/area-boundaries.grit`, which lists the allowed directions): an import of another area's internals, an area from Dino, `src/app/` from an area, or an area against the direction fails, through `@/` or a relative path. Every folder in `src/` except `api`, `app`, `dino`, `lib` and `test` counts as an area.
+- In the backend, `uv run lint-imports` (import-linter, its contracts in `backend/pyproject.toml`) enforces the same boundaries: an import of another app's modules other than its `services`, `models` (with their querysets) and `signals`, `households` importing another area, `recipes` importing any area but `households`, or anything importing `seed` fails. `config` (the URL wiring) is the one module that imports areas' views. import-linter refuses a package that doesn't exist, so a new area joins `root_packages` and the contracts in the PR that adds it, with its allowed directions.
 - When `households` needs another area to act (a member moving takes the recipes they wrote), it sends a signal from `households/signals.py` and that area's receiver, connected in its `models.py`, does the work.
 
 ## Layout
@@ -132,6 +133,7 @@ From the repo root unless noted.
 | Run the frontend only        | `pnpm dev:web` (proxies `/api` to `localhost:8000`)                                         |
 | Lint and type-check frontend | `pnpm lint` (fix with `pnpm format`)                                                        |
 | Lint backend                 | `uv run ruff check . && uv run ruff format --check .` (in `backend/`)                       |
+| Check backend area boundaries | `uv run lint-imports` (in `backend/`; contracts in `pyproject.toml`'s `[tool.importlinter]`) |
 | Frontend tests               | `pnpm test` (runs every story in Chromium too: install it once with `pnpm --filter frontend exec playwright install chromium`) |
 | Storybook                    | `pnpm --filter frontend storybook`                                                          |
 | Story screenshots            | `pnpm --filter frontend test:visual` (after `build-storybook`); new baselines: a factory run makes them on its own runner with `pnpm --filter frontend test:visual:update`; a person runs the **Update screenshots** workflow on their branch, then `pnpm --filter frontend screenshots:commit <PR number>` to commit them as themselves |
