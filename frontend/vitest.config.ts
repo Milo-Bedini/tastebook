@@ -16,6 +16,7 @@ export default mergeConfig(
             name: 'unit',
             environment: 'jsdom',
             setupFiles: ['./src/test/setup.ts'],
+            globalSetup: ['./vitest.documented-answers.ts'],
             include: ['src/**/*.test.{ts,tsx}']
           }
         },

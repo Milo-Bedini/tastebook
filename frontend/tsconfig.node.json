@@ -21,6 +21,7 @@
     "vite.config.ts",
     "vitest.config.ts",
     "vitest.mutation.config.ts",
+    "vitest.documented-answers.ts",
     "playwright.config.ts",
     "playwright.visual.config.ts",
     "e2e",

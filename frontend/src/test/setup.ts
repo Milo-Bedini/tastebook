@@ -15,8 +15,15 @@ globalThis.ResizeObserver ??= class {
 Element.prototype.scrollIntoView ??= () => {};
 window.matchMedia ??= matchMedia;
 
+// For the check in vitest.documented-answers.ts that every documented error answer has a page test.
+const answered: string[] = [];
+server.events.on('response:mocked', ({ request, response }) => {
+  answered.push(`${request.method} ${new URL(request.url).pathname} ${response.status}`);
+});
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }));
-afterEach(() => {
+afterEach(({ task }) => {
+  task.meta.answered = answered.splice(0);
   cleanup();
   server.resetHandlers();
   setLaptop(false);
