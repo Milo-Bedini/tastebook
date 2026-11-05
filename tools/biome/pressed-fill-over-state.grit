@@ -1,0 +1,14 @@
+language js
+
+// Tailwind v4 sorts aria-* and data-* variants after active, so a state's fill beats a plain active: one.
+or {
+  JsStringLiteralExpression(),
+  JsxString(),
+  JsTemplateChunkElement()
+} as $classes where {
+  $filename <: r".*frontend/src/.*",
+  $classes <: r"[\s\S]*(?:^|[\s\x22\x27`])(?:data|aria)-[^\s\x22\x27`:]+:(?:\*:)?bg-[\s\S]*",
+  $classes <: r"[\s\S]*(?:^|[\s\x22\x27`:])active:(?:\*:)?bg-[\s\S]*",
+  not $classes <: r"[\s\S]*(?:^|[\s\x22\x27`:])(?:data|aria)-[^\s\x22\x27`:]+:(?:[^\s\x22\x27`]*:)?active:(?:\*:)?bg-[\s\S]*",
+  register_diagnostic(span=$classes, message="Stack the state's variant on the pressed fill (data-highlighted:active:bg-surface-pressed, aria-expanded:active:*:bg-surface-pressed), as icon-button.tsx does with aria-pressed:active, so the pressed fill wins (specs/lessons/pressed-styles-lose-to-state-variants.md).")
+}
