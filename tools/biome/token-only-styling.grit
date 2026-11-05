@@ -1,0 +1,37 @@
+language js
+
+or {
+  JsStringLiteralExpression(),
+  JsxString(),
+  JsTemplateChunkElement()
+} as $s where {
+  $filename <: r".*frontend/src/.*",
+  or {
+    and {
+      $s <: r"[\s\S]*-\[[^\]\s]*(?:#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\()[\s\S]*",
+      register_diagnostic(span=$s, message="Use one of Picnic's colour tokens (bg-ground, text-ink, border-field, bg-peach and the rest in docs/design.md › Colour), not a literal colour.")
+    },
+    // Stories and tests assert the colour a browser computes, which it reports as rgb(), so only their classes are checked.
+    and {
+      not $filename <: r".*\.(?:stories|test)\.tsx?",
+      $s <: r"[\s\S]*(?:(?:^|[^\w&])#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\()[\s\S]*",
+      register_diagnostic(span=$s, message="Use one of Picnic's colour tokens (bg-ground, text-ink, border-field, bg-peach and the rest in docs/design.md › Colour), not a literal colour.")
+    },
+    and {
+      $s <: r"[\s\S]*(?:^|[\s\x22'`:])-?(?:[pm][xytrblse]?|gap(?:-[xy])?|space-[xy])-\[(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
+      register_diagnostic(span=$s, message="Use Picnic's 4 px spacing steps (1, 2, 3, 4, 5, 6, 8 and 12, as in p-4 or gap-3), or --spacing(n) inside an arbitrary value, not a literal length.")
+    },
+    and {
+      $s <: r"[\s\S]*(?:^|[\s\x22'`:])text-\[(?:length:)?(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
+      register_diagnostic(span=$s, message="Use one of Picnic's type roles (text-display-xl, -display-l, -title, -caption, -step-number, -step, -timer, -body, -small, -label, -label-l, -method-number, -method-number-laptop, -method-laptop), not an arbitrary font size.")
+    },
+    and {
+      $s <: r"[\s\S]*(?:(?:^|[\s\x22'`:])leading-|(?:^|[\s\x22'`:])text-[^\s\x22'`/\[]*(?:\[[^\]\s]*\])?/)\[(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
+      register_diagnostic(span=$s, message="Use a type role's own line height (text-body, text-title and the rest set it), not an arbitrary one.")
+    },
+    and {
+      $s <: r"[\s\S]*(?:^|[\s\x22'`:])font-\[(?:family-name:|['_A-Za-uw-z]|v[^a]|va[^r]|var[^(])[\s\S]*",
+      register_diagnostic(span=$s, message="Use font-serif (Instrument Serif) or font-sans (Nunito), not an arbitrary font family.")
+    }
+  }
+}

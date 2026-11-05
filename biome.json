@@ -71,7 +71,9 @@
     "./tools/biome/no-arbitrary-radius.grit",
     "./tools/biome/no-let.grit",
     "./tools/biome/button-pressed-state.grit",
-    "./tools/biome/no-function-declaration.grit"
+    "./tools/biome/no-function-declaration.grit",
+    "./tools/biome/token-only-styling.grit",
+    "./tools/biome/token-only-styling-css.grit"
   ],
   "linter": {
     "enabled": true,
