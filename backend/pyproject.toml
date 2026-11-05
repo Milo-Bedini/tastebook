@@ -14,6 +14,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "import-linter>=2.15",
     "mutmut>=3.8.1",
     "pytest>=9.1.1",
     "pytest-django>=4.14.0",
@@ -27,6 +28,38 @@ DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = ["tests"]
 addopts = "--strict-markers"
 env = ["D:DJANGO_SECRET_KEY=test-only-secret-key"]
+
+# The area rules in AGENTS.md (Domain areas). config wires the areas' views into URLs, so it's no area's caller.
+# A new area joins root_packages and the contracts below when it's added: import-linter refuses a missing package.
+[tool.importlinter]
+root_packages = ["config", "health", "households", "recipes", "seed"]
+
+[[tool.importlinter.contracts]]
+name = "An area reaches another only through its services, models (and their querysets) and signals"
+type = "forbidden"
+source_modules = ["health", "households", "recipes", "seed"]
+forbidden_modules = ["health.*", "households.*", "recipes.*"]
+ignore_imports = ["** -> *.services", "** -> *.models", "** -> *.signals"]
+# The public modules import their own area's private ones: only a direct import crosses the boundary.
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "households depends on no other area"
+type = "forbidden"
+source_modules = ["households"]
+forbidden_modules = ["health", "recipes"]
+
+[[tool.importlinter.contracts]]
+name = "recipes depends on no area but households"
+type = "forbidden"
+source_modules = ["recipes"]
+forbidden_modules = ["health"]
+
+[[tool.importlinter.contracts]]
+name = "seed is imported by nothing"
+type = "protected"
+protected_modules = ["seed"]
+allowed_importers = []
 
 [tool.vercel.scripts]
 # Runs after the dependencies install and before the deployment goes live: each deployment migrates its own database.
