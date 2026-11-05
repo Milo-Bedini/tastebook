@@ -5,6 +5,21 @@ import { parse } from 'yaml';
 
 import { describeMissing, missingAnswers, type Paths } from './src/test/documented-answers.ts';
 
+const UNDECIDED = 'the page shows its "Check your connection" toast; how it should answer is asked on TAS-165';
+
+// Answers left without a page test, each with why. Take one off once a test answers it: the check fails until then.
+const LEFT_OUT: Record<string, string> = {
+  'DELETE /api/household/invite/ 403': UNDECIDED,
+  'DELETE /api/household/members/{member_id}/ 403': UNDECIDED,
+  'PATCH /api/account/ 403': UNDECIDED,
+  'PATCH /api/household/ 403': UNDECIDED,
+  'PATCH /api/household/ 404': UNDECIDED,
+  'POST /api/household/invite/ 403': UNDECIDED,
+  'POST /api/household/leave/ 403': UNDECIDED,
+  'POST /api/household/leave/ 404': UNDECIDED,
+  'POST /api/invites/{token}/join/ 403': UNDECIDED
+};
+
 // The unit project's global setup: once every page test has run, fails the run if a documented error answer of a
 // mutation the app calls was answered by none of them (src/test/setup.ts records what each test's handlers sent).
 export const setup = (project: TestProject) => async () => {
@@ -24,11 +39,17 @@ export const setup = (project: TestProject) => async () => {
     [...module.children.allTests()].flatMap((test) => test.meta().answered ?? [])
   );
   const missing = missingAnswers(schema.paths, sources, answered);
-  if (missing.length > 0) {
+  const keys = missing.map(({ method, path, status }) => `${method} ${path} ${status}`);
+  const untested = missing.filter((_, index) => LEFT_OUT[keys[index] ?? ''] === undefined).map(describeMissing);
+  const tested = Object.keys(LEFT_OUT)
+    .filter((key) => !keys.includes(key))
+    .map((key) => `${key}: a page test answers it now, so take it off LEFT_OUT in vitest.documented-answers.ts`);
+  if (untested.length > 0 || tested.length > 0) {
     throw new Error(
-      `Each documented error answer of a mutation needs a page test that answers it with server.use(...):\n${missing
-        .map(describeMissing)
-        .join('\n')}`
+      `Each documented error answer of a mutation needs a page test that answers it with server.use(...):\n${[
+        ...untested,
+        ...tested
+      ].join('\n')}`
     );
   }
 };
