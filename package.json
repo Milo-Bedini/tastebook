@@ -15,6 +15,8 @@
     "dino:bundle": "pnpm --filter frontend dino:bundle",
     "test": "pnpm -r test",
     "test:e2e": "pnpm --filter frontend test:e2e",
+    "mutation:frontend": "pnpm --filter frontend mutation",
+    "mutation:backend": "cd backend && uv run python mutation.py",
     "type-check": "pnpm -r type-check",
     "generate:api": "pnpm --filter frontend generate:api",
     "lint:biome": "biome check .",

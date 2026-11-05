@@ -23,3 +23,7 @@ dino-bundle
 *.njsproj
 *.sln
 *.sw?
+
+# Mutation testing
+.stryker-tmp
+reports
