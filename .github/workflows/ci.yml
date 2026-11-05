@@ -31,7 +31,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      # Usually about 20 s; its apt and browser downloads sometimes hang, and a job's default timeout is 6 hours.
       - run: pnpm --filter frontend exec playwright install --with-deps chromium
+        timeout-minutes: 5
       - run: pnpm test
       - run: pnpm build
       - run: pnpm --filter frontend build-storybook
@@ -158,7 +160,9 @@ jobs:
       # Previews always have the catalogue, so the specs must pass with recipes in the database, not only without.
       - run: uv run python manage.py load_catalogue
         working-directory: backend
+      # Usually about 20 s; its apt and browser downloads sometimes hang, and a job's default timeout is 6 hours.
       - run: pnpm --filter frontend exec playwright install --with-deps chromium
+        timeout-minutes: 5
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
