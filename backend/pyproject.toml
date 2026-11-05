@@ -28,6 +28,11 @@ DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = ["tests"]
 addopts = "--strict-markers"
 env = ["D:DJANGO_SECRET_KEY=test-only-secret-key"]
+# A deprecated Django setting or call fails the tests with its warning, rather than warning on every start.
+filterwarnings = [
+    "error::django.utils.deprecation.RemovedInNextVersionWarning",
+    "error::django.utils.deprecation.RemovedAfterNextVersionWarning",
+]
 
 # The area rules in AGENTS.md (Domain areas). config wires the areas' views into URLs, so it's no area's caller.
 # A new area joins root_packages and the contracts below when it's added: import-linter refuses a missing package.
