@@ -89,6 +89,8 @@ The code is organised by domain area, the same areas on both sides, named in the
 - [a] reach another area's behaviour through its public surface: its `services.py` (and querysets) in the backend, its `index.ts` exports in the frontend. Foreign keys to another area's models are fine.
 - [n] import another area's internals (views, serializers, private helpers, components it doesn't export).
 - Dependencies point one way: every area may depend on `households` (who owns what); `collections`, `kitchen` and `importing` depend on `recipes`; `planning` depends on `recipes` and `kitchen`; `households` depends on no other area. [n] add a dependency that points back.
+- [n] import an area from `src/dino/` (Dino knows no feature), or `src/app/` from an area (`src/app/` imports the areas' `index.ts`).
+- In the frontend, `pnpm lint` enforces these boundaries (`tools/biome/area-boundaries.grit`, which lists the allowed directions): an import of another area's internals, an area from Dino, `src/app/` from an area, or an area against the direction fails, through `@/` or a relative path. Every folder in `src/` except `api`, `app`, `dino`, `lib` and `test` counts as an area.
 - When `households` needs another area to act (a member moving takes the recipes they wrote), it sends a signal from `households/signals.py` and that area's receiver, connected in its `models.py`, does the work.
 
 ## Layout
@@ -112,7 +114,7 @@ backend/
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no hand-built button with a hover style and no pressed one)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no hand-built button with a hover style and no pressed one; the frontend's area boundaries)
 specs/              one spec per issue, plus lessons/
 ```
 
