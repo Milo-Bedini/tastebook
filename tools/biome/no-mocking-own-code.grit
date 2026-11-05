@@ -1,0 +1,32 @@
+language js
+
+// Tests mock only what's outside the app (AGENTS.md › Tests): HTTP goes through MSW, so Tastebook's own modules,
+// fetch and the API client are never mocked.
+or {
+  JsCallExpression(callee=$callee, arguments=$arguments) as $call where {
+    $filename <: r".*frontend/src/(?:.*\.(?:test|stories)\.tsx?|test/.*)",
+    or {
+      and {
+        $callee <: r"vi\.(?:mock|doMock)|sb\.mock",
+        $arguments <: r"\(\s*['\x22`](?:@/|\.\.?/)[\s\S]*",
+        register_diagnostic(span=$call, message="Don't mock Tastebook's own modules: render the real code and mock its HTTP with MSW (defaults in src/test/handlers.ts, server.use(...) per test) (AGENTS.md › Tests).")
+      },
+      and {
+        or {
+          and {
+            $callee <: r"(?:vi\.)?spyOn|Object\.defineProperty",
+            $arguments <: r"\(\s*(?:globalThis|window|global|self)\s*,\s*['\x22`]fetch['\x22`][\s\S]*"
+          },
+          and { $callee <: r"vi\.stubGlobal", $arguments <: r"\(\s*['\x22`]fetch['\x22`][\s\S]*" },
+          and { $callee <: r"(?:vi\.)?spyOn", $arguments <: r"\(\s*api\s*,[\s\S]*" }
+        },
+        register_diagnostic(span=$call, message="Don't mock fetch or the API client: mock HTTP with MSW (defaults in src/test/handlers.ts, server.use(...) per test) (AGENTS.md › Frontend).")
+      }
+    }
+  },
+  JsAssignmentExpression(left=$target) as $assignment where {
+    $filename <: r".*frontend/src/(?:.*\.(?:test|stories)\.tsx?|test/.*)",
+    $target <: r"(?:globalThis|window|global|self)\.fetch",
+    register_diagnostic(span=$assignment, message="Don't mock fetch or the API client: mock HTTP with MSW (defaults in src/test/handlers.ts, server.use(...) per test) (AGENTS.md › Frontend).")
+  }
+}

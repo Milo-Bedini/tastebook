@@ -35,7 +35,7 @@ What the product does and won't do is in the Linear team's Vision document; each
 - [a] build UI from the design system's tokens and components and follow [`docs/design.md`](docs/design.md); [n] use a literal colour, font or radius. `pnpm lint` refuses a literal colour (hex, `rgb()`, `hsl()`, `oklch()`) and an arbitrary radius, spacing, font size, line height or font family (`p-[7px]`, `text-[13px]`); an arbitrary value built from tokens (`var(--…)`, `--spacing(n)`, `env(…)`) and a forced-colours system colour (`bg-[CanvasText]`) are fine. Stories and tests may assert a computed `rgb()`.
 - [a] give every request a loading and an error state, using a TanStack Query hook in the area's folder.
 - [n] edit `src/api/schema.d.ts` by hand. It's generated from `backend/schema.yml` (see [API contract](#api-contract)).
-- [a] mock HTTP in tests with MSW (`src/test/handlers.ts` for defaults, `server.use(...)` per test). [n] mock `fetch` or the API client directly.
+- [a] mock HTTP in tests with MSW (`src/test/handlers.ts` for defaults, `server.use(...)` per test). [n] mock `fetch` or the API client directly. `pnpm lint` enforces it in tests, stories and `src/test/` (`tools/biome/no-mocking-own-code.grit`).
 
 **Backend (`backend/`)**
 
@@ -61,7 +61,7 @@ Tests are black box: they go through a public interface and assert what a user o
 - [a] test the frontend through rendered pages, as a user finds and uses them (roles, labels, text), with MSW for the API.
 - [a] test an area's logic with many cases (unit conversion, scaling, rounding, ingredient matching) through the area's public function, with a table of inputs and expected outputs.
 - [a] cover each main journey with a Playwright spec; it runs locally and against each PR's preview.
-- [n] test private helpers, or mock Tastebook's own modules. Mock only what's outside the app (HTTP through MSW, time, third-party services).
+- [n] test private helpers, or mock Tastebook's own modules. Mock only what's outside the app (HTTP through MSW, time, third-party services). `pnpm lint` refuses `vi.mock` of a path starting `@/`, `./` or `../`; an outside package is fine.
 - [n] write tautology tests. Ask of every test: would it still pass if the code under test returned `undefined` or `None`? If yes, rewrite the assertion or delete the test.
 - [a] call the subject the way a user or caller does, with a concrete input, and assert a literal, observable result: rendered text, a role's state, a response body, a row in the database.
 - [a] add a failing test first when fixing a bug, and run it against the unchanged code to prove it fails.
@@ -115,7 +115,7 @@ backend/
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one; the frontend's area boundaries)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one; the frontend's area boundaries; no mocking Tastebook's own modules, `fetch` or the API client in tests)
 specs/              one spec per issue, plus lessons/
 ```
 
