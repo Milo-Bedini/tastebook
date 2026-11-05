@@ -1,0 +1,18 @@
+{
+  "name": "@tastebook/workflows",
+  "private": true,
+  "type": "module",
+  "description": "Checks .github/workflows for the rules zizmor doesn't cover: a secret only in the env of the step that uses it. Runs in CI's Workflows job.",
+  "scripts": {
+    "check": "node scripts/check-secrets.ts",
+    "test": "node --test secrets.test.ts",
+    "type-check": "tsc"
+  },
+  "dependencies": {
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "7.0.2"
+  }
+}

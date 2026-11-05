@@ -1,0 +1,11 @@
+# zizmor's settings for CI's Workflows job (AGENTS.md, Workflows). Each exception says why it's by design.
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # The factory's reusable stage workflow follows mb-factory's main branch on purpose: the owner's own repo,
+        # updated with the factory itself (dependabot.yml ignores it for the same reason).
+        milobedini/mb-factory/*: ref-pin
+        "*": hash-pin
+# preview-checks.yml's deployment_status trigger is by design (the reason is in its header) and zizmor doesn't flag
+# deployment_status, so it needs no exception here.
