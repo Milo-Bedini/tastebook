@@ -28,9 +28,9 @@ What the product does and won't do is in the Linear team's Vision document; each
 
 - [a] write TypeScript with strict types; [n] use `any`.
 - [a] use `import type` / `export type` for type-only imports.
-- [a] use arrow functions, named exports and kebab-case file names (`home-page.tsx`).
-- [a] prefer `const` with `map`, `filter` and `reduce`; [n] use `let` or `forEach`.
-- [n] `import React from 'react'`; import what you need by name.
+- [a] use arrow functions, named exports and kebab-case file names (`home-page.tsx`). `pnpm lint` enforces all three; a default export is allowed only where a tool needs one (stories and the Vite, Vitest, Playwright and Storybook config), by path in `biome.json`'s `overrides`.
+- [a] prefer `const` with `map`, `filter` and `reduce`; [n] use `let` or `forEach`. `pnpm lint` enforces both.
+- [n] `import React from 'react'` (or `import * as React`); import what you need by name. `pnpm lint` enforces it.
 - [n] reach for `useEffect` to derive state or respond to events. Derive during render or handle it in the event handler.
 - [a] build UI from the design system's tokens and components and follow [`docs/design.md`](docs/design.md); [n] use a literal colour, font or radius. `pnpm lint` refuses a literal colour (hex, `rgb()`, `hsl()`, `oklch()`) and an arbitrary radius, spacing, font size, line height or font family (`p-[7px]`, `text-[13px]`); an arbitrary value built from tokens (`var(--…)`, `--spacing(n)`, `env(…)`) and a forced-colours system colour (`bg-[CanvasText]`) are fine. Stories and tests may assert a computed `rgb()`.
 - [a] give every request a loading and an error state, using a TanStack Query hook in the area's folder.
@@ -112,7 +112,7 @@ backend/
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no hand-built button with a hover style and no pressed one)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one)
 specs/              one spec per issue, plus lessons/
 ```
 
