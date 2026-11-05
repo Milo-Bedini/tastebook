@@ -164,6 +164,7 @@
       "includes": [
         "frontend/**/*.stories.tsx",
         "frontend/*.config.ts",
+        "frontend/stryker.config.mjs",
         "frontend/.storybook/main.ts",
         "frontend/.storybook/preview.tsx"
       ],

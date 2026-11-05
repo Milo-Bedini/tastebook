@@ -28,7 +28,7 @@ What the product does and won't do is in the Linear team's Vision document; each
 
 - [a] write TypeScript with strict types; [n] use `any`.
 - [a] use `import type` / `export type` for type-only imports.
-- [a] use arrow functions, named exports and kebab-case file names (`home-page.tsx`). `pnpm lint` enforces all three; a default export is allowed only where a tool needs one (stories and the Vite, Vitest, Playwright and Storybook config), by path in `biome.json`'s `overrides`.
+- [a] use arrow functions, named exports and kebab-case file names (`home-page.tsx`). `pnpm lint` enforces all three; a default export is allowed only where a tool needs one (stories and the Vite, Vitest, Playwright, Storybook and Stryker config), by path in `biome.json`'s `overrides`.
 - [a] prefer `const` with `map`, `filter` and `reduce`; [n] use `let` or `forEach`. `pnpm lint` enforces both.
 - [n] `import React from 'react'` (or `import * as React`); import what you need by name. `pnpm lint` enforces it.
 - [n] reach for `useEffect` to derive state or respond to events. Derive during render or handle it in the event handler.
