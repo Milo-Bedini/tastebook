@@ -75,7 +75,10 @@
     "./tools/biome/token-only-styling.grit",
     "./tools/biome/token-only-styling-css.grit",
     "./tools/biome/area-boundaries.grit",
-    "./tools/biome/no-mocking-own-code.grit"
+    "./tools/biome/no-mocking-own-code.grit",
+    "./tools/biome/anonymous-images.grit",
+    "./tools/biome/svg-forced-colours.grit",
+    "./tools/biome/pressed-fill-over-state.grit"
   ],
   "linter": {
     "enabled": true,

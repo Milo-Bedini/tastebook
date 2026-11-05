@@ -1,0 +1,22 @@
+language js
+
+// A third-party host can set a cookie on an image loaded with credentials, which Lighthouse fails; an image Vite
+// bundles from a local import is same-origin, so it needs nothing.
+or {
+  JsxOpeningElement(name=$name, attributes=$attributes),
+  JsxSelfClosingElement(name=$name, attributes=$attributes)
+} as $image where {
+  $filename <: r".*frontend/src/.*",
+  $name <: r"img",
+  not $attributes <: contains JsxAttribute(name=r"crossOrigin"),
+  not and {
+    $attributes <: contains JsxAttribute(name=r"src", initializer=$src),
+    $src <: r"=?\s*\{\s*\w+\s*\}",
+    $src <: contains JsIdentifierExpression() as $local,
+    $image <: within JsModule(items=$items),
+    $items <: contains JsImport() as $import,
+    $import <: r"[\s\S]*from\s*[\x27\x22](?:\.|@/)[\s\S]*",
+    $import <: contains $local
+  },
+  register_diagnostic(span=$image, message="Give an <img> crossOrigin=\"anonymous\", as RecipePhoto does, so its host can't set a cookie; only an image imported from a local file goes without (specs/lessons/wikimedia-photos-load-anonymously.md).")
+}

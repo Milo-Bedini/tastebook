@@ -117,7 +117,7 @@ backend/
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
 tools/workflows/    the check that a workflow's secrets are only in its steps' env (run by pnpm lint:workflows)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one; the frontend's area boundaries; no mocking Tastebook's own modules, `fetch` or the API client in tests)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one; no `data-*` or `aria-*` fill beside an `active:` one unless a stacked `data-…:active:` or `aria-…:active:` fill wins; no `<svg>` with its own text colour unless it adds `forced-colors:text-current`; no `<img>` without `crossOrigin` unless its `src` is a local import; the frontend's area boundaries; no mocking Tastebook's own modules, `fetch` or the API client in tests)
 specs/              one spec per issue, plus lessons/
 ```
 
