@@ -59,8 +59,10 @@ const answerEditing = (
       ...changes,
       cuisines: recipe.cuisines,
       courses: recipe.courses,
+      equipment: recipe.equipment,
       ingredient_lines: recipe.ingredient_lines,
-      ingredient_groups: recipe.ingredient_groups
+      ingredient_groups: recipe.ingredient_groups,
+      steps: recipe.steps
     })
 ) => {
   const sent: RecipeChanges[] = [];

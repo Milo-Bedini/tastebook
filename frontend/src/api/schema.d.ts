@@ -54,6 +54,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/equipment/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["equipment_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health/": {
         parameters: {
             query?: never;
@@ -223,7 +239,7 @@ export interface paths {
         delete: operations["recipes_destroy"];
         options?: never;
         head?: never;
-        /** @description Edits a recipe of the signed-in account's household; any member may, whoever wrote it. Only the fields sent change, and the address stays as it is. Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. */
+        /** @description Edits a recipe of the signed-in account's household; any member may, whoever wrote it. Only the fields sent change, and the address stays as it is. Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. Sending steps replaces every step. */
         patch: operations["recipes_partial_update"];
         trace?: never;
     };
@@ -453,6 +469,7 @@ export interface components {
             yield_amount?: number | null;
             /** @description "cookies" in "makes 12 cookies". */
             yield_unit?: string;
+            equipment?: string[];
             one_pot?: boolean;
             /**
              * Source credit
@@ -466,6 +483,8 @@ export interface components {
             source_url?: string;
             ingredient_lines?: components["schemas"]["NewIngredientLine"][];
             ingredient_groups?: components["schemas"]["NewIngredientGroup"][];
+            /** @description The method, a step each, in order. Sending it replaces every step. */
+            steps?: string[];
         };
         PatchedAccountChanges: {
             name?: string;
@@ -493,6 +512,7 @@ export interface components {
             yield_amount?: number | null;
             /** @description "cookies" in "makes 12 cookies". */
             yield_unit?: string;
+            equipment?: string[];
             one_pot?: boolean;
             /**
              * Source credit
@@ -506,6 +526,8 @@ export interface components {
             source_url?: string;
             ingredient_lines?: components["schemas"]["NewIngredientLine"][];
             ingredient_groups?: components["schemas"]["NewIngredientGroup"][];
+            /** @description The method, a step each, in order. Sending it replaces every step. */
+            steps?: string[];
         };
         PhotoThumbnail: {
             readonly width: number;
@@ -754,6 +776,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Cuisine"][];
+                };
+            };
+        };
+    };
+    equipment_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Equipment"][];
                 };
             };
         };

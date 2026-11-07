@@ -7,10 +7,11 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from recipes.models import Course, Cuisine, Ingredient, IngredientQuerySet, Recipe, RecipeQuerySet
+from recipes.models import Course, Cuisine, Equipment, Ingredient, IngredientQuerySet, Recipe, RecipeQuerySet
 from recipes.serializers import (
     CourseSerializer,
     CuisineSerializer,
+    EquipmentSerializer,
     IngredientOptionSerializer,
     NewIngredientSerializer,
     NewRecipeSerializer,
@@ -58,10 +59,11 @@ class RecipeListView(ListAPIView):
         given = NewRecipeSerializer(data=request.data)
         given.is_valid(raise_exception=True)
         details = dict(given.validated_data)
-        cuisines, courses = details.pop('cuisines'), details.pop('courses')
+        cuisines, courses, equipment = details.pop('cuisines'), details.pop('courses'), details.pop('equipment')
         ingredients = IngredientList(details.pop('ingredient_lines'), details.pop('ingredient_groups'))
+        steps = details.pop('steps')
         try:
-            recipe = add_recipe(request.user, details, cuisines, courses, ingredients)
+            recipe = add_recipe(request.user, details, cuisines, courses, equipment, ingredients, steps)
         except DjangoValidationError as error:
             errors = error.message_dict
             raise ValidationError(
@@ -122,7 +124,8 @@ class RecipeDetailView(RetrieveAPIView):
         },
         description="Edits a recipe of the signed-in account's household; any member may, whoever wrote it. "
         'Only the fields sent change, and the address stays as it is. '
-        'Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none.',
+        'Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. '
+        'Sending steps replaces every step.',
     )
     def patch(self, request: Request, slug: str) -> Response:
         # Refused before the lookup, so a signed-out answer says nothing about the slug.
@@ -142,6 +145,7 @@ class RecipeDetailView(RetrieveAPIView):
             raise ValidationError({**given.errors, **given_ingredients.errors})
         details = dict(given.validated_data)
         cuisines, courses = details.pop('cuisines', None), details.pop('courses', None)
+        equipment, steps = details.pop('equipment', None), details.pop('steps', None)
         sent_ingredients = given_ingredients.validated_data
         ingredients = (
             IngredientList(sent_ingredients['ingredient_lines'], sent_ingredients['ingredient_groups'])
@@ -149,7 +153,7 @@ class RecipeDetailView(RetrieveAPIView):
             else None
         )
         try:
-            edit_recipe(recipe, details, cuisines, courses, ingredients)
+            edit_recipe(recipe, details, cuisines, courses, equipment, ingredients, steps)
         except DjangoValidationError as error:
             errors = error.message_dict
             raise ValidationError(
@@ -200,6 +204,13 @@ class CourseListView(ListAPIView):
     permission_classes = []
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
+
+
+class EquipmentListView(ListAPIView):
+    authentication_classes = []
+    permission_classes = []
+    serializer_class = EquipmentSerializer
+    queryset = Equipment.objects.all()
 
 
 class IngredientListView(ListAPIView):

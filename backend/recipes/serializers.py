@@ -404,6 +404,10 @@ class RecipeIngredientsSerializer(serializers.Serializer):
     ingredient_groups = NewIngredientGroupSerializer(many=True, max_length=20, required=False, default=list)
 
 
+STEP_MAX_LENGTH = 2000
+MAX_STEPS = 100
+BLANK_STEP = 'Write the step, or remove it.'
+
 BLANK_TITLE = "Give the recipe a title, like Grandma's curry."
 
 
@@ -416,6 +420,24 @@ class NewRecipeSerializer(RecipeIngredientsSerializer, serializers.ModelSerializ
     )
     courses = serializers.SlugRelatedField(
         many=True, slug_field='slug', queryset=Course.objects.all(), required=False, default=list
+    )
+    equipment = serializers.SlugRelatedField(
+        many=True, slug_field='slug', queryset=Equipment.objects.all(), required=False, default=list
+    )
+    steps = serializers.ListField(
+        child=serializers.CharField(
+            max_length=STEP_MAX_LENGTH,
+            error_messages={
+                'blank': BLANK_STEP,
+                'null': BLANK_STEP,
+                'max_length': f'Keep a step to {STEP_MAX_LENGTH:,} characters. Split this one in two.',
+            },
+        ),
+        max_length=MAX_STEPS,
+        required=False,
+        default=list,
+        error_messages={'max_length': f'Keep the method to {MAX_STEPS} steps.'},
+        help_text='The method, a step each, in order. Sending it replaces every step.',
     )
 
     class Meta:
@@ -433,11 +455,13 @@ class NewRecipeSerializer(RecipeIngredientsSerializer, serializers.ModelSerializ
             'servings',
             'yield_amount',
             'yield_unit',
+            'equipment',
             'one_pot',
             'source',
             'source_url',
             'ingredient_lines',
             'ingredient_groups',
+            'steps',
         ]
 
 
