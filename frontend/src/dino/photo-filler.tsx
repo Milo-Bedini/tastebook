@@ -16,7 +16,7 @@ const fillerFor = (recipeId: number): Filler => (recipeId % 2 === 0 ? 'place-set
 
 type FillerProps = { shape: Shape };
 
-const PlaceSetting = ({ shape }: FillerProps) => (
+export const PlaceSetting = ({ shape }: FillerProps) => (
   <div
     aria-hidden="true"
     data-filler="place-setting"

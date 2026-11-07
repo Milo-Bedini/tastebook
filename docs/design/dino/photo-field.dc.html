@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>PhotoField: every state</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 40px;align-items:start}
+.cell{display:flex;flex-direction:column;gap:12px;min-width:0}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.drop{aspect-ratio:7/5;box-sizing:border-box;border:2px dashed var(--color-field);border-radius:var(--radius-card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;text-align:center;color:var(--color-muted)}
+.drop svg{width:32px;height:32px}
+.drop.bad{border-color:var(--color-danger)}
+.snap{position:relative;background:var(--color-paper);padding:10px;box-shadow:var(--shadow-lift)}
+.snap img{display:block;width:100%;aspect-ratio:7/5;object-fit:cover}
+.snap.busy img{opacity:.45}
+.over{position:absolute;left:20px;bottom:20px;display:inline-flex;align-items:center;gap:8px;min-height:36px;box-sizing:border-box;padding:6px 14px;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);font-size:15px;line-height:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.acts{display:flex;flex-wrap:wrap;gap:8px;padding-top:10px}
+.toast{min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 6px 4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast span{flex:1}
+.tbtn{min-height:44px;padding:0 16px;border:2px solid var(--color-on-dock);border-radius:var(--radius-pill);background:none;color:var(--color-on-dock);font:inherit}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2140px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-118 · new Dino component · drawn at a phone’s field width (350 px of a 390 px screen)</span>
+    <h1 class="ttl">PhotoField</h1>
+    <span class="cap">A labelled field holding one photo: choose it, see it at the recipe’s 7:5 crop, replace it or remove it. Its buttons keep Button’s own hover, pressed, focus and loading states.</span>
+  </header>
+
+  <div class="grid">
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Empty</b> · nothing chosen</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop">
+          <x-import component-from-global-scope="Dino.icons.ImagePlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Add a photo</x-import>
+        </div>
+        <p class="help">A JPEG, PNG, WebP or HEIC photo, up to 10 MB. It shows at the top of the recipe, cropped to this shape.</p>
+      </div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Uploading</b> · straight after choosing; the photo shows faded at once, with how far it’s got</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="snap busy">
+          <img src="/_blob/962002d93dd66f530b616569fbd4033e" alt="">
+          <span class="over" aria-hidden="true"><x-import component-from-global-scope="Dino.Spinner" class-name="size-4.5"></x-import>Uploading… 40%</span>
+        </div>
+        <span class="sr" role="status">Uploading the photo</span>
+        <div class="acts">
+          <x-import component-from-global-scope="Dino.Button" variant="ghost">Cancel upload</x-import>
+        </div>
+        <p class="help">A JPEG, PNG, WebP or HEIC photo, up to 10 MB. It shows at the top of the recipe, cropped to this shape.</p>
+      </div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Uploaded</b> · and how the edit page opens a recipe with a photo</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="snap"><img src="/_blob/962002d93dd66f530b616569fbd4033e" alt="The photo for Chana masala"></div>
+        <div class="acts">
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Replace photo</x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="ghost"><x-import component-from-global-scope="Dino.icons.Trash2" aria-hidden="true" stroke-width="{{sw}}"></x-import>Remove photo</x-import>
+        </div>
+        <p class="help">A JPEG, PNG, WebP or HEIC photo, up to 10 MB. It shows at the top of the recipe, cropped to this shape.</p>
+      </div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Not a photo</b> · checked on choosing, before any upload; focus goes back to Add a photo</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop bad">
+          <x-import component-from-global-scope="Dino.icons.ImagePlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Add a photo</x-import>
+        </div>
+        <p class="err" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>That’s a PDF. Choose a photo: a JPEG, PNG, WebP or HEIC.</span></p>
+      </div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Too big</b> · checked on choosing, before any upload</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop bad">
+          <x-import component-from-global-scope="Dino.icons.ImagePlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Add a photo</x-import>
+        </div>
+        <p class="err" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>That photo is 14 MB. Choose one under 10 MB, like one from your camera roll rather than the original file.</span></p>
+      </div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Couldn’t upload</b> · offline, a 5xx, or Tastebook refused the file; the photo chosen is kept for the retry</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop bad">
+          <x-import component-from-global-scope="Dino.icons.ImageOff" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Try again</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="ghost">Choose another</x-import>
+          </div>
+        </div>
+        <p class="err" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Couldn’t upload the photo. Check your connection, then try again.</span></p>
+      </div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Removed</b> · Remove photo pressed: the field is empty again, focus goes to Add a photo, and a toast offers Undo</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop">
+          <x-import component-from-global-scope="Dino.icons.ImagePlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Add a photo</x-import>
+        </div>
+        <p class="help">A JPEG, PNG, WebP or HEIC photo, up to 10 MB. It shows at the top of the recipe, cropped to this shape.</p>
+      </div>
+      <div class="toast" role="status"><span>Photo removed</span><button type="button" class="tbtn">Undo</button></div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Save while it uploads</b> · Save recipe waits for the photo, then saves; nothing is lost</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="snap busy">
+          <img src="/_blob/962002d93dd66f530b616569fbd4033e" alt="">
+          <span class="over" aria-hidden="true"><x-import component-from-global-scope="Dino.Spinner" class-name="size-4.5"></x-import>Uploading… 85%</span>
+        </div>
+      </div>
+      <div style="padding-top: 8px"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{yes}}" loading-label="Saving…">Save recipe</x-import></div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Saved without the upload</b> · it failed while Save waited: the recipe isn’t saved, and focus goes to the field</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop bad">
+          <x-import component-from-global-scope="Dino.icons.ImageOff" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Try again</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="ghost">Remove photo</x-import>
+          </div>
+        </div>
+        <p class="err" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Couldn’t upload the photo, so the recipe isn’t saved yet. Try again, or remove the photo and save without it.</span></p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>Props it should grow into:</b> <code>label</code>, <code>help</code>, <code>error</code> (as Field), <code>photo</code> (a Photo, a chosen file being uploaded with its progress, or none), <code>shape</code> (<code>hero</code> 7:5 here; <code>card</code> 4:3 if another form ever needs one), <code>onChoose(file)</code>, <code>onRemove()</code>, <code>onRetry()</code>, <code>onCancel()</code>. The upload itself lives in the recipes area’s API hook, not in Dino.</p>
+    <p><b>Checked on choosing:</b> the type and size are refused before any request, with the file’s own type and size in the words (NN/g 5 and 9). Tastebook checks them again on upload; its refusal shows as Couldn’t upload, with its message in place of the connection line.</p>
+    <p><b>Screen readers:</b> the field is a group named “Photo” and described by its help or error. “Uploading the photo” and “Photo uploaded” are announced in a polite status; the percentage is visual only, so it doesn’t chatter. The preview’s alt text is “The photo for &lt;title&gt;”, falling back to “The photo for this recipe”.</p>
+    <p><b>Not here:</b> no drag handle, crop, rotate or filters. HEIC can’t show in most browsers, so its preview waits for Tastebook’s first thumbnail; until then the faded box shows the place-setting filler.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2140}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, no: false, sw: 2.25 };
+  }
+}
+</script>
+</body>
+</html>
