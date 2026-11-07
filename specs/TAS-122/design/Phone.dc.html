@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The dock on phones</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.av.sm{width:36px;height:36px;font-size:15px}
+.pg{padding:24px 20px 104px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.h2{margin:16px 0 0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.grid{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:24px 20px}
+.card{display:flex;flex-direction:column;gap:8px}
+.pol{display:flex;flex-direction:column;gap:6px;padding:8px 8px 0;background:var(--color-paper);color:var(--color-on-pastel);box-shadow:var(--shadow-lift);text-decoration:none}
+.pol.l{transform:rotate(-2deg)}.pol.r{transform:rotate(2deg)}
+.ph{display:block;aspect-ratio:4 / 3;border:2px dashed var(--color-field)}
+.capn{display:block;padding:0 2px 8px;font-family:var(--font-serif);font-size:21px;line-height:22px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.mem{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mem li{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid var(--color-line);font-size:16px;line-height:24px;font-weight:600}
+.clear{position:absolute;left:20px;right:20px;bottom:0;height:104px;box-sizing:border-box;border-top:2px dashed var(--color-pop);padding:3px 0 0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-pop)}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:540px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1900px; height: 1340px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-122 · the dock · phone, 390 px</span>
+    <h1 class="ttl">The dock, under 640 px</h1>
+    <span class="cap">A floating pill in dock colours, 20 px from the sides and the foot (plus the phone’s safe area), over the page. The current tab is a peach pill with its icon and name; the others are icons with accessible names.</span>
+  </header>
+  <div style="display: flex; gap: 40px; align-items: flex-start">
+    <div class="col"><span class="cap"><b>Recipes</b> · the top of the list</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg"><h1 class="h1">What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1><span class="cap">24 recipes</span><ul class="grid"><li class="card"><a href="#" class="pol l"><span class="ph" aria-hidden="true"></span><span class="capn">Chana masala</span></a><span class="meta">1 hr 45 · Easy · Indian</span></li><li class="card"><a href="#" class="pol r"><span class="ph" aria-hidden="true"></span><span class="capn">Bibimbap</span></a><span class="meta">35 min · Easy · Korean</span></li><li class="card"><a href="#" class="pol r"><span class="ph" aria-hidden="true"></span><span class="capn">Shakshuka</span></a><span class="meta">30 min · Easy · Tunisian</span></li><li class="card"><a href="#" class="pol l"><span class="ph" aria-hidden="true"></span><span class="capn">Baklava</span></a><span class="meta">1 hr 20 · Medium · Turkish</span></li></ul></main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li><a href="#" class="dt only" aria-label="Household"><x-import component-from-global-scope="Dino.icons.Users" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav>
+    </div>
+    </div>
+    <div class="col"><span class="cap"><b>Recipes</b> · scrolled to the end</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg end-of" style="position: absolute; left: 0; right: 0; bottom: 0"><ul class="grid"><li class="card"><a href="#" class="pol l"><span class="ph" aria-hidden="true"></span><span class="capn">Ribollita</span></a><span class="meta">1 hr · Easy · Italian</span></li><li class="card"><a href="#" class="pol r"><span class="ph" aria-hidden="true"></span><span class="capn">Dal makhani</span></a><span class="meta">50 min · Medium · Indian</span></li><li class="card"><a href="#" class="pol r"><span class="ph" aria-hidden="true"></span><span class="capn">Spanakopita</span></a><span class="meta">1 hr · Medium · Greek</span></li><li class="card"><a href="#" class="pol l"><span class="ph" aria-hidden="true"></span><span class="capn">Mushroom risotto</span></a><span class="meta">40 min · Medium · Italian</span></li></ul><span class="clear" aria-hidden="true">104 px kept clear of the dock</span></main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li><a href="#" class="dt only" aria-label="Household"><x-import component-from-global-scope="Dino.icons.Users" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav>
+    </div>
+    </div>
+    <div class="col"><span class="cap"><b>Household</b> · the current tab moves</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg"><h1 class="h1">Your household</h1><h2 class="h2">Members</h2><ul class="mem"><li><span class="av sm" aria-hidden="true">M</span>Milo Bedini <span class="cap">(you)</span></li><li><span class="av sm" aria-hidden="true">A</span>Ann Okafor</li></ul></main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li><a href="#" class="dt only" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Users" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Household</a></li>
+      </ul></nav>
+    </div>
+    </div>
+    <div class="col"><span class="cap"><b>Signed out</b> · one tab, so no dock</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div>
+      </div></header>
+      <main class="pg"><h1 class="h1">What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1><span class="cap">24 recipes</span><ul class="grid"><li class="card"><a href="#" class="pol l"><span class="ph" aria-hidden="true"></span><span class="capn">Chana masala</span></a><span class="meta">1 hr 45 · Easy · Indian</span></li><li class="card"><a href="#" class="pol r"><span class="ph" aria-hidden="true"></span><span class="capn">Bibimbap</span></a><span class="meta">35 min · Easy · Korean</span></li><li class="card"><a href="#" class="pol r"><span class="ph" aria-hidden="true"></span><span class="capn">Shakshuka</span></a><span class="meta">30 min · Easy · Tunisian</span></li><li class="card"><a href="#" class="pol l"><span class="ph" aria-hidden="true"></span><span class="capn">Baklava</span></a><span class="meta">1 hr 20 · Medium · Turkish</span></li></ul></main>
+    </div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>Every page with the dock</b> keeps 104 px free at its foot (the dock’s 62 px, the 20 px under it and 22 px of air), so the last card, button or step scrolls clear of it. The dock stays put while the page scrolls under it.</p>
+    <p><b>It’s the same nav as the tabs</b>: links in a list named “Main”, after the top bar in the page’s order, so focus meets it before the page, at every width. The dock only places it at the foot.</p>
+    <p><b>Signed out there’s only Recipes</b>, and with one tab there’s no navigation at all (<code>docs/design.md</code>, Layout): the page runs to the foot.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1900,"height":1340}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, s20: 20, s22: 22, sw: 2.25 };
+  }
+}
+</script>
+</body>
+</html>
