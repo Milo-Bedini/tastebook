@@ -426,6 +426,24 @@ describe('EditRecipePage', () => {
     expect(screen.queryByRole('textbox', { name: 'Title' })).not.toBeInTheDocument();
   });
 
+  it.each<[string, Partial<Recipe>, boolean]>([
+    ['a public recipe another member wrote', { visibility: 'public', author: 'Sam', can_edit: false }, false],
+    ["a private recipe it can't edit", { can_edit: false }, false],
+    ['its own public recipe', { visibility: 'public', author: 'Ben', can_edit: true }, true]
+  ])('with %s, opens the form only when it may edit', async (_, changes, opensForm) => {
+    answerEditing({ ...flatbreads, ...changes });
+    const { router } = renderRoute(EDIT);
+
+    if (opensForm) {
+      expect(await screen.findByRole('textbox', { name: 'Title' })).toHaveValue('Flatbreads');
+      expect(router.state.location.pathname).toBe('/recipes/flatbreads-k7m2qx/edit');
+      return;
+    }
+    expect(await screen.findByRole('heading', { level: 1, name: 'Flatbreads' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/recipes/flatbreads-k7m2qx');
+    expect(screen.queryByRole('textbox', { name: 'Title' })).not.toBeInTheDocument();
+  });
+
   it("opens with the recipe's ingredients as rows, and sends them back as they were", async () => {
     const ingredient = (slug: string, name: string) => ({ slug, name, grams_per_cup: null, awaiting_review: false });
     const sent = answerEditing({

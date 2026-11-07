@@ -35,12 +35,13 @@ const metaOf = (recipe: RecipeSummary) => {
   return parts.filter((part) => part !== '').join(' · ');
 };
 
-type RecipeMetaProps = { isPrivate: boolean; meta: string };
+type RecipeMetaProps = { author: string | null; isPrivate: boolean; meta: string };
 
-// The mark sits above the meta, so it's read with the card.
-const RecipeMeta = ({ isPrivate, meta }: RecipeMetaProps) => (
+// The mark, or a public household recipe's credit in its place, sits above the meta, so it's read with the card.
+const RecipeMeta = ({ author, isPrivate, meta }: RecipeMetaProps) => (
   <>
-    {isPrivate && (
+    {author !== null && <p>{`by ${author}`}</p>}
+    {author === null && isPrivate && (
       <span className="mb-1 block">
         <PrivateMark />
       </span>
@@ -51,7 +52,7 @@ const RecipeMeta = ({ isPrivate, meta }: RecipeMetaProps) => (
 
 type RecipeItemProps = { recipe: RecipeSummary; lean: Lean; eager: boolean };
 
-// A card with neither a mark nor meta has no meta block at all, so its link has no empty description.
+// A card with no mark, credit or meta has no meta block at all, so its link has no empty description.
 const RecipeItem = ({ recipe, lean, eager }: RecipeItemProps) => {
   const isPrivate = recipe.visibility === 'private';
   const meta = metaOf(recipe);
@@ -65,7 +66,9 @@ const RecipeItem = ({ recipe, lean, eager }: RecipeItemProps) => {
         lean={lean}
         eager={eager}
       >
-        {(isPrivate || meta !== '') && <RecipeMeta isPrivate={isPrivate} meta={meta} />}
+        {(isPrivate || recipe.author !== null || meta !== '') && (
+          <RecipeMeta author={recipe.author} isPrivate={isPrivate} meta={meta} />
+        )}
       </PolaroidCard>
     </li>
   );
