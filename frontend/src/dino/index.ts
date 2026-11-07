@@ -38,4 +38,5 @@ export { TextArea } from './text-area';
 export { TimeBlobs } from './time-blobs';
 export { TopBar, type TopBarAccount } from './top-bar';
 export type { NavTab } from './top-bar-tabs';
+export { UnavailableRecipe } from './unavailable-recipe';
 export { Wordmark } from './wordmark';
