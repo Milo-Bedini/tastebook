@@ -88,6 +88,7 @@ def test_returns_a_summary_of_each_recipe_with_its_total_time_and_difficulty() -
             'id': recipe.id,
             'slug': 'shakshuka',
             'visibility': 'public',
+            'author': None,
             'title': 'Shakshuka',
             'description': 'Eggs in spiced tomatoes.',
             'cuisines': [],
@@ -171,6 +172,7 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
         'id': recipe.id,
         'slug': 'shakshuka',
         'visibility': 'public',
+        'author': None,
         'title': 'Shakshuka',
         'description': 'Eggs in spiced tomatoes.',
         'cuisines': [{'slug': 'italian', 'name': 'Italian'}],
@@ -195,6 +197,8 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
         'steps': [],
         'diet_tag_conflicts': [],
         'can_delete': False,
+        'can_edit': False,
+        'can_publish': False,
     }
 
 

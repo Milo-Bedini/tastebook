@@ -228,6 +228,7 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
     assert {key: value for key, value in recipe.items() if key not in {'id', 'ingredient_groups', 'steps'}} == {
         'slug': 'shakshuka',
         'visibility': 'public',
+        'author': None,
         'title': 'Shakshuka',
         'description': 'Eggs in spiced tomatoes.',
         'cuisines': [{'slug': 'spanish', 'name': 'Spanish'}],
@@ -271,6 +272,8 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
             }
         ],
         'can_delete': False,
+        'can_edit': False,
+        'can_publish': False,
     }
     assert [
         (group['name'], [(line['amount'], line['amount_max'], line['ingredient']['name']) for line in group['lines']])

@@ -170,6 +170,41 @@ def edit_recipe(
     return recipe
 
 
+def publishing_gaps(recipe: Recipe) -> list[str]:
+    """What a recipe needs before it can be public, in the order the recipe page's "What's missing" lists them.
+    An ingredient awaiting review isn't one: it only holds back the diet tags."""
+    # Asked of the database, not a prefetch, so an edit's new lines and steps count.
+    missing = [
+        ('ingredients', not IngredientLine.objects.filter(recipe=recipe).exists()),
+        ('a method', not Step.objects.filter(recipe=recipe).exists()),
+        ('a prep time', recipe.prep_minutes is None),
+        ('a cook time', recipe.cook_minutes is None),
+        ('servings or a yield', recipe.servings is None and recipe.yield_amount is None),
+    ]
+    return [gap for gap, is_missing in missing if is_missing]
+
+
+def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
+    """Makes the recipe public or private. Raises ValidationError({'visibility': [...]}) when it's made public
+    while publishing_gaps() names something."""
+    if recipe.visibility == visibility:
+        return recipe
+    if visibility == Visibility.PUBLIC:
+        gaps = publishing_gaps(recipe)
+        if gaps:
+            raise ValidationError({'visibility': [f'Add {_together(gaps)} before making it public.']})
+    recipe.visibility = visibility
+    recipe.save(update_fields=['visibility'])
+    return recipe
+
+
+def _together(parts: list[str]) -> str:
+    """The parts as a sentence lists them: "a, b and c", with no comma before the "and"."""
+    if len(parts) == 1:
+        return parts[0]
+    return f'{", ".join(parts[:-1])} and {parts[-1]}'
+
+
 def delete_recipe(recipe: Recipe) -> None:
     """Deletes the recipe with its ingredient lines, groups, steps and uploaded photo, unless another recipe uses the
     photo. An added ingredient only it used stays, awaiting review."""

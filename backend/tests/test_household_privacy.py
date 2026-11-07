@@ -47,6 +47,10 @@ def patch(path: str, body: dict[str, str]) -> Probe:
     return Probe('patch', path, body)
 
 
+def put(path: str, body: dict[str, str]) -> Probe:
+    return Probe('put', path, body)
+
+
 def delete(path: str, body: dict[str, str] | None = None) -> Probe:
     return Probe('delete', path, body or {})
 
@@ -130,6 +134,10 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         patch('/api/recipes/{recipe}/', {'title': 'Taken'}),
         delete('/api/recipes/{recipe}/'),
     ),
+    'api/recipes/<slug:slug>/visibility/': (
+        put('/api/recipes/no-such-recipe/visibility/', {'visibility': 'public'}),
+        put('/api/recipes/{recipe}/visibility/', {'visibility': 'public'}),
+    ),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),
     'api/equipment/': (get('/api/equipment/'),),
@@ -197,7 +205,7 @@ def what_they_hold(quillfeathers: Quillfeathers) -> dict[str, Any]:
             EmailAddress.objects.filter(user__household=household).values_list('user__email', 'email', 'verified')
         ),
         'invites': sorted(Invite.objects.filter(household=household).values_list('token', 'cancelled_at')),
-        'recipes': sorted(Recipe.objects.filter(household=household).values_list('slug', 'title')),
+        'recipes': sorted(Recipe.objects.filter(household=household).values_list('slug', 'title', 'visibility')),
     }
 
 
