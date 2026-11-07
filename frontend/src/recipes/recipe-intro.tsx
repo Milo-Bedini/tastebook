@@ -11,6 +11,8 @@ import { formatMinutes } from './format-minutes';
 import { DeleteRecipe } from './recipe-delete';
 import { RecipeGaps } from './recipe-gaps';
 import { hasIngredients } from './recipe-ingredients';
+import { RecipeVisibility } from './recipe-visibility';
+import { useVisibilityGone } from './recipes-api';
 
 type Recipe = components['schemas']['Recipe'];
 
@@ -18,14 +20,18 @@ type RecipeProps = { recipe: Recipe };
 
 const namesOf = (names: { name: string }[]) => names.map(({ name }) => name).join(', ');
 
+const takeFocus = (element: HTMLElement | null) => element?.focus();
+
+type RecipeTitleProps = { title: string; takesFocus: boolean };
+
 // The first word is often "A" or "The", so the squiggle goes under the longest, the first of equals.
-const RecipeTitle = ({ title }: { title: string }) => {
+const RecipeTitle = ({ title, takesFocus }: RecipeTitleProps) => {
   const words = title.split(' ');
   const longest = words.reduce((found, word, index) => (word.length > (words[found]?.length ?? 0) ? index : found), 0);
   const before = words.slice(0, longest).join(' ');
   const after = words.slice(longest + 1).join(' ');
   return (
-    <h1 className="break-words">
+    <h1 ref={takesFocus ? takeFocus : undefined} tabIndex={-1} className="break-words">
       {before !== '' && `${before} `}
       <Squiggle>{words[longest]}</Squiggle>
       {after !== '' && ` ${after}`}
@@ -91,12 +97,22 @@ const RecipeTimes = ({ recipe }: RecipeProps) => {
   return times === null ? null : <TimeBlobs times={times} />;
 };
 
+// A public household recipe credits its author where a private one shows its mark: one or the other, never both.
+const RecipeCredit = ({ recipe }: RecipeProps) => {
+  if (recipe.author !== null) {
+    return <p className="text-muted">{`by ${recipe.author}`}</p>;
+  }
+  return recipe.visibility === 'private' ? <PrivateMark /> : null;
+};
+
 export const RecipeIntro = ({ recipe }: RecipeProps) => {
   const facts = factsOf(recipe);
+  // The switch held focus; when the answer takes it off the page, focus goes to the title instead.
+  const switchGone = useVisibilityGone(recipe.slug) && !recipe.can_publish;
   return (
     <div className="flex flex-col gap-4">
-      <RecipeTitle title={recipe.title} />
-      {recipe.visibility === 'private' && <PrivateMark />}
+      <RecipeTitle title={recipe.title} takesFocus={switchGone} />
+      <RecipeCredit recipe={recipe} />
       {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
       {facts !== '' && <p className="text-muted tabular-nums">{facts}</p>}
       {recipe.equipment.length > 0 && <p className="text-muted">{`Equipment: ${namesOf(recipe.equipment)}`}</p>}
@@ -110,10 +126,10 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
       ))}
       <RecipeTimes recipe={recipe} />
       <RecipeGaps recipe={recipe} />
-      {(recipe.visibility === 'private' || recipe.can_delete) && (
+      {recipe.can_publish && <RecipeVisibility recipe={recipe} />}
+      {(recipe.can_edit || recipe.can_delete) && (
         <div className="flex flex-wrap gap-2">
-          {/* A private recipe reaches its page only for its own household, so anyone seeing it may edit it. */}
-          {recipe.visibility === 'private' && (
+          {recipe.can_edit && (
             <Button asChild variant="secondary">
               <Link to={`/recipes/${recipe.slug}/edit`}>
                 <Pencil aria-hidden="true" strokeWidth={2.5} />
