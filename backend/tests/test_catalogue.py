@@ -27,6 +27,8 @@ HAND_WRITTEN = [
 CREDIT = 'Adapted from the Wikibooks Cookbook (CC BY-SA 4.0), converted to metric, ingredients restructured'
 WIKIBOOKS_PAGE = re.compile(r'^https://en\.wikibooks\.org/wiki/Cookbook:[^?#]+$')
 SHORTLIST = Path(__file__).resolve().parent.parent / 'recipes' / 'catalogue-shortlist.json'
+CATALOGUE = Path(__file__).resolve().parent.parent / 'recipes' / 'catalogue.json'
+BIOME_CONFIG = Path(__file__).resolve().parents[2] / 'biome.json'
 
 # A small catalogue for tests about loading, not about the repo's own file.
 SHAKSHUKA: dict[str, Any] = {
@@ -560,6 +562,16 @@ def test_the_shortlist_holds_about_300_wikibooks_pages_spread_across_cuisines() 
     assert [cuisine for cuisine, count in per_cuisine.items() if count > 40] == []
     batches = Counter(entry['batch'] for entry in shortlist if entry['batch'] is not None)
     assert batches == {1: 50, 2: 50, 3: 50, 4: 50, 5: 50, 6: 50}
+
+
+def test_the_catalogue_stays_more_than_10_percent_under_biomes_size_limit() -> None:
+    # Biome only warns about a file over files.maxSize and leaves it unformatted and unchecked, so lint still passes.
+    max_size = json.loads(BIOME_CONFIG.read_text(encoding='utf-8'))['files']['maxSize']
+    size = CATALOGUE.stat().st_size
+
+    assert size < max_size * 0.9, (
+        f'catalogue.json is {size} bytes, within 10% of files.maxSize ({max_size}): raise the limit in biome.json'
+    )
 
 
 @pytest.mark.django_db
