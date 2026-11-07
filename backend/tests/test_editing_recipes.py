@@ -5,10 +5,10 @@ import pytest
 from django.http import HttpResponse
 
 from households.models import User
-from recipes.models import Recipe
+from recipes.models import IngredientGroup, IngredientLine, Recipe, Step
 from tests.test_accounts import BrowserClient, sign_up
 from tests.test_household import join, signed_up
-from tests.test_recipes import make_recipe
+from tests.test_recipes import add_line, make_recipe
 
 RECIPES = '/api/recipes/'
 MILO = 'milo@example.com'
@@ -33,6 +33,23 @@ def ben_in_milos_household() -> BrowserClient:
     ben = signed_up(BEN, 'Ben')
     join(BEN, MILO)
     return ben
+
+
+def complete_curry() -> tuple[BrowserClient, str]:
+    """Milo's curry with two lines, two steps, prep 15, cook 30 and serves 4: everything a public recipe needs."""
+    milo, slug = milos_curry(prep_minutes=15, cook_minutes=30, servings=4)
+    curry = Recipe.objects.get(slug=slug)
+    add_line(curry, 'onion')
+    add_line(curry, 'tomato', group=IngredientGroup.objects.create(recipe=curry, name='For the sauce'))
+    Step.objects.create(recipe=curry, position=0, text='Fry the onions.')
+    Step.objects.create(recipe=curry, position=1, text='Add the tomatoes.')
+    return milo, slug
+
+
+def public_curry() -> tuple[BrowserClient, str]:
+    milo, slug = complete_curry()
+    Recipe.objects.filter(slug=slug).update(visibility='public')
+    return milo, slug
 
 
 def title_of(slug: str) -> str:
@@ -228,3 +245,70 @@ def test_when_two_members_save_the_last_save_wins() -> None:
     body = milo.client.get(f'{RECIPES}{slug}/').json()
     assert (first.status_code, second.status_code) == (200, 200)
     assert (body['title'], body['cook_minutes']) == ("Ben's curry", 40)
+
+
+@pytest.mark.django_db
+def test_another_member_cant_edit_a_public_recipe() -> None:
+    _, slug = public_curry()
+    ben = ben_in_milos_household()
+
+    response = change(ben, slug, {'title': 'Taken'})
+
+    assert response.status_code == 404
+    assert title_of(slug) == CURRY
+
+
+@pytest.mark.django_db
+def test_the_author_edits_their_public_recipe() -> None:
+    milo, slug = public_curry()
+
+    response = change(milo, slug, {'title': 'Lamb curry'})
+
+    assert (response.status_code, response.json()['title'], title_of(slug)) == (200, 'Lamb curry', 'Lamb curry')
+
+
+def what_publishing_needs(slug: str) -> tuple[Any, ...]:
+    recipe = Recipe.objects.get(slug=slug)
+    return (
+        IngredientLine.objects.filter(recipe=recipe).count(),
+        IngredientGroup.objects.filter(recipe=recipe).count(),
+        list(Step.objects.filter(recipe=recipe).values_list('text', flat=True)),
+        recipe.prep_minutes,
+        recipe.cook_minutes,
+        recipe.servings,
+    )
+
+
+AS_PUBLISHED = (2, 1, ['Fry the onions.', 'Add the tomatoes.'], 15, 30, 4)
+
+GAP_LEFT_BY = [
+    pytest.param({'steps': []}, 'a method', id='no steps'),
+    pytest.param({'ingredient_lines': [], 'ingredient_groups': []}, 'ingredients', id='no ingredients'),
+    pytest.param({'cook_minutes': None}, 'a cook time', id='no cook time'),
+    pytest.param({'servings': None}, 'servings or a yield', id='no servings'),
+]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(('body', 'gap'), GAP_LEFT_BY)
+def test_an_edit_leaving_a_public_recipe_missing_something_is_refused(body: dict[str, Any], gap: str) -> None:
+    milo, slug = public_curry()
+
+    response = change(milo, slug, {**body, 'title': 'Lamb curry'})
+
+    assert (response.status_code, response.json()) == (
+        400,
+        {'non_field_errors': [f"A public recipe needs {gap}, so these changes can't be saved. Make it private first."]},
+    )
+    assert (title_of(slug), what_publishing_needs(slug)) == (CURRY, AS_PUBLISHED)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(('body', 'gap'), GAP_LEFT_BY)
+def test_the_same_edit_to_a_private_recipe_is_saved(body: dict[str, Any], gap: str) -> None:
+    milo, slug = complete_curry()
+
+    response = change(milo, slug, body)
+
+    assert response.status_code == 200
+    assert what_publishing_needs(slug) != AS_PUBLISHED

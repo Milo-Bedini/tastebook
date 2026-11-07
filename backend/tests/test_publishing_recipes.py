@@ -6,9 +6,9 @@ from django.http import HttpResponse
 from pytest_django import DjangoAssertNumQueries
 
 from households.models import User
-from recipes.models import Ingredient, IngredientGroup, IngredientLine, IngredientStatus, Recipe, Step
+from recipes.models import Ingredient, IngredientLine, IngredientStatus, Recipe, Step
 from tests.test_accounts import BrowserClient, sign_up
-from tests.test_editing_recipes import BEN, CURRY, MILO, RECIPES, ben_in_milos_household, milos_curry
+from tests.test_editing_recipes import BEN, CURRY, MILO, RECIPES, ben_in_milos_household, complete_curry, public_curry
 from tests.test_household import signed_up
 from tests.test_private_recipes import add, another_household, another_member, its_author, stranger
 from tests.test_recipes import add_line, ingredient, make_recipe
@@ -18,23 +18,6 @@ def publish(browser: BrowserClient, slug: str, visibility: Any = 'public') -> Ht
     return browser.client.put(
         f'{RECIPES}{slug}/visibility/', {'visibility': visibility}, format='json', **browser.csrf_header()
     )
-
-
-def complete_curry() -> tuple[BrowserClient, str]:
-    """Milo's curry with two lines, two steps, prep 15, cook 30 and serves 4: everything a public recipe needs."""
-    milo, slug = milos_curry(prep_minutes=15, cook_minutes=30, servings=4)
-    curry = Recipe.objects.get(slug=slug)
-    add_line(curry, 'onion')
-    add_line(curry, 'tomato', group=IngredientGroup.objects.create(recipe=curry, name='For the sauce'))
-    Step.objects.create(recipe=curry, position=0, text='Fry the onions.')
-    Step.objects.create(recipe=curry, position=1, text='Add the tomatoes.')
-    return milo, slug
-
-
-def public_curry() -> tuple[BrowserClient, str]:
-    milo, slug = complete_curry()
-    Recipe.objects.filter(slug=slug).update(visibility='public')
-    return milo, slug
 
 
 def visibility_of(slug: str) -> str:

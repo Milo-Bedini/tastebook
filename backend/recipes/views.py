@@ -142,11 +142,11 @@ class RecipeDetailView(RetrieveAPIView):
             403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
             404: OpenApiResponse(
                 description="No recipe has this slug in the account's household: there's none, "
-                "it's another household's, or it's a catalogue recipe."
+                "it's another household's, it's a catalogue recipe, or it's public and another member wrote it."
             ),
         },
-        description="Edits a recipe of the signed-in account's household; any member may, whoever wrote it. "
-        'Only the fields sent change, and the address stays as it is. '
+        description="Edits a recipe of the signed-in account's household: any member may edit a private recipe, "
+        'only its author a public one. Only the fields sent change, and the address stays as it is. '
         'Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. '
         'Sending steps replaces every step.',
     )

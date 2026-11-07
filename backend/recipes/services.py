@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
 
@@ -145,7 +145,8 @@ def edit_recipe(
 ) -> Recipe:
     """Changes the details given and keeps the recipe's address. None leaves the cuisines, courses, equipment,
     ingredients or steps as they are. A photo replaced or removed is deleted from the store once saved, unless another
-    recipe uses it. Raises ValidationError when a pair is half given, as add_recipe does."""
+    recipe uses it. Raises ValidationError when a pair is half given, as add_recipe does, or when a public recipe
+    would be left missing something publishing_gaps() names."""
     replaced = recipe.photo_url
     with transaction.atomic():
         for name, value in details.items():
@@ -165,6 +166,12 @@ def edit_recipe(
             _set_ingredients(recipe, ingredients)
         if steps is not None:
             _set_steps(recipe, steps)
+        # Checked once everything is set, so raising rolls the whole edit back.
+        gaps = publishing_gaps(recipe) if recipe.visibility == Visibility.PUBLIC else []
+        if gaps:
+            needs = _together(gaps)
+            refusal = f"A public recipe needs {needs}, so these changes can't be saved. Make it private first."
+            raise ValidationError({NON_FIELD_ERRORS: [refusal]})
         if recipe.photo_url != replaced:
             transaction.on_commit(partial(_delete_photo_unless_used, replaced))
     return recipe
