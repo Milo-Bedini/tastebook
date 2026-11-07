@@ -4,11 +4,11 @@ Canvas: https://claude.ai/artifact/9at2aHTmCQcxB9ziYRDVee
 
 ## Boards
 
-- `Main.dc.html` — The photo at its real shape: the recipe form at phone width (390 px) with a Photo field after Description, empty and filled, drawn at the recipe's 7:5 crop with Replace photo and Remove photo under it.
-- `photo-field.dc.html` — PhotoField, every state at a phone's field width: empty, uploading (faded preview with progress, Cancel upload), uploaded, not a photo, too big, couldn't upload (Try again / Choose another), removed (toast with Undo), save while it uploads, and save failed because the upload failed.
-- `form-laptop.dc.html` — The form on a laptop (1280 px): one 640 px column, the photo capped at 400 px wide from tablets up, and the drag-over state ("Drop the photo to add it").
-- `recipe-photo.dc.html` — RecipePhoto with a household's own photo: the recipe's page (7:5 polaroid, taped) and its card in the list (4:3), beside a recipe with no photo showing the filler. No credit line.
-- `proposed-rule-change.dc.html` — Proposed rule change to `docs/design.md` (Space and shape, Photos).
+- `docs/design/picnic/recipe-photo.dc.html` — The photo at its real shape: the recipe form at phone width (390 px) with a Photo field after Description, empty and filled, drawn at the recipe's 7:5 crop with Replace photo and Remove photo under it.
+- `docs/design/dino/photo-field.dc.html` — PhotoField, every state at a phone's field width: empty, uploading (faded preview with progress, Cancel upload), uploaded, not a photo, too big, couldn't upload (Try again / Choose another), removed (toast with Undo), save while it uploads, and save failed because the upload failed.
+- `docs/design/picnic/recipe-photo-laptop.dc.html` — The form on a laptop (1280 px): one 640 px column, the photo capped at 400 px wide from tablets up, and the drag-over state ("Drop the photo to add it").
+- `docs/design/picnic/recipe-photo-page.dc.html` — RecipePhoto with a household's own photo: the recipe's page (7:5 polaroid, taped) and its card in the list (4:3), beside a recipe with no photo showing the filler. No credit line.
+- `docs/design/picnic/recipe-photo-proposed-rule-change.dc.html` — Proposed rule change to `docs/design.md` (Space and shape, Photos).
 
 ## Decisions
 
