@@ -8,6 +8,7 @@ export { ConfirmDialog } from './confirm-dialog';
 export { Dock } from './dock';
 export { EmptyState } from './empty-state';
 export { ErrorWithRetry } from './error-with-retry';
+export { FavouriteButton } from './favourite-button';
 export { Field, type FieldControlProps } from './field';
 export { FilterChip } from './filter-chip';
 export { IconButton } from './icon-button';
