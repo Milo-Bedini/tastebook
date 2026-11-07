@@ -5,6 +5,7 @@ import type { components } from '../api/schema';
 type Course = components['schemas']['Course'];
 type Cuisine = components['schemas']['Cuisine'];
 type CurrentAccount = components['schemas']['CurrentAccount'];
+type Equipment = components['schemas']['Equipment'];
 type Health = components['schemas']['Health'];
 type IngredientOption = components['schemas']['IngredientOption'];
 type NewIngredient = components['schemas']['NewIngredient'];
@@ -20,6 +21,11 @@ const cuisines: Cuisine[] = [
 const courses: Course[] = [
   { slug: 'dessert', name: 'Dessert' },
   { slug: 'main', name: 'Main' }
+];
+
+const equipment: Equipment[] = [
+  { slug: 'hob', name: 'Hob' },
+  { slug: 'oven', name: 'Oven' }
 ];
 
 const ingredients: IngredientOption[] = [
@@ -121,6 +127,7 @@ export const handlers = [
   http.get('/api/health/', () => HttpResponse.json<Health>({ status: 'ok', database: 'ok', version: '0.1.0' })),
   http.get('/api/courses/', () => HttpResponse.json<Course[]>(courses)),
   http.get('/api/cuisines/', () => HttpResponse.json<Cuisine[]>(cuisines)),
+  http.get('/api/equipment/', () => HttpResponse.json<Equipment[]>(equipment)),
   http.get('/api/ingredients/', () => HttpResponse.json<IngredientOption[]>(ingredients)),
   // Adds every name as a new ingredient awaiting review.
   http.post('/api/ingredients/', async ({ request }) => {

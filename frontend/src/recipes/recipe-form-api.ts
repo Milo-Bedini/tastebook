@@ -13,25 +13,45 @@ export type RecipeErrors = Partial<Record<keyof NewRecipe | 'non_field_errors', 
 
 export type RecipeSaving =
   | { kind: 'saved'; recipe: Recipe }
-  | { kind: 'refused'; errors: RecipeErrors }
+  // A refused step is keyed by its place among the steps sent.
+  | { kind: 'refused'; errors: RecipeErrors; stepErrors: Record<string, string> }
   | { kind: 'signed-out' }
   | { kind: 'gone' };
 
 const SOME_INGREDIENTS = "Some ingredients couldn't be saved. Check them and try again.";
 
+const firstOf = (messages: unknown): string[] =>
+  Array.isArray(messages) && typeof messages[0] === 'string' ? [messages[0]] : [];
+
 // DRF answers a refusal as {"<field>": ["…"], "non_field_errors": ["…"]}; the page shows each key's first message.
-// A list of lines or groups answers an object keyed by the index of each one refused, which the page sums up.
+// A list of lines or groups answers an object keyed by the index of each one refused, which the page sums up; the
+// steps' object is kept apart, so each refused step shows its own message.
 const firstMessages = (body: unknown): RecipeErrors =>
   typeof body === 'object' && body !== null
     ? Object.fromEntries(
         Object.entries(body).flatMap(([key, messages]) => {
           if (Array.isArray(messages)) {
-            return typeof messages[0] === 'string' ? [[key, messages[0]]] : [];
+            return firstOf(messages).map((message) => [key, message]);
           }
-          return typeof messages === 'object' && messages !== null ? [[key, SOME_INGREDIENTS]] : [];
+          return typeof messages === 'object' && messages !== null && key !== 'steps' ? [[key, SOME_INGREDIENTS]] : [];
         })
       )
     : {};
+
+const stepMessages = (body: unknown): Record<string, string> => {
+  const steps = typeof body === 'object' && body !== null && 'steps' in body ? body.steps : undefined;
+  return typeof steps === 'object' && steps !== null && !Array.isArray(steps)
+    ? Object.fromEntries(
+        Object.entries(steps).flatMap(([index, messages]) => firstOf(messages).map((message) => [index, message]))
+      )
+    : {};
+};
+
+const refused = (body: unknown): RecipeSaving => ({
+  kind: 'refused',
+  errors: firstMessages(body),
+  stepErrors: stepMessages(body)
+});
 
 export const useAddRecipe = () => {
   const queryClient = useQueryClient();
@@ -42,7 +62,7 @@ export const useAddRecipe = () => {
         return { kind: 'saved', recipe: data };
       }
       if (response.status === 400) {
-        return { kind: 'refused', errors: firstMessages(error) };
+        return refused(error);
       }
       // Signed out, or no household yet: the page asks the session again, which sends a visitor to sign-in.
       if (response.status === 403) {
@@ -76,7 +96,7 @@ export const useEditRecipe = (slug: string) => {
         return { kind: 'saved', recipe: data };
       }
       if (response.status === 400) {
-        return { kind: 'refused', errors: firstMessages(error) };
+        return refused(error);
       }
       if (response.status === 403) {
         return { kind: 'signed-out' };

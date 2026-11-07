@@ -143,8 +143,10 @@ describe('NewRecipePage', () => {
         one_pot: false,
         source: '',
         source_url: '',
+        equipment: [],
         ingredient_lines: [],
-        ingredient_groups: []
+        ingredient_groups: [],
+        steps: []
       }
     ]);
   });
@@ -171,6 +173,8 @@ describe('NewRecipePage', () => {
     await typeInto('What it makes', 'flatbreads');
     await typeInto('Source credit', 'Grandma Bedini');
     await typeInto('Source address', 'https://example.com/flatbreads');
+    await userEvent.click(await screen.findByRole('button', { name: 'Oven' }));
+    await typeInto('Step 1', 'Mix the dough and leave it to prove.');
     await save();
 
     await waitFor(() => expect(sent).toHaveLength(1));
@@ -190,8 +194,10 @@ describe('NewRecipePage', () => {
       one_pot: true,
       source: 'Grandma Bedini',
       source_url: 'https://example.com/flatbreads',
+      equipment: ['oven'],
       ingredient_lines: [],
-      ingredient_groups: []
+      ingredient_groups: [],
+      steps: ['Mix the dough and leave it to prove.']
     });
   });
 
@@ -861,6 +867,209 @@ describe('NewRecipePage', () => {
       await userEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
 
       expect(await screen.findByRole('combobox', { name: 'Add an ingredient' })).toBeInTheDocument();
+    });
+  });
+
+  describe('method', () => {
+    const FRY = 'Fry the onion until soft.';
+    const SIMMER = 'Add the tomatoes and simmer.';
+    const SERVE = 'Serve with rice.';
+
+    const method = () => within(screen.getByRole('region', { name: 'Method' }));
+
+    const writeSteps = async (...steps: string[]) => {
+      for (const [index, text] of steps.entries()) {
+        if (index > 0) {
+          await userEvent.click(method().getByRole('button', { name: 'Add a step' }));
+        }
+        if (text !== '') {
+          await typeInto(`Step ${index + 1}`, text);
+        }
+      }
+    };
+
+    const savedSteps = async (sent: NewRecipe[]) => {
+      await typeInto('Title', 'Curry');
+      await save();
+      await waitFor(() => expect(sent).toHaveLength(1));
+      return sent[0]?.steps;
+    };
+
+    const stepTexts = () =>
+      method()
+        .getAllByRole('textbox')
+        .map((step) => (step as HTMLTextAreaElement).value);
+
+    it('opens with one blank step, then adds each step with focus in it', async () => {
+      answerAdding();
+      await openForm();
+
+      expect(stepTexts()).toEqual(['']);
+      expect(method().queryByRole('button', { name: 'Remove step 1' })).not.toBeInTheDocument();
+      expect(method().queryByRole('button', { name: 'Reorder' })).not.toBeInTheDocument();
+
+      await userEvent.click(method().getByRole('button', { name: 'Add a step' }));
+
+      expect(textbox('Step 2')).toHaveFocus();
+      expect(method().getByRole('button', { name: 'Remove step 1' })).toBeInTheDocument();
+      expect(method().getByRole('button', { name: 'Reorder' })).toBeInTheDocument();
+    });
+
+    it('sends the steps in order, trimmed, leaving the blank ones out, with the equipment chosen', async () => {
+      const sent = answerAdding();
+      await openForm();
+
+      await userEvent.click(await method().findByRole('button', { name: 'Oven' }));
+      await userEvent.click(method().getByRole('button', { name: 'Hob' }));
+      await writeSteps(`  ${FRY}`, '', `${SIMMER}{Enter}Stir now and then.`, ' ');
+
+      expect(await savedSteps(sent)).toEqual([FRY, `${SIMMER}\nStir now and then.`]);
+      expect(sent[0]?.equipment).toEqual(['oven', 'hob']);
+    });
+
+    it('removes a step, renumbering the rest and moving focus to the step now in its place', async () => {
+      const sent = answerAdding();
+      await openForm();
+      await writeSteps(FRY, SIMMER, SERVE);
+
+      await userEvent.click(method().getByRole('button', { name: 'Remove step 2' }));
+
+      expect(stepTexts()).toEqual([FRY, SERVE]);
+      expect(textbox('Step 2')).toHaveFocus();
+      expect(textbox('Step 2')).toHaveValue(SERVE);
+      expect(method().getByRole('status')).toHaveTextContent('Removed step 2.');
+
+      await userEvent.click(method().getByRole('button', { name: 'Remove step 2' }));
+
+      expect(method().getByRole('button', { name: 'Add a step' })).toHaveFocus();
+      expect(method().queryByRole('button', { name: 'Remove step 1' })).not.toBeInTheDocument();
+      expect(await savedSteps(sent)).toEqual([FRY]);
+    });
+
+    it('splits a method pasted into an empty step at its blank lines', async () => {
+      const sent = answerAdding();
+      await openForm();
+      await writeSteps(FRY, '');
+
+      await userEvent.click(textbox('Step 2'));
+      await userEvent.paste(`${SIMMER}\nStir now and then.\n\n\n${SERVE}\r\n\r\nWash up.`);
+
+      expect(stepTexts()).toEqual([FRY, `${SIMMER}\nStir now and then.`, SERVE, 'Wash up.']);
+      expect(textbox('Step 4')).toHaveFocus();
+      expect(textbox('Step 4')).toHaveProperty('selectionStart', 'Wash up.'.length);
+      expect(method().getByRole('status')).toHaveTextContent('Pasted 3 steps.');
+      expect(await savedSteps(sent)).toEqual([FRY, `${SIMMER}\nStir now and then.`, SERVE, 'Wash up.']);
+    });
+
+    it.each([
+      ['a step with text', FRY, `\n\n${SIMMER}\n\n${SERVE}`, `${FRY}\n\n${SIMMER}\n\n${SERVE}`],
+      ['an empty step, with no blank line', '', `${SIMMER}\n${SERVE}`, `${SIMMER}\n${SERVE}`]
+    ])('pastes into %s as typed', async (_, before, pasted, after) => {
+      answerAdding();
+      await openForm();
+      await writeSteps(before);
+
+      await userEvent.click(textbox('Step 1'));
+      await userEvent.paste(pasted);
+
+      expect(stepTexts()).toEqual([after]);
+    });
+
+    it('moves a step in a mode of its own, keeping focus on its button and saying where it went', async () => {
+      const sent = answerAdding();
+      await openForm();
+      await writeSteps(FRY, SIMMER, SERVE);
+
+      await userEvent.click(method().getByRole('button', { name: 'Reorder' }));
+
+      expect(method().queryByRole('textbox')).not.toBeInTheDocument();
+      expect(method().queryByRole('group', { name: 'Equipment' })).not.toBeInTheDocument();
+      expect(method().queryByRole('button', { name: 'Add a step' })).not.toBeInTheDocument();
+
+      await userEvent.click(method().getByRole('button', { name: 'Move step 3 up' }));
+
+      expect(method().getByRole('status')).toHaveTextContent("Moved step 3 up. It's now step 2.");
+      expect(method().getByRole('status')).toBeVisible();
+      expect(method().getByRole('button', { name: 'Move step 2 up' })).toHaveFocus();
+
+      await userEvent.click(method().getByRole('button', { name: 'Move step 1 down' }));
+
+      expect(method().getByRole('status')).toHaveTextContent("Moved step 1 down. It's now step 2.");
+      expect(method().getByRole('button', { name: 'Move step 2 down' })).toHaveFocus();
+
+      await userEvent.click(method().getByRole('button', { name: 'Done reordering' }));
+
+      expect(stepTexts()).toEqual([SERVE, FRY, SIMMER]);
+      expect(await savedSteps(sent)).toEqual([SERVE, FRY, SIMMER]);
+    });
+
+    it.each([
+      ['Move step 1 up', 'Step 1 is already first.'],
+      ['Move step 2 down', 'Step 2 is already last.']
+    ])('says why a step at an end does not move when %s is pressed', async (button, message) => {
+      answerAdding();
+      await openForm();
+      await writeSteps(FRY, SIMMER);
+
+      await userEvent.click(method().getByRole('button', { name: 'Reorder' }));
+      await userEvent.click(method().getByRole('button', { name: button }));
+
+      expect(method().getByRole('status')).toHaveTextContent(message);
+      expect(method().getByRole('button', { name: button })).not.toHaveAttribute('aria-disabled');
+      await userEvent.click(method().getByRole('button', { name: 'Done reordering' }));
+      expect(stepTexts()).toEqual([FRY, SIMMER]);
+    });
+
+    it("shows Tastebook's refusal of a step under it, counting only the steps sent, and focuses it", async () => {
+      const tooLong = 'Keep a step to 2,000 characters. Split this one in two.';
+      answerAdding(() => HttpResponse.json({ steps: { '1': [tooLong] } }, { status: 400 }));
+      await openForm();
+      await writeSteps(FRY, '', SIMMER);
+
+      await userEvent.click(method().getByRole('button', { name: 'Reorder' }));
+      await typeInto('Title', 'Curry');
+      await save();
+
+      await waitFor(() => expect(textbox('Step 3')).toHaveFocus());
+      expect(textbox('Step 3')).toHaveAccessibleDescription(tooLong);
+      expect(textbox('Step 3')).toHaveAttribute('aria-invalid', 'true');
+      expect(textbox('Step 1')).not.toHaveAttribute('aria-invalid');
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['too many steps', { steps: ['Keep the method to 100 steps.'] }, 'Keep the method to 100 steps.'],
+      [
+        'equipment not on the list',
+        { equipment: ['Object with slug=thermomix does not exist.'] },
+        'Object with slug=thermomix does not exist.'
+      ]
+    ])("shows Tastebook's refusal of %s in the banner", async (_, body, message) => {
+      answerAdding(() => HttpResponse.json(body, { status: 400 }));
+      await openForm();
+
+      await typeInto('Title', 'Curry');
+      await save();
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(`Couldn't save the recipe${message}`);
+    });
+
+    it('shows the equipment loading in its group, then a retry when it fails, while the steps work', async () => {
+      answerAdding();
+      server.use(http.get('/api/equipment/', () => new HttpResponse(null, { status: 503 })));
+      await openForm();
+
+      const equipment = method().getByRole('group', { name: 'Equipment' });
+      expect(within(equipment).getByRole('status')).toHaveTextContent('Loading equipment…');
+      const alert = await within(equipment).findByRole('alert');
+      expect(alert).toHaveTextContent("Couldn't load the equipment");
+      await typeInto('Step 1', FRY);
+      expect(textbox('Step 1')).toHaveValue(FRY);
+
+      server.use(http.get('/api/equipment/', () => HttpResponse.json([{ slug: 'oven', name: 'Oven' }])));
+      await userEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
+
+      expect(await within(equipment).findByRole('button', { name: 'Oven' })).toHaveAttribute('aria-pressed', 'false');
     });
   });
 });

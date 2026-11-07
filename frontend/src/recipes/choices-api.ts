@@ -18,3 +18,5 @@ const useChoices = (path: '/api/cuisines/' | '/api/courses/' | '/api/equipment/'
 export const useCuisines = () => useChoices('/api/cuisines/', 'cuisines');
 
 export const useCourses = () => useChoices('/api/courses/', 'courses');
+
+export const useEquipment = () => useChoices('/api/equipment/', 'equipment');

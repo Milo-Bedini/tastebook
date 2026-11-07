@@ -1,5 +1,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { type FormEvent, type ReactNode, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useNavigate } from 'react-router';
 
 import type { components } from '../api/schema';
@@ -18,7 +19,7 @@ import {
   toast
 } from '../dino';
 import { useSession } from '../households';
-import { useCourses, useCuisines } from './choices-api';
+import { useCourses, useCuisines, useEquipment } from './choices-api';
 import { difficulties, difficultyLabels } from './difficulty';
 import { toggled } from './recipe-filters';
 import type { NewRecipe, RecipeErrors, RecipeSaving } from './recipe-form-api';
@@ -32,6 +33,14 @@ import {
   toIngredientPayload,
   viewOfField
 } from './recipe-form-ingredients';
+import {
+  MethodSection,
+  type StepDraft,
+  stepDraftsOf,
+  stepErrorsOf,
+  stepFieldIds,
+  toStepPayload
+} from './recipe-form-method';
 
 type Recipe = components['schemas']['Recipe'];
 
@@ -47,6 +56,7 @@ type Draft = {
   description: string;
   cuisines: string[];
   courses: string[];
+  equipment: string[];
   difficulty: Difficulty | '';
   onePot: boolean;
   prep: string;
@@ -60,6 +70,7 @@ type Draft = {
   source: string;
   sourceUrl: string;
   ingredients: IngredientEntry[];
+  steps: StepDraft[];
 };
 
 const emptyDraft: Draft = {
@@ -67,6 +78,7 @@ const emptyDraft: Draft = {
   description: '',
   cuisines: [],
   courses: [],
+  equipment: [],
   difficulty: '',
   onePot: false,
   prep: '',
@@ -79,7 +91,8 @@ const emptyDraft: Draft = {
   yieldUnit: '',
   source: '',
   sourceUrl: '',
-  ingredients: []
+  ingredients: [],
+  steps: [{ key: 'first', text: '' }]
 };
 
 // A recipe as the form shows it: numbers as text, a missing one empty, and Makes chosen when it has a yield.
@@ -88,6 +101,7 @@ const draftOf = (recipe: Recipe): Draft => ({
   description: recipe.description,
   cuisines: recipe.cuisines.map(({ slug }) => slug),
   courses: recipe.courses.map(({ slug }) => slug),
+  equipment: recipe.equipment.map(({ slug }) => slug),
   difficulty: recipe.difficulty,
   onePot: recipe.one_pot,
   prep: recipe.prep_minutes?.toString() ?? '',
@@ -100,11 +114,12 @@ const draftOf = (recipe: Recipe): Draft => ({
   yieldUnit: recipe.yield_unit,
   source: recipe.source,
   sourceUrl: recipe.source_url,
-  ingredients: ingredientEntriesOf(recipe)
+  ingredients: ingredientEntriesOf(recipe),
+  steps: stepDraftsOf(recipe)
 });
 
-// The fields that take focus, in the form's order, so the first in error is the first here; the ingredients' come
-// between the description and the times.
+// The fields that take focus, in the form's order, so the first in error is the first here; the ingredients' and
+// then the steps' come between the description and the times.
 const typedFields = [
   'title',
   'description',
@@ -151,12 +166,13 @@ const checkDraft = (draft: Draft): RecipeErrors => {
 };
 
 // Only the chosen one of servings and a yield is sent, though both keep what was typed. Both ingredient lists are
-// always sent, so an edit replaces the recipe's ingredients with what the form shows.
+// always sent, as are the steps, so an edit replaces the recipe's ingredients and method with what the form shows.
 const toNewRecipe = (draft: Draft): NewRecipe => ({
   title: draft.title.trim(),
   description: draft.description.trim(),
   cuisines: draft.cuisines,
   courses: draft.courses,
+  equipment: draft.equipment,
   difficulty: draft.difficulty,
   prep_minutes: numberOrNull(draft.prep),
   cook_minutes: numberOrNull(draft.cook),
@@ -168,7 +184,8 @@ const toNewRecipe = (draft: Draft): NewRecipe => ({
   one_pot: draft.onePot,
   source: draft.source.trim(),
   source_url: draft.sourceUrl.trim(),
-  ...toIngredientPayload(draft.ingredients)
+  ...toIngredientPayload(draft.ingredients),
+  steps: toStepPayload(draft.steps)
 });
 
 // A refusal for a part with no field of its own (the chips, difficulty, a pair half given) shows in the banner.
@@ -176,8 +193,10 @@ const bannerMessage = (errors: RecipeErrors) =>
   errors.non_field_errors ??
   errors.ingredient_lines ??
   errors.ingredient_groups ??
+  errors.steps ??
   errors.cuisines ??
   errors.courses ??
+  errors.equipment ??
   errors.difficulty ??
   errors.one_pot;
 
@@ -307,6 +326,8 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
   const [ingredientErrors, setIngredientErrors] = useState<Record<string, string>>({});
   // Save opens an ingredient's sheet and leaves the Reorder mode, so the form owns what the section shows.
   const [ingredientsView, setIngredientsView] = useState<IngredientsView>({ kind: 'list' });
+  const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
+  const [reorderingSteps, setReorderingSteps] = useState(false);
   // Keyed by field id: a typed field's name, or an ingredient's field id, which holds its row.
   const fields = useRef<Record<string, HTMLElement | null>>({});
 
@@ -320,12 +341,27 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
 
   // Shows every message at once; focus goes to the first field in error, or the banner when no field is. An
   // ingredient in error has its row focused, then its sheet opened on the field, so closing it lands on the row.
-  const refuse = (refused: RecipeErrors, refusedIngredients: Record<string, string> = {}) => {
-    setErrors(refused);
-    setIngredientErrors(refusedIngredients);
+  // The steps leave their Reorder mode first, so a step in error has its text area to focus.
+  const refuse = (
+    refused: RecipeErrors,
+    refusedIngredients: Record<string, string> = {},
+    refusedSteps: Record<string, string> = {}
+  ) => {
+    flushSync(() => {
+      setErrors(refused);
+      setIngredientErrors(refusedIngredients);
+      setStepErrors(refusedSteps);
+      setReorderingSteps(false);
+    });
     const [title, description, ...rest] = typedFields;
-    const order: string[] = [title, description, ...ingredientFieldIds(draft.ingredients), ...rest];
-    const messages: Record<string, string | undefined> = { ...refused, ...refusedIngredients };
+    const order: string[] = [
+      title,
+      description,
+      ...ingredientFieldIds(draft.ingredients),
+      ...stepFieldIds(draft.steps),
+      ...rest
+    ];
+    const messages: Record<string, string | undefined> = { ...refused, ...refusedIngredients, ...refusedSteps };
     const first = order.find((field) => messages[field] !== undefined);
     if (first !== undefined) {
       fields.current[first]?.focus();
@@ -347,6 +383,7 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
     }
     setErrors({});
     setIngredientErrors({});
+    setStepErrors({});
     try {
       const result = await onSave(toNewRecipe(draft));
       if (result.kind === 'saved') {
@@ -355,7 +392,7 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
         return;
       }
       if (result.kind === 'refused') {
-        refuse(result.errors);
+        refuse(result.errors, {}, stepErrorsOf(draft.steps, result.stepErrors));
         return;
       }
       // The recipe is cached as missing, so the page says it isn't found.
@@ -451,6 +488,30 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
         onViewChange={setIngredientsView}
         errors={ingredientErrors}
         fieldRef={refFor}
+      />
+
+      <MethodSection
+        steps={draft.steps}
+        onChange={(update) =>
+          setDraft((current) => ({
+            ...current,
+            steps: typeof update === 'function' ? update(current.steps) : update
+          }))
+        }
+        reordering={reorderingSteps}
+        onReorderingChange={setReorderingSteps}
+        errors={stepErrors}
+        fieldRef={refFor}
+        equipment={
+          <ChipGroup
+            legend="Equipment"
+            query={useEquipment()}
+            loading="Loading equipment…"
+            errorTitle="Couldn't load the equipment"
+            selected={draft.equipment}
+            onChange={change('equipment')}
+          />
+        }
       />
 
       <Section id="recipe-form-times" heading="Times">
