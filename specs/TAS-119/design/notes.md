@@ -4,13 +4,13 @@ Canvas: https://claude.ai/artifact/1uRdu5ifcDghtpxRFF327z
 
 ## Boards
 
-- `Main.dc.html` — The switch with the author's controls: the author's recipe page at phone width, the Public switch off, disabled ("Add what's missing before making it public.", under the What's missing banner) and on ("by Sam" in place of the private mark), above Edit recipe and Delete recipe.
-- `publishing.dc.html` — Publishing, and private again: turn on → confirm dialog (focus on Cancel) → "Making public…" pending in the confirm → public with toast; turn off → switch disabled "Saving…" → private again with toast.
-- `answers.dc.html` — When the request doesn't go through: 400 refused (the API's words in an error toast, page refetches), 404 gone (info toast, not-found or no switch, focus to heading), network or 403 still signed in (nothing changed, switch as it was); 403 signed out goes to sign-in with `next`.
-- `others-view.dc.html` — Everyone else: "by Sam" on the page and the card: a household member who isn't the author (no switch, no Edit), signed out, and the list card for another household ("by Sam" as the meta's first line).
-- `laptop.dc.html` — The author's page at 1280 px: credit, switch and buttons in the intro's right-hand column; the switch row stops at 400 px.
-- `confirm-dialog.dc.html` — ConfirmDialog: the default (danger, trigger) unchanged, `tone="primary"`, controlled pending, 320 px wrap and forced colours, with the props change.
-- `rule-change.dc.html` — Proposed rule change to `docs/design.md`.
+- `docs/design/picnic/recipe-publish.dc.html` — The switch with the author's controls: the author's recipe page at phone width, the Public switch off, disabled ("Add what's missing before making it public.", under the What's missing banner) and on ("by Sam" in place of the private mark), above Edit recipe and Delete recipe.
+- `docs/design/picnic/recipe-publish-flow.dc.html` — Publishing, and private again: turn on → confirm dialog (focus on Cancel) → "Making public…" pending in the confirm → public with toast; turn off → switch disabled "Saving…" → private again with toast.
+- `docs/design/picnic/recipe-publish-answers.dc.html` — When the request doesn't go through: 400 refused (the API's words in an error toast, page refetches), 404 gone (info toast, not-found or no switch, focus to heading), network or 403 still signed in (nothing changed, switch as it was); 403 signed out goes to sign-in with `next`.
+- `docs/design/picnic/recipe-publish-credit.dc.html` — Everyone else: "by Sam" on the page and the card: a household member who isn't the author (no switch, no Edit), signed out, and the list card for another household ("by Sam" as the meta's first line).
+- `docs/design/picnic/recipe-publish-laptop.dc.html` — The author's page at 1280 px: credit, switch and buttons in the intro's right-hand column; the switch row stops at 400 px.
+- `docs/design/dino/confirm-dialog-tone.dc.html` — ConfirmDialog: the default (danger, trigger) unchanged, `tone="primary"`, controlled pending, 320 px wrap and forced colours, with the props change.
+- `docs/design/picnic/recipe-publish-proposed-rule-change.dc.html` — Proposed rule change to `docs/design.md`.
 
 ## Decisions
 
