@@ -18,6 +18,7 @@ export { Method } from './method';
 export { NativeSelect } from './native-select';
 export { Note } from './note';
 export { Page } from './page';
+export { PhotoField, type PhotoFieldPhoto } from './photo-field';
 export { type Lean, Polaroid } from './polaroid';
 export { PolaroidCard } from './polaroid-card';
 export { PrivateMark } from './private-mark';
