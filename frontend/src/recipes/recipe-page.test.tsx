@@ -19,6 +19,7 @@ const shakshuka: Recipe = {
   id: 7,
   slug: 'shakshuka',
   visibility: 'public',
+  author: null,
   title: 'Shakshuka',
   description: 'Eggs in spiced tomatoes.',
   cuisines: [],
@@ -42,7 +43,9 @@ const shakshuka: Recipe = {
   ingredient_groups: [],
   steps: [],
   diet_tag_conflicts: [],
-  can_delete: false
+  can_delete: false,
+  can_edit: false,
+  can_publish: false
 };
 
 const photo: RecipePhoto = {

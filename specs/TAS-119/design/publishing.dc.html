@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Publishing, and private again</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:844px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:24px}
+.scrolled{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-bottom:1px dashed var(--color-line);padding-bottom:12px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0;overflow-wrap:break-word}
+.intro p{margin:0}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.pmark{display:inline-flex;align-items:center;gap:4px;width:fit-content;box-sizing:border-box;padding:2px 8px 2px 6px;border:2px solid transparent;border-radius:var(--radius-check);background:var(--color-surface);color:var(--color-ink);font-size:13px;line-height:17px;font-weight:700}
+.pmark svg{width:14px;height:14px;flex-shrink:0}
+.credit{margin:0;color:var(--color-muted)}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.frow label{outline:3px solid var(--color-ink);outline-offset:-1px}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.toast{position:absolute;left:16px;right:16px;bottom:24px;min-height:56px;box-sizing:border-box;display:flex;align-items:center;gap:12px;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);padding:4px 4px 4px 18px;font-size:15px;line-height:20px;font-weight:800;box-shadow:var(--shadow-lift)}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.col .note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.col .note b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 2240px; height: 1500px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-119 part 2 · phone, 390 × 844 · Sam, scrolled to the intro · drawn for variant A</span>
+    <h1 class="ttl">Publishing, and private again</h1>
+    <span class="cap">On asks first, with a primary button that names it; Off acts at once. The switch moves only once the request answers, and focus comes back to it each time.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>1 · Turn it on</b> · the dialog opens, focus on Cancel</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <p class="scrolled">The photo, scrolled past</p>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+            <div class="ctrls">
+              <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Public</x-import>
+              <div class="btnrow">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+              </div>
+            </div>
+          </div>
+        </main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="p1-t" aria-describedby="p1-d">
+          <h2 id="p1-t">Make this recipe public?</h2>
+          <p id="p1-d">Anyone can find Grandma’s curry, credited “by Sam”, and only you will be able to edit it. You can make it private again.</p>
+          <div class="btns">
+            <span class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></span>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Make public</x-import>
+          </div>
+        </section>
+      </div>
+      <p class="note"><b>The switch stays off</b> while the dialog asks. Cancel, Escape or the scrim close it with nothing sent, and focus goes back to the switch.</p>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>2 · Make public</b> · the confirm shows the request; the dialog stays</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <p class="scrolled">The photo, scrolled past</p>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+            <div class="ctrls">
+              <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Public</x-import>
+            </div>
+          </div>
+        </main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="p2-t" aria-describedby="p2-d">
+          <h2 id="p2-t">Make this recipe public?</h2>
+          <p id="p2-d">Anyone can find Grandma’s curry, credited “by Sam”, and only you will be able to edit it. You can make it private again.</p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary" loading="{{yes}}" loading-label="Making public…">Make public</x-import>
+          </div>
+        </section>
+      </div>
+      <p class="note"><b>“Making public…”</b> beside a spinner, at the button’s own size, <code>aria-busy</code>, ignoring presses. Cancel still closes the dialog; the request carries on, the switch says “Saving…” until it answers, and the toast reports it.</p>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>3 · Public</b> · the dialog closes; the toast; focus on the switch</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <p class="scrolled">The photo, scrolled past</p>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <p class="credit">by Sam</p>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+            <div class="ctrls">
+              <span class="frow"><x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">Public</x-import></span>
+              <div class="btnrow">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+              </div>
+            </div>
+          </div>
+        </main>
+        <div class="toast" role="status">Grandma’s curry is public</div>
+      </div>
+      <p class="note"><b>Everything changes together</b> from the answer: the switch on with its check, “by Sam” in place of the private mark, and “Grandma’s curry is public” in a toast. No Undo on it: the switch is the way back.</p>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>4 · Turn it off</b> · no dialog; the switch waits on the request</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <p class="scrolled">The photo, scrolled past</p>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <p class="credit">by Sam</p>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+            <div class="ctrls">
+              <span class="frow"><x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}" disabled="{{yes}}" disabled-reason="Saving…">Public</x-import></span>
+              <div class="btnrow">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+      <p class="note"><b>Disabled with the reason “Saving…”</b> while the request runs, as the spec has it: the Switch as it is, with no new busy state. Still on, as nothing has changed yet; it keeps focus.</p>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>5 · Private again</b> · the mark returns; the toast</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <p class="scrolled">The photo, scrolled past</p>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+            <div class="ctrls">
+              <span class="frow"><x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Public</x-import></span>
+              <div class="btnrow">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+              </div>
+            </div>
+          </div>
+        </main>
+        <div class="toast" role="status">Grandma’s curry is private again</div>
+      </div>
+      <p class="note"><b>Off needs no asking:</b> it only narrows who sees the recipe, and turning it on again is the undo. The page is exactly the private page it was.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2240,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, noop: function () {},
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

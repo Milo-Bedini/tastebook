@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -9,6 +10,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from households.models import User
 from recipes.models import Course, Cuisine, Equipment, Ingredient, IngredientQuerySet, Recipe, RecipeQuerySet
 from recipes.photo_store import PhotoRefusedError, PhotoStoreUnavailableError, store_photo
 from recipes.serializers import (
@@ -25,10 +27,28 @@ from recipes.serializers import (
     RecipePhotoSerializer,
     RecipeSerializer,
     RecipeSummarySerializer,
+    RecipeVisibilitySerializer,
 )
-from recipes.services import IngredientList, add_ingredient, add_recipe, delete_recipe, edit_recipe
+from recipes.services import IngredientList, add_ingredient, add_recipe, delete_recipe, edit_recipe, set_visibility
 
 INGREDIENT_FIELDS = tuple(RecipeIngredientsSerializer().fields)
+
+
+def _detail_queryset(user: User | AnonymousUser) -> RecipeQuerySet:
+    # Another household's private recipe answers 404, the same as no recipe.
+    return (
+        Recipe.objects.visible_to(user)
+        .select_related('created_by')
+        .prefetch_related('cuisines', 'courses', 'equipment')
+        .with_ingredients_and_method()
+    )
+
+
+def _refusals(error: DjangoValidationError) -> ValidationError:
+    errors = error.message_dict
+    return ValidationError(
+        {('non_field_errors' if key == '__all__' else key): messages for key, messages in errors.items()}
+    )
 
 
 class RecipeListView(ListAPIView):
@@ -70,12 +90,10 @@ class RecipeListView(ListAPIView):
         try:
             recipe = add_recipe(request.user, details, cuisines, courses, equipment, ingredients, steps)
         except DjangoValidationError as error:
-            errors = error.message_dict
-            raise ValidationError(
-                {('non_field_errors' if key == '__all__' else key): messages for key, messages in errors.items()}
-            ) from error
+            raise _refusals(error) from error
         added = (
-            Recipe.objects.prefetch_related('cuisines', 'courses', 'equipment')
+            Recipe.objects.select_related('created_by')
+            .prefetch_related('cuisines', 'courses', 'equipment')
             .with_ingredients_and_method()
             .get(pk=recipe.pk)
         )
@@ -98,7 +116,7 @@ class RecipeListView(ListAPIView):
         )
         included = given['include_ingredient']
         recipes = recipes.using_all_of(included) if given['include_match'] == 'all' else recipes.using_any_of(included)
-        return recipes.prefetch_related('cuisines').with_diet_tags()
+        return recipes.select_related('created_by').prefetch_related('cuisines').with_diet_tags()
 
 
 class RecipeDetailView(RetrieveAPIView):
@@ -124,11 +142,11 @@ class RecipeDetailView(RetrieveAPIView):
             403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
             404: OpenApiResponse(
                 description="No recipe has this slug in the account's household: there's none, "
-                "it's another household's, or it's a catalogue recipe."
+                "it's another household's, it's a catalogue recipe, or it's public and another member wrote it."
             ),
         },
-        description="Edits a recipe of the signed-in account's household; any member may, whoever wrote it. "
-        'Only the fields sent change, and the address stays as it is. '
+        description="Edits a recipe of the signed-in account's household: any member may edit a private recipe, "
+        'only its author a public one. Only the fields sent change, and the address stays as it is. '
         'Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. '
         'Sending steps replaces every step.',
     )
@@ -160,10 +178,7 @@ class RecipeDetailView(RetrieveAPIView):
         try:
             edit_recipe(recipe, details, cuisines, courses, equipment, ingredients, steps)
         except DjangoValidationError as error:
-            errors = error.message_dict
-            raise ValidationError(
-                {('non_field_errors' if key == '__all__' else key): messages for key, messages in errors.items()}
-            ) from error
+            raise _refusals(error) from error
         edited = self.get_queryset().get(pk=recipe.pk)
         return Response(RecipeSerializer(edited, context={'request': request}).data)
 
@@ -189,12 +204,43 @@ class RecipeDetailView(RetrieveAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self) -> RecipeQuerySet:
-        # Another household's recipe answers 404, the same as no recipe.
-        return (
-            Recipe.objects.visible_to(self.request.user)
-            .prefetch_related('cuisines', 'courses', 'equipment')
-            .with_ingredients_and_method()
-        )
+        return _detail_queryset(self.request.user)
+
+
+class RecipeVisibilityView(APIView):
+    permission_classes = []
+
+    @extend_schema(
+        operation_id='recipes_visibility_update',
+        request=RecipeVisibilitySerializer,
+        responses={
+            200: RecipeSerializer,
+            400: OpenApiResponse(
+                description="The visibility isn't public or private, or the recipe lacks something a public recipe "
+                'needs: ingredients, a method, prep and cook times, servings or a yield.'
+            ),
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            404: OpenApiResponse(
+                description="No recipe has this slug that the account may publish: there's none, it's another "
+                "household's or a catalogue recipe, or another member wrote it."
+            ),
+        },
+        description="Makes a recipe of the signed-in account's household public or private. Only its author may. "
+        'Asking for the visibility it already has changes nothing.',
+    )
+    def put(self, request: Request, slug: str) -> Response:
+        # Refused before the lookup, so a signed-out answer says nothing about the slug.
+        if not request.user.is_authenticated or request.user.household_id is None:
+            raise PermissionDenied
+        recipe = get_object_or_404(Recipe.objects.publishable_by(request.user), slug=slug)
+        given = RecipeVisibilitySerializer(data=request.data)
+        given.is_valid(raise_exception=True)
+        try:
+            set_visibility(recipe, given.validated_data['visibility'])
+        except DjangoValidationError as error:
+            raise _refusals(error) from error
+        changed = _detail_queryset(request.user).get(pk=recipe.pk)
+        return Response(RecipeSerializer(changed, context={'request': request}).data)
 
 
 class CuisineListView(ListAPIView):

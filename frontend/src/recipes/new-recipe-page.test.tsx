@@ -24,6 +24,7 @@ const saved: Recipe = {
   id: 41,
   slug: 'grandmas-curry-k7m2qx',
   visibility: 'private',
+  author: null,
   title: "Grandma's curry",
   description: '',
   cuisines: [],
@@ -47,7 +48,9 @@ const saved: Recipe = {
   ingredient_groups: [],
   steps: [],
   diet_tag_conflicts: [],
-  can_delete: false
+  can_delete: false,
+  can_edit: true,
+  can_publish: false
 };
 
 // Signed in, with each POST body recorded and answered by `respond`; the saved recipe's page answers with it.

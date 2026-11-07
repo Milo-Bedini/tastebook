@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>ConfirmDialog: a primary tone and a controlled form</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.box{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:460px}
+.box.narrow{width:320px}
+.ghostpage{position:absolute;inset:0;padding:24px 20px;display:flex;flex-direction:column;gap:16px}
+.ghostpage span{display:block;height:14px;border-radius:var(--radius-pill);background:var(--color-line)}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.hc{--canvas:#000000;--text:#ffffff;--hl:#1aebff;background:var(--canvas);border-color:var(--text)}
+.hc .ghostpage span{background:transparent;border:1px solid var(--text)}
+.hc .scrim{background:transparent}
+.hc .dlg{background:var(--canvas);border-color:var(--text);color:var(--text)}
+.hc .dlg p{color:var(--text)}
+.hcb{height:44px;padding:0 20px;border-radius:999px;border:2px solid var(--text);box-sizing:border-box;display:inline-flex;align-items:center;background:transparent;color:var(--text);font:800 15px/20px var(--font-sans);white-space:nowrap}
+.hcb.f{outline:3px solid var(--hl);outline-offset:0}
+.cols3{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.api{display:flex;flex-direction:column;gap:12px;max-width:390px}
+.api p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.api p b{font-weight:800}
+.api code{font-family:ui-monospace,monospace;font-size:13px;line-height:20px;background:var(--color-surface);border-radius:6px;padding:1px 6px}
+.api pre{margin:0;font-family:ui-monospace,monospace;font-size:12px;line-height:18px;background:var(--color-surface);border-radius:var(--radius-note);padding:14px 16px;white-space:pre-wrap}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1480px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">Dino · ConfirmDialog · changed in TAS-119 part 2</span>
+    <h1 class="ttl">ConfirmDialog: a primary tone and a controlled form</h1>
+    <span class="cap">Two optional additions. tone="primary" makes the confirm a primary button, for a change that can be undone but reaches beyond the household. open and onOpenChange, in place of trigger, let something else open it, and the confirm then shows the request itself. Left out, every dialog today is unchanged.</span>
+  </header>
+
+  <div class="cols3">
+
+    <div class="col">
+      <span class="cap"><b>Default</b> · tone danger, a trigger: unchanged</span>
+      <div class="box">
+        <div class="ghostpage" aria-hidden="true"><span style="width: 60%"></span><span style="width: 85%"></span><span style="width: 70%"></span></div>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="a-t" aria-describedby="a-d">
+          <h2 id="a-t">Delete this recipe?</h2>
+          <p id="a-d">Grandma’s curry, its 2 ingredients and 2 steps will be deleted for everyone in your household. You can’t undo this.</p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete recipe</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Primary</b> · opened by the switch; focus on Cancel, so Enter keeps it private</span>
+      <div class="box">
+        <div class="ghostpage" aria-hidden="true"><span style="width: 60%"></span><span style="width: 85%"></span><span style="width: 70%"></span></div>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="b-t" aria-describedby="b-d">
+          <h2 id="b-t">Make this recipe public?</h2>
+          <p id="b-d">Anyone can find Grandma’s curry, credited “by Sam”, and only you will be able to edit it. You can make it private again.</p>
+          <div class="btns">
+            <span class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></span>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Make public</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Pending</b> · controlled: the confirm shows the request; the dialog stays open</span>
+      <div class="box">
+        <div class="ghostpage" aria-hidden="true"><span style="width: 60%"></span><span style="width: 85%"></span><span style="width: 70%"></span></div>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="c-t" aria-describedby="c-d">
+          <h2 id="c-t">Make this recipe public?</h2>
+          <p id="c-d">Anyone can find Grandma’s curry, credited “by Sam”, and only you will be able to edit it. You can make it private again.</p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary" loading="{{yes}}" loading-label="Making public…">Make public</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>At 320 px</b> · the buttons wrap, the action last</span>
+      <div class="box narrow">
+        <div class="ghostpage" aria-hidden="true"><span style="width: 60%"></span><span style="width: 85%"></span><span style="width: 70%"></span></div>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="d-t" aria-describedby="d-d">
+          <h2 id="d-t">Make this recipe public?</h2>
+          <p id="d-d">Anyone can find Grandma’s curry, credited “by Sam”, and only you will be able to edit it. You can make it private again.</p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Make public</x-import>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Forced colours</b> · simulated; the primary’s transparent border is drawn</span>
+      <div class="box hc">
+        <div class="ghostpage" aria-hidden="true"><span style="width: 60%"></span><span style="width: 85%"></span><span style="width: 70%"></span></div>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="e-t" aria-describedby="e-d">
+          <h2 id="e-t">Make this recipe public?</h2>
+          <p id="e-d">Anyone can find Grandma’s curry, credited “by Sam”, and only you will be able to edit it. You can make it private again.</p>
+          <div class="btns">
+            <span class="hcb f">Cancel</span>
+            <span class="hcb">Make public</span>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="api">
+      <span class="cap">The change</span>
+<pre>type Base = {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  pending: boolean;
+  pendingLabel: string;      // "Making public…"
+  tone?: 'danger' | 'primary'; // default 'danger'
+  onConfirm: () =&gt; void;
+};
+type ConfirmDialogProps = Base &amp; (
+  | { trigger: ReactElement; open?: never; onOpenChange?: never }
+  | { trigger?: never; open: boolean;
+      onOpenChange: (open: boolean) =&gt; void }
+);</pre>
+      <p><b>With a trigger</b>, pending shows on the trigger, as today. <b>Controlled</b>, there’s no trigger on screen to show it, so the confirm does, and pressing it doesn’t close the dialog: the caller closes it when the answer comes. Cancel and Escape still close it.</p>
+      <p><b>Primary</b> is the peach button with its press shadow: while the dialog is open it is the screen’s one main action. Use it only where the action can be undone; anything final stays danger.</p>
+      <p><b>Stories:</b> <code>PrimaryTone</code> and <code>Controlled</code> (pending), open, with their two baselines each; <code>boards.ts</code> names this board for them.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1480}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

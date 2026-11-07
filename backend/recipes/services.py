@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
 
@@ -26,6 +26,7 @@ from recipes.models import (
     IngredientSynonym,
     Recipe,
     Step,
+    Visibility,
 )
 from recipes.photo_store import delete_photo
 
@@ -144,7 +145,8 @@ def edit_recipe(
 ) -> Recipe:
     """Changes the details given and keeps the recipe's address. None leaves the cuisines, courses, equipment,
     ingredients or steps as they are. A photo replaced or removed is deleted from the store once saved, unless another
-    recipe uses it. Raises ValidationError when a pair is half given, as add_recipe does."""
+    recipe uses it. Raises ValidationError when a pair is half given, as add_recipe does, or when a public recipe
+    would be left missing something publishing_gaps() names."""
     replaced = recipe.photo_url
     with transaction.atomic():
         for name, value in details.items():
@@ -164,9 +166,50 @@ def edit_recipe(
             _set_ingredients(recipe, ingredients)
         if steps is not None:
             _set_steps(recipe, steps)
+        # Checked once everything is set, so raising rolls the whole edit back.
+        gaps = publishing_gaps(recipe) if recipe.visibility == Visibility.PUBLIC else []
+        if gaps:
+            needs = _together(gaps)
+            refusal = f"A public recipe needs {needs}, so these changes can't be saved. Make it private first."
+            raise ValidationError({NON_FIELD_ERRORS: [refusal]})
         if recipe.photo_url != replaced:
             transaction.on_commit(partial(_delete_photo_unless_used, replaced))
     return recipe
+
+
+def publishing_gaps(recipe: Recipe) -> list[str]:
+    """What a recipe needs before it can be public, in the order the recipe page's "What's missing" lists them.
+    An ingredient awaiting review isn't one: it only holds back the diet tags."""
+    # Asked of the database, not a prefetch, so an edit's new lines and steps count.
+    missing = [
+        ('ingredients', not IngredientLine.objects.filter(recipe=recipe).exists()),
+        ('a method', not Step.objects.filter(recipe=recipe).exists()),
+        ('a prep time', recipe.prep_minutes is None),
+        ('a cook time', recipe.cook_minutes is None),
+        ('servings or a yield', recipe.servings is None and recipe.yield_amount is None),
+    ]
+    return [gap for gap, is_missing in missing if is_missing]
+
+
+def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
+    """Makes the recipe public or private. Raises ValidationError({'visibility': [...]}) when it's made public
+    while publishing_gaps() names something."""
+    if recipe.visibility == visibility:
+        return recipe
+    if visibility == Visibility.PUBLIC:
+        gaps = publishing_gaps(recipe)
+        if gaps:
+            raise ValidationError({'visibility': [f'Add {_together(gaps)} before making it public.']})
+    recipe.visibility = visibility
+    recipe.save(update_fields=['visibility'])
+    return recipe
+
+
+def _together(parts: list[str]) -> str:
+    """The parts as a sentence lists them: "a, b and c", with no comma before the "and"."""
+    if len(parts) == 1:
+        return parts[0]
+    return f'{", ".join(parts[:-1])} and {parts[-1]}'
 
 
 def delete_recipe(recipe: Recipe) -> None:
@@ -334,7 +377,9 @@ def _load_recipes(records: list[Record], names: _Names) -> list[Recipe]:
     loaded: list[tuple[Recipe, Record, str]] = []
     for record in records:
         where = f'Recipe {record["slug"]}'
-        recipe = Recipe(slug=record['slug'], **_plain_fields(Recipe, record, where, references))
+        recipe = Recipe(
+            slug=record['slug'], **{**_plain_fields(Recipe, record, where, references), 'visibility': Visibility.PUBLIC}
+        )
         _take_place(recipe, existing.get(recipe.slug))
         loaded.append((recipe, record, where))
     _write(Recipe, [(recipe, where) for recipe, _, where in loaded])

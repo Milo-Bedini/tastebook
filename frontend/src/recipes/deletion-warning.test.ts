@@ -25,6 +25,7 @@ const chanaMasala: Recipe = {
   id: 3,
   slug: 'chana-masala-q4w8zt',
   visibility: 'private',
+  author: null,
   title: 'Chana masala',
   description: '',
   cuisines: [],
@@ -48,7 +49,9 @@ const chanaMasala: Recipe = {
   ingredient_groups: [],
   steps: [],
   diet_tag_conflicts: [],
-  can_delete: true
+  can_delete: true,
+  can_edit: true,
+  can_publish: true
 };
 
 describe('deletionWarning', () => {

@@ -39,6 +39,7 @@ const recipes: Recipe[] = [
     id: 1,
     slug: 'apple-tart',
     visibility: 'public',
+    author: null,
     title: 'Apple tart',
     description: 'Sharp apples on buttery pastry.',
     cuisines: [{ slug: 'french', name: 'French' }],
@@ -62,12 +63,15 @@ const recipes: Recipe[] = [
     ingredient_groups: [],
     steps: [],
     diet_tag_conflicts: [],
-    can_delete: false
+    can_delete: false,
+    can_edit: false,
+    can_publish: false
   },
   {
     id: 2,
     slug: 'banana-bread',
     visibility: 'public',
+    author: null,
     title: 'Banana bread',
     description: '',
     cuisines: [],
@@ -91,7 +95,9 @@ const recipes: Recipe[] = [
     ingredient_groups: [],
     steps: [],
     diet_tag_conflicts: [],
-    can_delete: false
+    can_delete: false,
+    can_edit: false,
+    can_publish: false
   }
 ];
 
@@ -99,6 +105,7 @@ const toSummary = ({
   id,
   slug,
   visibility,
+  author,
   title,
   description,
   cuisines,
@@ -110,6 +117,7 @@ const toSummary = ({
   id,
   slug,
   visibility,
+  author,
   title,
   description,
   cuisines,

@@ -233,6 +233,10 @@ class RecipeFiltersSerializer(serializers.Serializer):
 
 class RecipeSummarySerializer(serializers.ModelSerializer):
     visibility = serializers.ChoiceField(choices=Visibility.choices, read_only=True)
+    author = serializers.SerializerMethodField(
+        help_text='The name of whoever wrote a public household recipe, shown as "by <name>"; '
+        'null for a private or catalogue recipe.'
+    )
     cuisines = CuisineSerializer(many=True, read_only=True)
     # null unless prep and cook times are both given.
     total_minutes = serializers.IntegerField(read_only=True, allow_null=True)
@@ -246,6 +250,7 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
             'id',
             'slug',
             'visibility',
+            'author',
             'title',
             'description',
             'cuisines',
@@ -264,6 +269,13 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
     def get_diet_tags(self, recipe: Recipe) -> list[DietTag]:
         return services.diet_tags(recipe.ingredient_lines.all())
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_author(self, recipe: Recipe) -> str | None:
+        # Only publishing puts the name on show, so a private recipe's household isn't sent it either.
+        if recipe.visibility != Visibility.PUBLIC or recipe.household_id is None or recipe.created_by is None:
+            return None
+        return recipe.created_by.name
+
 
 class RecipeSerializer(RecipeSummarySerializer):
     courses = CourseSerializer(many=True, read_only=True)
@@ -277,6 +289,14 @@ class RecipeSerializer(RecipeSummarySerializer):
     can_delete = serializers.SerializerMethodField(
         help_text='Whether the signed-in account may delete this recipe: its author, '
         'or any member of its household once the author has left it.'
+    )
+    can_edit = serializers.SerializerMethodField(
+        help_text='Whether the signed-in account may edit this recipe: any member of its household while it is '
+        'private, only its author once it is public.'
+    )
+    can_publish = serializers.SerializerMethodField(
+        help_text='Whether the signed-in account may make this recipe public or private: its author, while it is in '
+        'their household.'
     )
 
     class Meta(RecipeSummarySerializer.Meta):
@@ -299,6 +319,8 @@ class RecipeSerializer(RecipeSummarySerializer):
             'steps',
             'diet_tag_conflicts',
             'can_delete',
+            'can_edit',
+            'can_publish',
         ]
         # The API always sends these, even when they're '', null or their default, so the schema marks them required.
         extra_kwargs = {
@@ -333,6 +355,24 @@ class RecipeSerializer(RecipeSummarySerializer):
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_can_delete(self, recipe: Recipe) -> bool:
         return Recipe.objects.deletable_by(self.context['request'].user).filter(pk=recipe.pk).exists()
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_can_edit(self, recipe: Recipe) -> bool:
+        return Recipe.objects.editable_by(self.context['request'].user).filter(pk=recipe.pk).exists()
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_can_publish(self, recipe: Recipe) -> bool:
+        return Recipe.objects.publishable_by(self.context['request'].user).filter(pk=recipe.pk).exists()
+
+
+NOT_A_VISIBILITY = 'Say whether the recipe is public or private.'
+
+
+class RecipeVisibilitySerializer(serializers.Serializer):
+    visibility = serializers.ChoiceField(
+        choices=Visibility.choices,
+        error_messages={'required': NOT_A_VISIBILITY, 'invalid_choice': NOT_A_VISIBILITY},
+    )
 
 
 NO_INGREDIENT_NAME = "Type the ingredient's name."

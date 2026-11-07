@@ -12,6 +12,7 @@ const recipe: Recipe = {
   id: 1,
   slug: 'slow-roasted-pork-shoulder',
   visibility: 'public',
+  author: null,
   title: 'Slow-roasted pork shoulder with crackling, apple sauce and Yorkshire puddings',
   description: 'A Sunday roast for a crowd, with the crackling made the night before and the gravy from the pan.',
   cuisines: [
@@ -98,13 +99,16 @@ const recipe: Recipe = {
     { id: 2, text: 'Roast at 220°C for 30 minutes, then turn the oven down to 160°C for five and a half hours.' }
   ],
   diet_tag_conflicts: [],
-  can_delete: false
+  can_delete: false,
+  can_edit: false,
+  can_publish: false
 };
 
 const summary: RecipeSummary = {
   id: recipe.id,
   slug: recipe.slug,
   visibility: recipe.visibility,
+  author: recipe.author,
   title: recipe.title,
   description: recipe.description,
   cuisines: recipe.cuisines,

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>When the request doesn't go through</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:844px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:24px}
+.scrolled{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-bottom:1px dashed var(--color-line);padding-bottom:12px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0;overflow-wrap:break-word}
+.intro p{margin:0}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.pmark{display:inline-flex;align-items:center;gap:4px;width:fit-content;box-sizing:border-box;padding:2px 8px 2px 6px;border:2px solid transparent;border-radius:var(--radius-check);background:var(--color-surface);color:var(--color-ink);font-size:13px;line-height:17px;font-weight:700}
+.pmark svg{width:14px;height:14px;flex-shrink:0}
+.credit{margin:0;color:var(--color-muted)}
+.gaps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:2px;list-style:disc}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.frow label{outline:3px solid var(--color-ink);outline-offset:-1px}
+.toast{position:absolute;left:16px;right:16px;bottom:24px;min-height:56px;box-sizing:border-box;display:flex;align-items:center;gap:12px;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);padding:6px 18px 6px 18px;font-size:15px;line-height:20px;font-weight:800;box-shadow:var(--shadow-lift)}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.col .note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.col .note b{font-weight:800}
+.foot{margin:0;max-width:1260px;font-size:15px;line-height:22px;font-weight:600}
+.foot b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1500px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-119 part 2 · phone, 390 × 844 · Sam turned the switch on and confirmed · drawn for variant A</span>
+    <h1 class="ttl">When the request doesn’t go through</h1>
+    <span class="cap">Each answer says what happened in a toast, the page shows what’s true now, and focus is back on the switch, or on the page’s heading when the switch has gone.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Refused (400)</b> · someone removed the method meanwhile</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <p class="scrolled">The photo, scrolled past</p>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.Banner" tone="warning" title="What’s missing">
+              <ul class="gaps"><li>No method yet</li></ul>
+            </x-import>
+            <div class="ctrls">
+              <span class="frow"><x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}" disabled="{{yes}}" disabled-reason="Add what’s missing before making it public.">Public</x-import></span>
+            </div>
+          </div>
+        </main>
+        <div class="toast" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="2.5"></x-import>Add a method before making it public.</div>
+      </div>
+      <p class="note"><b>The API’s own words</b>, as an error toast. The page refetches, so the banner and the disabled switch now agree with it.</p>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Gone (404)</b> · deleted, or Sam can’t change it any more</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <div class="intro">
+            <h1>Recipe not found</h1>
+            <p>This recipe doesn’t exist or has been removed.</p>
+          </div>
+        </main>
+        <div class="toast" role="status"><x-import component-from-global-scope="Dino.icons.Info" aria-hidden="true" stroke-width="2.5"></x-import>Grandma’s curry has been deleted, or you can’t change it any more.</div>
+      </div>
+      <p class="note"><b>An info toast</b>, and the refetch shows whatever is true: the page’s not-found state as it is today when it’s deleted, or the recipe without a switch when it is no longer Sam’s to change. With the switch gone, focus goes to the page’s heading.</p>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t (network, or 403 still signed in)</b></span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <p class="scrolled">The photo, scrolled past</p>
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+            <div class="ctrls">
+              <span class="frow"><x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Public</x-import></span>
+            </div>
+          </div>
+        </main>
+        <div class="toast" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="2.5"></x-import>Couldn’t change who can see Grandma’s curry. Check your connection and try again.</div>
+      </div>
+      <p class="note"><b>Nothing changed,</b> so the switch is as it was, ready to try again. Turning it off fails the same way and stays on.</p>
+    </div>
+
+  </div>
+
+  <p class="foot"><b>Signed out meanwhile (403):</b> the page asks the session again, as Delete recipe does; signed out, it goes to sign-in and comes back to the recipe (<code>/sign-in?next=/recipes/grandmas-curry-k7m2qx</code>), with nothing to draw beyond today’s sign-in page.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, noop: function () {},
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>
