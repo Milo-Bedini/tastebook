@@ -250,6 +250,7 @@ describe('JoinPage', () => {
 
   it.each([
     ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the session has ended', () => new HttpResponse(null, { status: 403 })],
     ['the network fails', () => HttpResponse.error()]
   ])("says it couldn't join when %s, and keeps the offer", async (_, answer) => {
     answerSignedIn();

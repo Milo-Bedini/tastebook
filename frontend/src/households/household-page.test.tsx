@@ -275,6 +275,8 @@ describe('HouseholdPage', () => {
 
   it.each([
     ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the session has ended', () => new HttpResponse(null, { status: 403 })],
+    ['the account has no household', () => new HttpResponse(null, { status: 404 })],
     ['the network fails', () => HttpResponse.error()]
   ])("says the name couldn't be saved and keeps it when %s", async (_, answer) => {
     answerSignedIn();
@@ -364,6 +366,7 @@ describe('HouseholdPage', () => {
 
   it.each([
     ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the session has ended', () => new HttpResponse(null, { status: 403 })],
     ['the network fails', () => HttpResponse.error()]
   ])("says Ann couldn't be removed and keeps her listed when %s", async (_, answer) => {
     answerSignedIn();
@@ -421,6 +424,8 @@ describe('HouseholdPage', () => {
 
   it.each([
     ['the server fails', () => new HttpResponse(null, { status: 500 })],
+    ['the session has ended', () => new HttpResponse(null, { status: 403 })],
+    ['the account has no household', () => new HttpResponse(null, { status: 404 })],
     ['the network fails', () => HttpResponse.error()]
   ])("says the household couldn't be left and keeps it when %s", async (_, answer) => {
     answerSignedIn();
@@ -561,36 +566,41 @@ describe('HouseholdPage', () => {
     expect(sent.makes).toBe(1);
   });
 
-  it.each([
-    {
-      action: 'make',
-      invite: null,
-      press: async () => userEvent.click(await screen.findByRole('button', { name: 'Make invite link' })),
-      message: "Couldn't make a link. Check your connection and try again.",
-      unchanged: () => screen.getByRole('button', { name: 'Make invite link' }),
-      focused: () => screen.getByRole('button', { name: 'Make invite link' })
-    },
-    {
-      action: 'cancel',
-      invite: LIVE,
-      press: async () => {
-        await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
-        await userEvent.click(
-          within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' })
-        );
+  it.each(
+    [
+      {
+        action: 'make',
+        invite: null,
+        press: async () => userEvent.click(await screen.findByRole('button', { name: 'Make invite link' })),
+        message: "Couldn't make a link. Check your connection and try again.",
+        unchanged: () => screen.getByRole('button', { name: 'Make invite link' }),
+        focused: () => screen.getByRole('button', { name: 'Make invite link' })
       },
-      message: "Couldn't cancel the link. Check your connection and try again.",
-      unchanged: () => screen.getByRole('textbox', { name: 'Invite link' }),
-      focused: () => screen.getByRole('button', { name: 'Cancel link' })
-    }
-  ])(
-    "says it couldn't $action the link, and leaves it as it was",
-    async ({ invite, press, message, unchanged, focused }) => {
+      {
+        action: 'cancel',
+        invite: LIVE,
+        press: async () => {
+          await userEvent.click(await screen.findByRole('button', { name: 'Cancel link' }));
+          await userEvent.click(
+            within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel link' })
+          );
+        },
+        message: "Couldn't cancel the link. Check your connection and try again.",
+        unchanged: () => screen.getByRole('textbox', { name: 'Invite link' }),
+        focused: () => screen.getByRole('button', { name: 'Cancel link' })
+      }
+    ].flatMap((failure) => [
+      { ...failure, status: 500 },
+      { ...failure, status: 403 }
+    ])
+  )(
+    "says it couldn't $action the link on a $status, and leaves it as it was",
+    async ({ invite, press, message, unchanged, focused, status }) => {
       answerSignedIn();
       answerInvite(invite);
       server.use(
-        http.post(INVITE, () => new HttpResponse(null, { status: 500 })),
-        http.delete(INVITE, () => new HttpResponse(null, { status: 500 }))
+        http.post(INVITE, () => new HttpResponse(null, { status })),
+        http.delete(INVITE, () => new HttpResponse(null, { status }))
       );
       renderRoute('/household');
 
