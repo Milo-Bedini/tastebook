@@ -49,8 +49,8 @@ const RecipeToEdit = ({ slug }: RecipeToEditProps) => {
   if (data === null) {
     return <RecipeNotFound />;
   }
-  // Only a household's own recipes can be edited; a catalogue recipe's edit address has nothing to show.
-  if (data?.visibility === 'public') {
+  // Someone who may not edit it (any catalogue recipe, or a public one another member wrote) sees the recipe instead.
+  if (data?.can_edit === false) {
     return <Navigate to={`/recipes/${slug}`} replace />;
   }
   if (data !== undefined) {

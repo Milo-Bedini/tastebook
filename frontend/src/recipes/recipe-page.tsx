@@ -27,7 +27,7 @@ import {
 import { RecipeIntro } from './recipe-intro';
 import { RecipeMethod } from './recipe-method';
 import { RecipePhotoCredit } from './recipe-photo-credit';
-import { useRecipe } from './recipes-api';
+import { useRecipe, useVisibilityGone } from './recipes-api';
 
 type Recipe = components['schemas']['Recipe'];
 
@@ -169,10 +169,15 @@ const RecipeDetails = ({ recipe, preferredSystem }: RecipeDetailsProps) => (
   </>
 );
 
-export const RecipeNotFound = () => (
+const takeFocus = (element: HTMLElement | null) => element?.focus();
+
+// Takes focus when it replaces the page because the recipe went while someone was changing it.
+export const RecipeNotFound = ({ takesFocus = false }: { takesFocus?: boolean }) => (
   <>
     <title>Recipe not found · Tastebook</title>
-    <h1>Recipe not found</h1>
+    <h1 ref={takesFocus ? takeFocus : undefined} tabIndex={-1}>
+      Recipe not found
+    </h1>
     <p>This recipe doesn't exist or has been removed.</p>
   </>
 );
@@ -211,8 +216,9 @@ type RecipeForSlugProps = { slug: string };
 const RecipeForSlug = ({ slug }: RecipeForSlugProps) => {
   const { data, errorUpdatedAt, refetch } = useRecipe(slug);
   const preferredSystem = usePreferredSystem();
+  const visibilityGone = useVisibilityGone(slug);
   if (data === null) {
-    return <RecipeNotFound />;
+    return <RecipeNotFound takesFocus={visibilityGone} />;
   }
   // A recipe already shown stays up if a background refetch fails. It waits for the session, so a US account never
   // sees metric first.

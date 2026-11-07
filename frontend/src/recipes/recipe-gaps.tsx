@@ -15,10 +15,8 @@ const awaitingReview = (recipe: Recipe) => [
   )
 ];
 
-// In the order the page lists them; only the parts a household recipe can be saved without.
-export const recipeGaps = (recipe: Recipe): string[] => {
-  const unchecked = awaitingReview(recipe);
-  return [
+const gapsOf = (recipe: Recipe, unchecked: string[]): string[] =>
+  [
     hasIngredients(recipe) ? '' : 'No ingredients yet',
     unchecked.length > 0 ? `No diet tags until we've checked ${together.format(unchecked)}` : '',
     recipe.steps.length > 0 ? '' : 'No method yet',
@@ -26,7 +24,12 @@ export const recipeGaps = (recipe: Recipe): string[] => {
     recipe.cook_minutes === null ? 'No cook time yet' : '',
     recipe.servings === null && recipe.yield_amount === null ? 'No servings yet' : ''
   ].filter((gap) => gap !== '');
-};
+
+// In the order the page lists them; only the parts a household recipe can be saved without.
+export const recipeGaps = (recipe: Recipe): string[] => gapsOf(recipe, awaitingReview(recipe));
+
+// What keeps a recipe from going public: an ingredient awaiting review only holds back the diet tags, so isn't one.
+export const publishingGaps = (recipe: Recipe): string[] => gapsOf(recipe, []);
 
 type RecipeGapsProps = { recipe: Recipe };
 

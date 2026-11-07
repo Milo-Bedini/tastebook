@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '@/dino/button';
 import { ConfirmDialog } from '@/dino/confirm-dialog';
+import { Switch } from '@/dino/switch';
 
 const meta = {
   title: 'Dino/ConfirmDialog',
@@ -82,5 +84,73 @@ export const Pending = {
     await expect(trigger).toHaveAttribute('aria-busy', 'true');
     await userEvent.click(trigger);
     await expect(body.queryByRole('alertdialog')).not.toBeInTheDocument();
+  }
+} satisfies Story;
+
+const publishing = {
+  pendingLabel: 'Making public…',
+  title: 'Make this recipe public?',
+  description:
+    'Anyone can find Grandma’s curry, credited “by Sam”, and only you will be able to edit it. You can make it private again.',
+  confirmLabel: 'Make public',
+  tone: 'primary'
+} as const;
+
+// Opened by a switch rather than a trigger of its own, as the recipe page's Public switch opens it.
+export const PrimaryTone = {
+  args: { ...publishing, pending: false },
+  render: ({ pending, onConfirm }) => {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Switch checked={false} onCheckedChange={setOpen}>
+          Public
+        </Switch>
+        <ConfirmDialog {...publishing} open={open} onOpenChange={setOpen} pending={pending} onConfirm={onConfirm} />
+      </>
+    );
+  },
+  play: async ({ args, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const control = within(canvasElement).getByRole('switch', { name: 'Public' });
+
+    await userEvent.click(control);
+    const dialog = body.getByRole('alertdialog', { name: 'Make this recipe public?' });
+    await waitFor(() => expect(dialog).toBeVisible());
+    await expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    // The primary button's peach, not danger's.
+    await expect(within(dialog).getByRole('button', { name: 'Make public' })).toHaveStyle({
+      backgroundColor: 'rgb(255, 179, 138)'
+    });
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(body.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await expect(control).toHaveFocus();
+    await expect(args.onConfirm).not.toHaveBeenCalled();
+
+    // Opened again, so the story ends on the open dialog for axe and the 44 px check.
+    await userEvent.click(control);
+    const reopened = body.getByRole('alertdialog', { name: 'Make this recipe public?' });
+    await waitFor(() => expect(reopened).toBeVisible());
+  }
+} satisfies Story;
+
+export const Controlled = {
+  args: { ...publishing, pending: true },
+  render: ({ pending, onConfirm }) => {
+    const [open, setOpen] = useState(true);
+    return <ConfirmDialog {...publishing} open={open} onOpenChange={setOpen} pending={pending} onConfirm={onConfirm} />;
+  },
+  play: async ({ args, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('alertdialog', { name: 'Make this recipe public?' });
+    const confirm = within(dialog).getByRole('button', { name: 'Making public…' });
+    // It fades in, so it's visible once the animation has started.
+    await waitFor(() => expect(dialog).toBeVisible());
+
+    await expect(confirm).toHaveAttribute('aria-busy', 'true');
+    await userEvent.click(confirm);
+    await expect(args.onConfirm).not.toHaveBeenCalled();
+    await expect(dialog).toBeVisible();
   }
 } satisfies Story;

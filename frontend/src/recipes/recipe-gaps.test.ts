@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { components } from '../api/schema';
-import { recipeGaps } from './recipe-gaps';
+import { publishingGaps, recipeGaps } from './recipe-gaps';
 
 type Recipe = components['schemas']['Recipe'];
 type IngredientLine = components['schemas']['IngredientLine'];
@@ -88,5 +88,24 @@ describe('recipeGaps', () => {
     ]
   ])('%s', (_, changes, gaps) => {
     expect(recipeGaps({ ...complete, ...changes })).toEqual(gaps);
+  });
+});
+
+describe('publishingGaps', () => {
+  it.each<[string, Partial<Recipe>, string[]]>([
+    ['nothing missing', {}, []],
+    ['only a line awaiting review', { ingredient_lines: [awaitingReview('chipotle paste')] }, []],
+    [
+      'a line awaiting review, no method and no servings',
+      { ingredient_lines: [line, awaitingReview('chipotle paste')], steps: [], servings: null },
+      ['No method yet', 'No servings yet']
+    ],
+    [
+      'only a title',
+      { ingredient_lines: [], steps: [], prep_minutes: null, cook_minutes: null, servings: null },
+      ['No ingredients yet', 'No method yet', 'No prep time yet', 'No cook time yet', 'No servings yet']
+    ]
+  ])('%s', (_, changes, gaps) => {
+    expect(publishingGaps({ ...complete, ...changes })).toEqual(gaps);
   });
 });

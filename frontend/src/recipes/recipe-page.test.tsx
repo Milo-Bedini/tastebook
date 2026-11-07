@@ -474,13 +474,13 @@ describe('RecipePage', () => {
     expect(screen.getByText('Private')).toBeVisible();
   });
 
-  it('offers to edit a private recipe, and not a public one', async () => {
+  it('offers to edit only to someone who may, whatever the visibility', async () => {
     server.use(
       http.get('/api/recipes/:slug/', ({ params }) =>
         HttpResponse.json<Recipe>(
-          params.slug === 'shakshuka'
-            ? shakshuka
-            : { ...shakshuka, slug: 'shakshuka-k7m2qx', visibility: 'private', title: 'Our shakshuka' }
+          params.slug === 'shakshuka-k7m2qx'
+            ? { ...shakshuka, slug: 'shakshuka-k7m2qx', author: 'Sam', title: 'Our shakshuka', can_edit: true }
+            : { ...shakshuka, slug: 'bens-shakshuka-b3n8vd', visibility: 'private', title: "Ben's shakshuka" }
         )
       )
     );
@@ -492,9 +492,9 @@ describe('RecipePage', () => {
       '/recipes/shakshuka-k7m2qx/edit'
     );
 
-    await act(() => router.navigate('/recipes/shakshuka'));
+    await act(() => router.navigate('/recipes/bens-shakshuka-b3n8vd'));
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: "Ben's shakshuka" })).toBeInTheDocument();
     await waitFor(() => expect(queryClient.isFetching()).toBe(0));
     expect(screen.queryByRole('link', { name: 'Edit recipe' })).not.toBeInTheDocument();
   });
@@ -1218,7 +1218,8 @@ const ours: Recipe = {
     { id: 1, text: 'Simmer the tomatoes.' },
     { id: 2, text: 'Crack in the eggs and cover.' }
   ],
-  can_delete: true
+  can_delete: true,
+  can_edit: true
 };
 
 const NOT_DELETED = "Couldn't delete Our shakshuka. Check your connection and try again.";
@@ -1382,5 +1383,269 @@ describe('Deleting a recipe', () => {
     expect(await screen.findByText(NOT_DELETED)).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'Our shakshuka' })).toBeInTheDocument();
     await waitFor(() => expect(deleteTrigger()).toHaveFocus());
+  });
+});
+
+const curry: Recipe = {
+  ...ours,
+  slug: 'grandmas-curry-k7m2qx',
+  title: "Grandma's curry",
+  can_publish: true
+};
+
+const publicCurry: Recipe = { ...curry, visibility: 'public', author: 'Sam' };
+
+const NOT_CHANGED = "Couldn't change who can see Grandma's curry. Check your connection and try again.";
+
+// Signed in as Sam, the curry's author; answers its page with `shown` and each PUT with `answer`, recording each body.
+const answerPublishing = (
+  shown: { recipe: Recipe | null },
+  answer: (visibility: string) => Response | Promise<Response>
+) => {
+  const sent: unknown[] = [];
+  answerSession(() => true);
+  server.use(
+    http.get('/api/recipes/:slug/', () =>
+      shown.recipe === null ? new HttpResponse(null, { status: 404 }) : HttpResponse.json<Recipe>(shown.recipe)
+    ),
+    http.put('/api/recipes/:slug/visibility/', async ({ request }) => {
+      const body = (await request.json()) as { visibility: string };
+      sent.push(body);
+      return answer(body.visibility);
+    })
+  );
+  return sent;
+};
+
+const publicSwitch = () => screen.getByRole('switch', { name: 'Public' });
+// While the dialog is open, the page behind it is hidden from assistive technology.
+const switchBehindDialog = () => screen.getByRole('switch', { name: 'Public', hidden: true });
+
+const openCurry = async () => {
+  const rendered = renderRoute('/recipes/grandmas-curry-k7m2qx');
+  await screen.findByRole('switch', { name: 'Public' });
+  return rendered;
+};
+
+const askToPublish = async () => {
+  await userEvent.click(publicSwitch());
+  return screen.findByRole('alertdialog', { name: 'Make this recipe public?' });
+};
+
+const confirmPublish = async () => {
+  const dialog = await askToPublish();
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Make public' }));
+};
+
+describe('Making a recipe public', () => {
+  afterEach(() => {
+    toast.dismiss();
+  });
+
+  it('shows the author the Public switch, off, and nobody else', async () => {
+    answerPublishing({ recipe: curry }, () => new HttpResponse(null, { status: 500 }));
+    server.use(
+      http.get('/api/recipes/:slug/', ({ params }) =>
+        HttpResponse.json<Recipe>(
+          params.slug === 'grandmas-curry-k7m2qx'
+            ? curry
+            : { ...curry, slug: 'bens-curry-b3n8vd', title: "Ben's curry", can_publish: false }
+        )
+      )
+    );
+    const { router, queryClient } = await openCurry();
+
+    expect(publicSwitch()).not.toBeChecked();
+    expect(publicSwitch()).not.toHaveAttribute('aria-disabled');
+
+    await act(() => router.navigate('/recipes/bens-curry-b3n8vd'));
+
+    expect(await screen.findByRole('heading', { level: 1, name: "Ben's curry" })).toBeInTheDocument();
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(screen.queryByRole('switch', { name: 'Public' })).not.toBeInTheDocument();
+  });
+
+  it('asks before making it public, and Cancel sends nothing', async () => {
+    const sent = answerPublishing({ recipe: curry }, () => HttpResponse.json<Recipe>(publicCurry));
+    await openCurry();
+
+    const dialog = await askToPublish();
+
+    expect(dialog).toHaveAccessibleDescription(
+      "Anyone can find Grandma's curry, credited “by Sam”, and only you will be able to edit it. You can make it private again."
+    );
+    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    expect(switchBehindDialog()).not.toBeChecked();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(publicSwitch()).toHaveFocus());
+    expect(publicSwitch()).not.toBeChecked();
+    expect(sent).toEqual([]);
+  });
+
+  it('makes it public once confirmed, crediting the author', async () => {
+    const gate = { release: () => {} };
+    const released = new Promise<void>((resolve) => {
+      gate.release = resolve;
+    });
+    const shown = { recipe: curry };
+    const sent = answerPublishing(shown, async () => {
+      await released;
+      shown.recipe = publicCurry;
+      return HttpResponse.json<Recipe>(publicCurry);
+    });
+    await openCurry();
+
+    await confirmPublish();
+
+    const dialog = screen.getByRole('alertdialog', { name: 'Make this recipe public?' });
+    expect(await within(dialog).findByRole('button', { name: 'Making public…' })).toHaveAttribute('aria-busy', 'true');
+    expect(switchBehindDialog()).not.toBeChecked();
+    expect(switchBehindDialog()).toHaveAccessibleDescription('Saving…');
+    gate.release();
+
+    expect(await screen.findByText("Grandma's curry is public")).toBeInTheDocument();
+    expect(sent).toEqual([{ visibility: 'public' }]);
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(publicSwitch()).toBeChecked();
+    expect(screen.getByText('by Sam')).toBeVisible();
+    expect(screen.queryByText('Private')).not.toBeInTheDocument();
+    await waitFor(() => expect(publicSwitch()).toHaveFocus());
+  });
+
+  it('makes a public recipe private at once, without asking', async () => {
+    const shown = { recipe: publicCurry };
+    const sent = answerPublishing(shown, () => {
+      shown.recipe = curry;
+      return HttpResponse.json<Recipe>(curry);
+    });
+    await openCurry();
+    expect(publicSwitch()).toBeChecked();
+
+    await userEvent.click(publicSwitch());
+
+    expect(await screen.findByText("Grandma's curry is private again")).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(sent).toEqual([{ visibility: 'private' }]);
+    expect(publicSwitch()).not.toBeChecked();
+    expect(screen.getByText('Private')).toBeVisible();
+    expect(screen.queryByText('by Sam')).not.toBeInTheDocument();
+    expect(publicSwitch()).toHaveFocus();
+  });
+
+  it.each<[string, Partial<Recipe>, string | null]>([
+    ['no method', { steps: [] }, "Add what's missing before making it public."],
+    ['no servings', { servings: null }, "Add what's missing before making it public."],
+    [
+      'only an ingredient awaiting review',
+      {
+        ingredient_lines: [
+          line(1, 'chipotle paste', {
+            ingredient: { slug: 'chipotle-paste', name: 'chipotle paste', grams_per_cup: null, awaiting_review: true }
+          })
+        ]
+      },
+      null
+    ]
+  ])('with %s, the switch says why it can’t be turned on, or doesn’t', async (_, changes, reason) => {
+    const sent = answerPublishing({ recipe: { ...curry, ...changes } }, () => HttpResponse.json<Recipe>(publicCurry));
+    await openCurry();
+
+    expect(screen.getByText("What's missing")).toBeInTheDocument();
+    if (reason === null) {
+      expect(publicSwitch()).not.toHaveAttribute('aria-disabled');
+      return;
+    }
+    expect(publicSwitch()).toHaveAttribute('aria-disabled', 'true');
+    expect(publicSwitch()).toHaveAccessibleDescription(reason);
+    await userEvent.click(publicSwitch());
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(sent).toEqual([]);
+  });
+
+  it('says what the recipe lacks when Tastebook refuses, and shows it', async () => {
+    const shown = { recipe: curry };
+    answerPublishing(shown, () => {
+      shown.recipe = { ...curry, steps: [] };
+      return HttpResponse.json({ visibility: ['Add a method before making it public.'] }, { status: 400 });
+    });
+    await openCurry();
+
+    await confirmPublish();
+
+    expect(await screen.findByText('Add a method before making it public.')).toBeInTheDocument();
+    expect(await screen.findByText('No method yet')).toBeInTheDocument();
+    expect(publicSwitch()).not.toBeChecked();
+    expect(publicSwitch()).toHaveAccessibleDescription("Add what's missing before making it public.");
+    await waitFor(() => expect(publicSwitch()).toHaveFocus());
+  });
+
+  it('says the recipe has gone when Tastebook can’t find it, and keeps what is still true', async () => {
+    answerPublishing({ recipe: curry }, () => new HttpResponse(null, { status: 404 }));
+    await openCurry();
+
+    await confirmPublish();
+
+    expect(
+      await screen.findByText("Grandma's curry has been deleted, or you can't change it any more.")
+    ).toBeInTheDocument();
+    expect(publicSwitch()).not.toBeChecked();
+    await waitFor(() => expect(publicSwitch()).toHaveFocus());
+  });
+
+  it.each<[string, Recipe | null, string]>([
+    ['deleted', null, 'Recipe not found'],
+    ['no longer the author’s to change', { ...curry, can_publish: false }, "Grandma's curry"]
+  ])('puts focus on the heading when the recipe was %s meanwhile', async (_, after, heading) => {
+    const shown: { recipe: Recipe | null } = { recipe: curry };
+    answerPublishing(shown, () => {
+      shown.recipe = after;
+      return new HttpResponse(null, { status: 404 });
+    });
+    await openCurry();
+
+    await confirmPublish();
+
+    expect(
+      await screen.findByText("Grandma's curry has been deleted, or you can't change it any more.")
+    ).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: heading })).toHaveFocus());
+    expect(screen.queryByRole('switch', { name: 'Public' })).not.toBeInTheDocument();
+  });
+
+  it('sends you to sign in, and back to the recipe after, when Tastebook says you are signed out', async () => {
+    const state = { signedOut: false };
+    answerPublishing({ recipe: curry }, () => {
+      state.signedOut = true;
+      return new HttpResponse(null, { status: 403 });
+    });
+    answerSession(() => !state.signedOut);
+    const { router } = await openCurry();
+
+    await confirmPublish();
+
+    await waitFor(() =>
+      expect(router.state.location.pathname + router.state.location.search).toBe(
+        '/sign-in?next=%2Frecipes%2Fgrandmas-curry-k7m2qx'
+      )
+    );
+  });
+
+  it.each<[string, () => Response]>([
+    ['refused while still signed in', () => new HttpResponse(null, { status: 403 })],
+    ['answered with a server error', () => new HttpResponse(null, { status: 500 })],
+    ['not answered', () => HttpResponse.error()]
+  ])('says nothing changed when the request is %s', async (_, answer) => {
+    answerPublishing({ recipe: curry }, answer);
+    await openCurry();
+
+    await confirmPublish();
+
+    expect(await screen.findByText(NOT_CHANGED)).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(publicSwitch()).not.toBeChecked();
+    await waitFor(() => expect(publicSwitch()).toHaveFocus());
   });
 });

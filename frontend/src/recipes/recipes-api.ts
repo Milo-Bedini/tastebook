@@ -1,7 +1,11 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useMutationState, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '../api/client';
+import type { components } from '../api/schema';
 import type { RecipeFilters } from './recipe-filters';
+
+type Recipe = components['schemas']['Recipe'];
+type Visibility = components['schemas']['Visibility'];
 
 export type RecipeQuery = { searchTerm: string; filters: RecipeFilters };
 
@@ -84,3 +88,73 @@ export const useDeleteRecipe = (slug: string) => {
     }
   });
 };
+
+export type VisibilityChange =
+  | { kind: 'changed'; recipe: Recipe }
+  // The API's own words: the recipe lacks something a public recipe needs.
+  | { kind: 'refused'; message: string }
+  | { kind: 'signed-out' }
+  | { kind: 'gone' };
+
+// DRF refuses a visibility as {"visibility": ["…"]}.
+const visibilityMessage = (body: unknown): string | undefined => {
+  if (typeof body !== 'object' || body === null || !('visibility' in body) || !Array.isArray(body.visibility)) {
+    return undefined;
+  }
+  const [message] = body.visibility;
+  return typeof message === 'string' ? message : undefined;
+};
+
+const visibilityKey = (slug: string) => ['recipes', slug, 'visibility'];
+
+export const useSetVisibility = (slug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: visibilityKey(slug),
+    mutationFn: async (visibility: Visibility): Promise<VisibilityChange> => {
+      const { data, error, response } = await api.PUT('/api/recipes/{slug}/visibility/', {
+        params: { path: { slug } },
+        body: { visibility }
+      });
+      if (data !== undefined) {
+        return { kind: 'changed', recipe: data };
+      }
+      const message = response.status === 400 ? visibilityMessage(error) : undefined;
+      if (message !== undefined) {
+        return { kind: 'refused', message };
+      }
+      // Signed out, or no household any more: the page asks the session again.
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // Deleted, or the account may not change it any more (it moved household, or someone else wrote it).
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Changing a recipe's visibility failed with ${response.status}`);
+    },
+    onSuccess: async (result) => {
+      if (result.kind === 'signed-out') {
+        return;
+      }
+      if (result.kind === 'changed') {
+        queryClient.setQueryData<Recipe>(['recipes', slug], result.recipe);
+        // Only the lists: the recipe just set is already current.
+        await queryClient.invalidateQueries({
+          queryKey: ['recipes'],
+          predicate: ({ queryKey }) => queryKey[1] !== slug
+        });
+        return;
+      }
+      // Refused or gone, the page shows what's true now.
+      await queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    }
+  });
+};
+
+// Whether the latest change to the recipe's visibility found it gone, which can take the switch off the page with focus.
+export const useVisibilityGone = (slug: string) =>
+  useMutationState({
+    filters: { mutationKey: visibilityKey(slug) },
+    select: ({ state }) => (state.data as VisibilityChange | undefined)?.kind === 'gone'
+  }).at(-1) === true;

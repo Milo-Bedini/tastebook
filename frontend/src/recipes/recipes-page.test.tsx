@@ -426,6 +426,29 @@ describe('RecipesPage', () => {
     );
   });
 
+  it('credits a public household recipe\'s card "by" its author, and not a catalogue one\'s', async () => {
+    server.use(
+      http.get('/api/recipes/', () =>
+        HttpResponse.json<Recipe[]>([
+          { ...bananaBread, id: 5, slug: 'grandmas-curry-k7m2qx', author: 'Sam', title: "Grandma's curry" },
+          appleTart
+        ])
+      )
+    );
+
+    renderRoute('/recipes');
+
+    const curryCard = (await screen.findByRole('heading', { name: "Grandma's curry" })).closest('li');
+    expect(curryCard).not.toBeNull();
+    expect(within(curryCard as HTMLElement).queryByText('Private')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Grandma's curry" })).toHaveAccessibleDescription(
+      'by Sam 1 hr 15 min · Easy'
+    );
+    expect(screen.getByRole('link', { name: 'Apple tart' })).toHaveAccessibleDescription(
+      '1 hr 40 min · Medium · French'
+    );
+  });
+
   it("names each card's link by the recipe and describes it by its meta", async () => {
     renderRoute('/recipes');
 
