@@ -10,6 +10,8 @@ test('saving a recipe to Favourites from its page, and finding it on the Lists t
 
   await page.goto(`/recipes/${sam.recipes[0]?.slug}`);
   const heart = page.getByRole('button', { name: 'Favourite', exact: true });
+  // A heart takes no press until Favourites has loaded, which on a preview can take longer than the page.
+  await expect(heart).not.toHaveAttribute('aria-busy');
   await expect(heart).toHaveAttribute('aria-pressed', 'false');
   await heart.click();
   await expect(page.getByText('Saved to Favourites')).toBeVisible();
@@ -67,7 +69,9 @@ test('signed out, the heart goes through sign in, and there are no tabs or lists
 
   await page.goto(`/recipes/${sam.recipes[0]?.slug}`);
   await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Favourite', exact: true }).click();
+  const heart = page.getByRole('button', { name: 'Favourite', exact: true });
+  await expect(heart).not.toHaveAttribute('aria-busy');
+  await heart.click();
 
   await expect(page).toHaveURL(/\/sign-in\?next=/);
   await page.goto('/lists');
