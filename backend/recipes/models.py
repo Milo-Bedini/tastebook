@@ -214,19 +214,35 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
         )
         return copies
 
+    def public(self) -> RecipeQuerySet:
+        return self.filter(visibility=Visibility.PUBLIC)
+
+    def private(self) -> RecipeQuerySet:
+        return self.filter(visibility=Visibility.PRIVATE)
+
     def visible_to(self, user: User | AnonymousUser) -> RecipeQuerySet:
-        """Catalogue recipes, and the recipes of the user's household when they're signed in to one."""
+        """Public recipes, and the recipes of the user's household when they're signed in to one."""
         household_id = user.household_id if user.is_authenticated else None
         if household_id is None:
-            return self.catalogue()
-        return self.filter(Q(household__isnull=True) | Q(household_id=household_id))
+            return self.public()
+        return self.filter(Q(visibility=Visibility.PUBLIC) | Q(household_id=household_id))
 
-    def editable_by(self, member: User) -> RecipeQuerySet:
-        """The recipes a member may edit: every recipe of their household, whoever wrote it."""
+    def editable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
+        """The recipes an account may edit: its household's private recipes, whoever wrote them, and the public ones
+        it wrote."""
         # filter(household_id=None) would match the catalogue's recipes.
-        if member.household_id is None:
+        household_id = user.household_id if user.is_authenticated else None
+        if household_id is None:
             return self.none()
-        return self.filter(household_id=member.household_id)
+        return self.filter(household_id=household_id).filter(Q(visibility=Visibility.PRIVATE) | Q(created_by=user))
+
+    def publishable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
+        """The recipes an account may make public or private: those of its household it wrote. A catalogue recipe has
+        no household, so nobody may."""
+        household_id = user.household_id if user.is_authenticated else None
+        if household_id is None:
+            return self.none()
+        return self.written_by_in(user, household_id)
 
     def deletable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
         """The recipes an account may delete: those of its household it wrote, and those whose author has left it.
@@ -258,6 +274,12 @@ class Recipe(models.Model):
         on_delete=models.SET_NULL,
         related_name='recipes_written',
         help_text='Who wrote it. Empty for a catalogue recipe.',
+    )
+    visibility = models.CharField(
+        max_length=7,
+        choices=Visibility.choices,
+        default=Visibility.PRIVATE,
+        help_text='A catalogue recipe is always public; a household recipe is private until its author publishes it.',
     )
     cuisines = models.ManyToManyField(Cuisine, related_name='recipes', blank=True)
     courses = models.ManyToManyField(Course, related_name='recipes', blank=True)
@@ -370,6 +392,11 @@ class Recipe(models.Model):
                     'and a source credit.'
                 ),
             ),
+            models.CheckConstraint(
+                condition=models.Q(household__isnull=False) | models.Q(visibility=Visibility.PUBLIC),
+                name='recipe_catalogue_is_public',
+                violation_error_message='A catalogue recipe is always public.',
+            ),
         ]
 
     def __str__(self) -> str:
@@ -380,11 +407,6 @@ class Recipe(models.Model):
         if not self.slug:
             self.slug = Recipe.objects.unique_slug_for(self.title)
         super().save(**kwargs)
-
-    @property
-    def visibility(self) -> Visibility:
-        # Every household recipe is private until it can be published (TAS-119).
-        return Visibility.PUBLIC if self.household_id is None else Visibility.PRIVATE
 
     @property
     def total_minutes(self) -> int | None:

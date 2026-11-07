@@ -18,6 +18,7 @@ from recipes.models import (
     IngredientSynonym,
     Recipe,
     Step,
+    Visibility,
 )
 
 # A valid recipe's details, for tests about something else.
@@ -31,7 +32,9 @@ DETAILS: dict[str, Any] = {
 
 
 def make_recipe(**fields: Any) -> Recipe:
-    return Recipe.objects.create(**{**DETAILS, **fields})
+    """A catalogue recipe, unless the fields give it a household, when it's private until they say otherwise."""
+    visibility = Visibility.PRIVATE if 'household' in fields else Visibility.PUBLIC
+    return Recipe.objects.create(**{**DETAILS, 'visibility': visibility, **fields})
 
 
 def ingredient(name: str) -> Ingredient:

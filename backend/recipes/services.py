@@ -26,6 +26,7 @@ from recipes.models import (
     IngredientSynonym,
     Recipe,
     Step,
+    Visibility,
 )
 from recipes.photo_store import delete_photo
 
@@ -334,7 +335,9 @@ def _load_recipes(records: list[Record], names: _Names) -> list[Recipe]:
     loaded: list[tuple[Recipe, Record, str]] = []
     for record in records:
         where = f'Recipe {record["slug"]}'
-        recipe = Recipe(slug=record['slug'], **_plain_fields(Recipe, record, where, references))
+        recipe = Recipe(
+            slug=record['slug'], **{**_plain_fields(Recipe, record, where, references), 'visibility': Visibility.PUBLIC}
+        )
         _take_place(recipe, existing.get(recipe.slug))
         loaded.append((recipe, record, where))
     _write(Recipe, [(recipe, where) for recipe, _, where in loaded])

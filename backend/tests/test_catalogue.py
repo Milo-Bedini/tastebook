@@ -118,7 +118,13 @@ def shape(recipe: dict[str, Any]) -> dict[str, Any]:
 @pytest.mark.django_db
 def test_loads_the_repos_catalogue_in_place_of_the_recipes_already_there() -> None:
     Recipe.objects.create(
-        title='Typed in the admin', difficulty='easy', prep_minutes=1, cook_minutes=1, servings=1, source='Me'
+        title='Typed in the admin',
+        difficulty='easy',
+        prep_minutes=1,
+        cook_minutes=1,
+        servings=1,
+        source='Me',
+        visibility='public',
     )
 
     call_command('load_catalogue')
@@ -768,6 +774,33 @@ def test_loading_leaves_a_households_recipe_its_cuisines_and_its_courses_alone(t
     assert (recipe.slug, recipe.title) == ('grandmas-curry', "Grandma's curry")
     assert [cuisine.name for cuisine in recipe.cuisines.all()] == ['Italian']
     assert [course.name for course in recipe.courses.all()] == ['Main']
+
+
+@pytest.mark.django_db
+def test_loading_makes_every_catalogue_recipe_public_whatever_the_file_says(tmp_path: Path) -> None:
+    call_command(
+        'load_catalogue',
+        write(tmp_path / 'catalogue.json', catalogue({**SHAKSHUKA, 'visibility': 'private'}, FLAPJACKS)),
+    )
+
+    assert sorted(Recipe.objects.catalogue().values_list('slug', 'visibility')) == [
+        ('flapjacks', 'public'),
+        ('shakshuka', 'public'),
+    ]
+
+
+@pytest.mark.django_db
+def test_reloading_leaves_a_households_public_recipe_alone(tmp_path: Path) -> None:
+    published = household_recipe()
+    Recipe.objects.filter(pk=published.pk).update(visibility='public')
+    path = write(tmp_path / 'catalogue.json', catalogue(SHAKSHUKA))
+
+    call_command('load_catalogue', path)
+    call_command('load_catalogue', path)
+
+    assert list(Recipe.objects.filter(household__isnull=False).values_list('pk', 'slug', 'title', 'visibility')) == [
+        (published.pk, 'grandmas-curry', "Grandma's curry", 'public')
+    ]
 
 
 @pytest.mark.django_db
