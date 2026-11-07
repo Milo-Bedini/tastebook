@@ -59,7 +59,7 @@ export const AppLayout = () => {
       <Outlet />
       <Dock tabs={tabs} />
       <SaveOnReturn />
-      <Toaster />
+      <Toaster aboveDock={tabs.length > 0} />
     </FavouriteSlot>
   );
 };

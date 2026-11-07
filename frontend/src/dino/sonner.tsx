@@ -1,11 +1,22 @@
 import { CircleAlert } from 'lucide-react';
-import { Toaster as Sonner, type ToasterProps } from 'sonner';
+import { Toaster as Sonner, type ToasterProps as SonnerProps } from 'sonner';
+
+import { cn } from '@/dino/cn';
+
+type ToasterProps = SonnerProps & {
+  // On a page with the Dock, a phone's toasts sit 12 px above it rather than over it.
+  aboveDock?: boolean;
+};
 
 // Sonner injects its own font and 400 ms transitions at load, so the important modifier makes Picnic's win whatever
-// the stylesheet order.
-export const Toaster = (props: ToasterProps) => (
+// the stylesheet order. Its offsets are inline variables, so the dock's clearance is important too; the Dock shows
+// under 640 px, as max-sm does.
+export const Toaster = ({ aboveDock = false, ...props }: ToasterProps) => (
   <Sonner
-    className="font-sans! duration-150! ease-out!"
+    className={cn(
+      'font-sans! duration-150! ease-out!',
+      aboveDock && 'max-sm:bottom-[calc(--spacing(5)+--spacing(15.5)+--spacing(3)+env(safe-area-inset-bottom))]!'
+    )}
     icons={{ error: <CircleAlert aria-hidden="true" strokeWidth={2.5} className="size-4.5" /> }}
     toastOptions={{
       unstyled: true,
