@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Method: removing, pasting, checking and loading</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.scrolled{position:absolute;top:0;left:0;right:0;padding:8px 20px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-bottom:1px dashed var(--color-line);background:var(--color-ground);z-index:1}
+.page{padding:56px 20px 48px;display:flex;flex-direction:column}
+.grp{display:flex;flex-direction:column;gap:20px}
+.sec{margin:0;font-family:var(--font-serif);font-style:italic;font-size:28px;line-height:30px;font-weight:400}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.lede{margin:0;color:var(--color-muted)}
+.fs{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.lbl{padding:0;font-size:15px;line-height:20px;font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.steps > li{display:flex;flex-direction:column;gap:8px;padding:16px 0;border-bottom:1px solid var(--color-line)}
+.steps > li:first-child{padding-top:0}
+.steps > li:last-child{border-bottom:0;padding-bottom:0}
+.shead{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.snum{font-family:var(--font-serif);font-style:italic;font-size:32px;line-height:32px;font-weight:400;color:var(--color-pop)}
+.is-focus textarea{outline:1px solid var(--color-ink);outline-offset:0;border-color:var(--color-ink)}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.said{margin:0;padding:8px 12px;border:1px dashed var(--color-field);border-radius:var(--radius-row);font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.said b{color:var(--color-ink)}
+.wait{margin:0;display:flex;align-items:center;gap:10px;font-size:15px;line-height:20px;font-weight:800}
+.boards{display:grid;grid-template-columns:repeat(4,390px);gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</helmet>
+<div style="width: 1800px; height: 1340px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-117 · /recipes/new · phone, 390 px · variant A’s states</span>
+    <h1 class="ttl">Removing, pasting, checking and loading</h1>
+    <span class="cap">What a dashed box quotes is the section’s status line, read out by screen readers and hidden on screen.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>After removing a step</b> · “Remove step 2” pressed: the steps after it move up a number, and focus goes to the step now in its place</span>
+      <div class="frame" style="height: 580px">
+        <div class="scrolled">Scrolled to the steps</div>
+        <main class="page"><section class="grp">
+          <ol class="steps" aria-label="Steps">
+            <li>
+              <div class="shead"><label for="a-s1" class="snum"><span class="vh">Step </span>1</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 1"></x-import></div>
+              <x-import component-from-global-scope="Dino.TextArea" id="a-s1" default-value="Heat the oil in a large pan over a medium heat. Add the onion and cook for 8 to 10 minutes, until soft and golden."></x-import>
+            </li>
+            <li>
+              <div class="shead"><label for="a-s2" class="snum"><span class="vh">Step </span>2</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 2"></x-import></div>
+              <div class="is-focus"><x-import component-from-global-scope="Dino.TextArea" id="a-s2" default-value="Tip in the tomatoes, season well and simmer for 20 minutes, until thick."></x-import></div>
+            </li>
+          </ol>
+          <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a step</x-import></div>
+          <p class="said">Says <b>“Removed step 2.”</b></p>
+        </section></main>
+      </div>
+      <span class="cap" style="margin-top: 8px">Removing the last step puts focus on “Add a step”. Nothing is asked first: the recipe isn’t saved until Save, so leaving the page or putting it back undoes it.</span>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Pasted a method</b> · a method with blank lines between its paragraphs pasted into an empty step: each paragraph becomes a step</span>
+      <div class="frame" style="height: 880px">
+        <div class="scrolled">Scrolled to the steps</div>
+        <main class="page"><section class="grp">
+          <ol class="steps" aria-label="Steps">
+            <li>
+              <div class="shead"><label for="b-s1" class="snum"><span class="vh">Step </span>1</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 1"></x-import></div>
+              <x-import component-from-global-scope="Dino.TextArea" id="b-s1" default-value="Toast the cumin seeds in a dry pan until fragrant, then grind them."></x-import>
+            </li>
+            <li>
+              <div class="shead"><label for="b-s2" class="snum"><span class="vh">Step </span>2</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 2"></x-import></div>
+              <x-import component-from-global-scope="Dino.TextArea" id="b-s2" default-value="Soften the onion in the oil for 10 minutes."></x-import>
+            </li>
+            <li>
+              <div class="shead"><label for="b-s3" class="snum"><span class="vh">Step </span>3</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 3"></x-import></div>
+              <x-import component-from-global-scope="Dino.TextArea" id="b-s3" default-value="Add the chickpeas, tomatoes and spices and simmer for 15 minutes."></x-import>
+            </li>
+            <li>
+              <div class="shead"><label for="b-s4" class="snum"><span class="vh">Step </span>4</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 4"></x-import></div>
+              <div class="is-focus"><x-import component-from-global-scope="Dino.TextArea" id="b-s4" default-value="Stir through the spinach until it wilts, and serve."></x-import></div>
+            </li>
+          </ol>
+          <p class="said">Says <b>“Pasted 4 steps.”</b> Focus is at the end of the last.</p>
+        </section></main>
+      </div>
+      <span class="cap" style="margin-top: 8px">Only a paste into an empty step splits, and only at blank lines; a paste into a step with text, or with no blank line, goes in as typed. Typing a blank line never splits.</span>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Save found a problem</b> · Save pressed with a step the API refuses: focus goes to that step, its error under it</span>
+      <div class="frame" style="height: 540px">
+        <div class="scrolled">Scrolled to the step</div>
+        <main class="page"><section class="grp">
+          <ol class="steps" aria-label="Steps">
+            <li>
+              <div class="shead"><label for="c-s2" class="snum"><span class="vh">Step </span>2</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 2"></x-import></div>
+              <div class="is-focus"><x-import component-from-global-scope="Dino.TextArea" id="c-s2" aria-invalid="true" aria-describedby="c-err" default-value="Make the dough: mix the flour, yeast and salt, add the water and oil and knead for 10 minutes, until smooth and springy. Leave it to rise somewhere warm for an hour, or overnight in the fridge, then knock it back, shape it into four balls and…"></x-import></div>
+              <p id="c-err" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Keep a step to 2,000 characters. Split this one in two.</span></p>
+            </li>
+          </ol>
+        </section></main>
+      </div>
+      <span class="cap" style="margin-top: 8px">The error replaces nothing (a step has no help) and says how to fix it. The limit here is a stand-in: the build sets the real one, and the message names it.</span>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Equipment loading, then not loaded</b> · as the Cuisines and Courses chip groups do; the steps work either way</span>
+      <div class="frame" style="height: 140px">
+        <main class="page" style="padding-top: 32px"><section class="grp">
+          <fieldset class="fs">
+            <legend class="lbl" style="margin-bottom: 8px">Equipment</legend>
+            <p class="wait" role="status"><x-import component-from-global-scope="Dino.Spinner" class-name="size-4.5"></x-import>Loading equipment…</p>
+          </fieldset>
+        </section></main>
+      </div>
+      <div class="frame" style="height: 380px; margin-top: 16px">
+        <main class="page" style="padding-top: 32px"><section class="grp">
+          <fieldset class="fs">
+            <legend class="lbl" style="margin-bottom: 8px">Equipment</legend>
+            <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load the equipment" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+          </fieldset>
+        </section></main>
+      </div>
+      <span class="cap" style="margin-top: 8px">Editing a recipe keeps its chosen equipment while the list loads, and Save keeps it if the list never does.</span>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>Every change is said.</b> Removing (“Removed step 2.”), pasting (“Pasted 4 steps.”), adding (focus moves into the new step, whose label says its number), moving (“Moved step 3 up. It’s now step 2.”) and a move that can’t happen (“Step 3 is already last.”) all go through the section’s one status line (NN/g 1).</p>
+    <p><b>Blank steps are left out on Save</b>, so a box left empty never stops a save or needs removing; a recipe saved with no steps says “No method yet” on its page, as today.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":1340}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, sw: 2.5,
+      retry: function () { return Promise.resolve(); }
+    };
+  }
+}
+</script>
+</body>
+</html>

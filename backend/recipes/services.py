@@ -104,7 +104,13 @@ def add_ingredient(name: str) -> tuple[Ingredient, bool]:
 
 
 def add_recipe(
-    author: User, details: Record, cuisines: list[Cuisine], courses: list[Course], ingredients: IngredientList
+    author: User,
+    details: Record,
+    cuisines: list[Cuisine],
+    courses: list[Course],
+    equipment: list[Equipment],
+    ingredients: IngredientList,
+    steps: list[str],
 ) -> Recipe:
     """Saves a private recipe in the author's household. Raises ValidationError when a pair is half given
     (servings or a yield, extra time and its label)."""
@@ -119,7 +125,9 @@ def add_recipe(
         recipe.save()
         recipe.cuisines.set(cuisines)
         recipe.courses.set(courses)
+        recipe.equipment.set(equipment)
         _set_ingredients(recipe, ingredients)
+        _set_steps(recipe, steps)
     return recipe
 
 
@@ -128,10 +136,12 @@ def edit_recipe(
     details: Record,
     cuisines: list[Cuisine] | None,
     courses: list[Course] | None,
+    equipment: list[Equipment] | None,
     ingredients: IngredientList | None,
+    steps: list[str] | None,
 ) -> Recipe:
-    """Changes the details given and keeps the recipe's address. None leaves the cuisines, courses or ingredients
-    as they are. Raises ValidationError when a pair is half given, as add_recipe does."""
+    """Changes the details given and keeps the recipe's address. None leaves the cuisines, courses, equipment,
+    ingredients or steps as they are. Raises ValidationError when a pair is half given, as add_recipe does."""
     with transaction.atomic():
         for name, value in details.items():
             setattr(recipe, name, value)
@@ -141,8 +151,12 @@ def edit_recipe(
             recipe.cuisines.set(cuisines)
         if courses is not None:
             recipe.courses.set(courses)
+        if equipment is not None:
+            recipe.equipment.set(equipment)
         if ingredients is not None:
             _set_ingredients(recipe, ingredients)
+        if steps is not None:
+            _set_steps(recipe, steps)
     return recipe
 
 
@@ -174,6 +188,12 @@ def _set_ingredients(recipe: Recipe, ingredients: IngredientList) -> None:
             for position, line in enumerate(lines)
         ]
     )
+
+
+def _set_steps(recipe: Recipe, steps: list[str]) -> None:
+    """Replaces the recipe's steps in two queries, numbered in the order given."""
+    Step.objects.filter(recipe=recipe).delete()
+    Step.objects.bulk_create([Step(recipe=recipe, position=position, text=text) for position, text in enumerate(steps)])
 
 
 def add_described_recipes(author: User, records: list[Record]) -> list[Recipe]:

@@ -132,6 +132,7 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
     ),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),
+    'api/equipment/': (get('/api/equipment/'),),
     'api/ingredients/': (get('/api/ingredients/'), post('/api/ingredients/', {'name': 'Taken'})),
     'api/schema/': (get('/api/schema/'),),
     'api/schema/docs/': (get('/api/schema/docs/'),),

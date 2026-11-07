@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Text area and filter chip, as they are</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.sec{margin:0;font-family:var(--font-serif);font-style:italic;font-size:28px;line-height:30px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 32px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.snum{font-family:var(--font-serif);font-style:italic;font-size:32px;line-height:32px;font-weight:400;color:var(--color-pop)}
+.is-hover textarea{border-color:var(--color-ink);background:var(--color-surface)}
+.is-focus textarea{outline:1px solid var(--color-ink);outline-offset:0;border-color:var(--color-ink)}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.chips{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.chipcell{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.hv button{border-color:var(--color-ink);background:var(--color-surface)}
+.fv button{outline:3px solid var(--color-ink);outline-offset:0}
+.notes{display:flex;flex-direction:column;gap:12px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</helmet>
+<div style="width: 980px; height: 1100px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-117 · the two Dino components the Method section uses, in each state as a step and as equipment</span>
+    <h1 class="ttl">Text area and filter chip, as they are</h1>
+    <span class="cap">Both were expected to change; drawn in place, neither needs to. These are Dino’s components mounted unchanged.</span>
+  </header>
+
+  <h2 class="sec">Text area, as a step</h2>
+  <div class="grid">
+    <div class="cell"><span class="cap"><b>Rest</b> · empty, three lines tall</span><label for="t1" class="snum"><span class="vh">Step </span>1</label><x-import component-from-global-scope="Dino.TextArea" id="t1" default-value=""></x-import></div>
+    <div class="cell"><span class="cap"><b>is-hover</b> · border Ink, Surface fill</span><label for="t2" class="snum"><span class="vh">Step </span>2</label><div class="is-hover"><x-import component-from-global-scope="Dino.TextArea" id="t2" default-value="Stir in the garlic and chilli flakes and cook for a minute more."></x-import></div></div>
+    <div class="cell"><span class="cap"><b>is-focus</b> · border Ink, 3 px; grows with the text</span><label for="t3" class="snum"><span class="vh">Step </span>3</label><div class="is-focus"><x-import component-from-global-scope="Dino.TextArea" id="t3" default-value="Tip in the tomatoes, season well and simmer for 20 minutes, until thick. Bake in the oven at 200°C for 15 minutes to finish."></x-import></div></div>
+    <div class="cell"><span class="cap"><b>Error</b> · border and message in Danger</span><label for="t4" class="snum"><span class="vh">Step </span>4</label><x-import component-from-global-scope="Dino.TextArea" id="t4" aria-invalid="true" aria-describedby="t4-e" default-value="Make the dough: mix the flour, yeast and salt…"></x-import><p id="t4-e" class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>Keep a step to 2,000 characters. Split this one in two.</span></p></div>
+  </div>
+  <span class="cap">Disabled isn’t used: the form never disables a step while it saves, as the other fields don’t.</span>
+
+  <h2 class="sec">Filter chip, as equipment</h2>
+  <div class="chips">
+    <div class="chipcell"><span class="cap"><b>Off</b></span><x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">Stand mixer</x-import></div>
+    <div class="chipcell hv"><span class="cap"><b>is-hover</b></span><x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">Stand mixer</x-import></div>
+    <div class="chipcell fv"><span class="cap"><b>is-focus</b></span><x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">Stand mixer</x-import></div>
+    <div class="chipcell"><span class="cap"><b>is-on</b> · mint, with a check</span><x-import component-from-global-scope="Dino.FilterChip" pressed="{{yes}}" on-pressed-change="{{noop}}">Oven</x-import></div>
+    <div class="chipcell fv"><span class="cap"><b>is-on, focused</b></span><x-import component-from-global-scope="Dino.FilterChip" pressed="{{yes}}" on-pressed-change="{{noop}}">Oven</x-import></div>
+  </div>
+
+  <div class="notes">
+    <p><b>Text area: no change.</b> A step is its whole text area, labelled by its number; the minimum of three lines, growing with the text and wrapping long words, are what a step needs. Nothing about it is new.</p>
+    <p><b>Filter chip: no change.</b> Equipment is a chip group exactly like Cuisines and Courses, untilted (tilt is for browse’s quick filters only). Its name says “filter” though it chooses here; it already does so for Cuisines and Courses, so a rename belongs to its own change, not this one.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":980,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, no: false, sw: 2.5, noop: function () {} };
+  }
+}
+</script>
+</body>
+</html>

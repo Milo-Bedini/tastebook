@@ -16,7 +16,7 @@ from households.views import (
     SignUpView,
     VerifyEmailCodeView,
 )
-from recipes.views import CourseListView, CuisineListView, IngredientListView
+from recipes.views import CourseListView, CuisineListView, EquipmentListView, IngredientListView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/recipes/', include('recipes.urls')),
     path('api/cuisines/', CuisineListView.as_view(), name='cuisine-list'),
     path('api/courses/', CourseListView.as_view(), name='course-list'),
+    path('api/equipment/', EquipmentListView.as_view(), name='equipment-list'),
     path('api/ingredients/', IngredientListView.as_view(), name='ingredient-list'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='schema-docs'),

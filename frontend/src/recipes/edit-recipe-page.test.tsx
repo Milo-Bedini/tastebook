@@ -38,13 +38,16 @@ const flatbreads: Recipe = {
   servings: null,
   yield_amount: 12,
   yield_unit: 'flatbreads',
-  equipment: [],
+  equipment: [{ slug: 'oven', name: 'Oven' }],
   one_pot: true,
   source: "Nonna's notebook",
   source_url: 'https://example.com/flatbreads',
   ingredient_lines: [],
   ingredient_groups: [],
-  steps: [],
+  steps: [
+    { id: 7, text: 'Mix the dough and leave it to prove.' },
+    { id: 8, text: 'Roll it out and bake until blistered.' }
+  ],
   diet_tag_conflicts: [],
   can_delete: false
 };
@@ -59,8 +62,10 @@ const answerEditing = (
       ...changes,
       cuisines: recipe.cuisines,
       courses: recipe.courses,
+      equipment: recipe.equipment,
       ingredient_lines: recipe.ingredient_lines,
-      ingredient_groups: recipe.ingredient_groups
+      ingredient_groups: recipe.ingredient_groups,
+      steps: recipe.steps
     })
 ) => {
   const sent: RecipeChanges[] = [];
@@ -124,6 +129,10 @@ describe('EditRecipePage', () => {
     expect(screen.getByRole('switch', { name: 'One-pot' })).toBeChecked();
     expect(textbox('Source credit')).toHaveValue("Nonna's notebook");
     expect(textbox('Source address')).toHaveValue('https://example.com/flatbreads');
+    expect(await screen.findByRole('button', { name: 'Oven' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Hob' })).toHaveAttribute('aria-pressed', 'false');
+    expect(textbox('Step 1')).toHaveValue('Mix the dough and leave it to prove.');
+    expect(textbox('Step 2')).toHaveValue('Roll it out and bake until blistered.');
     expect(document.title).toBe('Edit Flatbreads · Tastebook');
   });
 
@@ -153,8 +162,10 @@ describe('EditRecipePage', () => {
         one_pot: true,
         source: "Nonna's notebook",
         source_url: 'https://example.com/flatbreads',
+        equipment: ['oven'],
         ingredient_lines: [],
-        ingredient_groups: []
+        ingredient_groups: [],
+        steps: ['Mix the dough and leave it to prove.', 'Roll it out and bake until blistered.']
       }
     ]);
   });
@@ -175,7 +186,9 @@ describe('EditRecipePage', () => {
       yield_unit: '',
       one_pot: false,
       source: '',
-      source_url: ''
+      source_url: '',
+      equipment: [],
+      steps: []
     });
     await openForm();
 
@@ -199,8 +212,10 @@ describe('EditRecipePage', () => {
       one_pot: false,
       source: '',
       source_url: '',
+      equipment: [],
       ingredient_lines: [],
-      ingredient_groups: []
+      ingredient_groups: [],
+      steps: []
     });
   });
 

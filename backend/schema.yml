@@ -82,6 +82,20 @@ paths:
                 items:
                   $ref: '#/components/schemas/Cuisine'
           description: ''
+  /api/equipment/:
+    get:
+      operationId: equipment_list
+      tags:
+      - equipment
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+          description: ''
   /api/health/:
     get:
       operationId: health_retrieve
@@ -562,7 +576,7 @@ paths:
       description: Edits a recipe of the signed-in account's household; any member
         may, whoever wrote it. Only the fields sent change, and the address stays
         as it is. Sending ingredient_lines or ingredient_groups replaces every line
-        and group; the one left out counts as none.
+        and group; the one left out counts as none. Sending steps replaces every step.
       parameters:
       - in: path
         name: slug
@@ -1152,6 +1166,10 @@ components:
           type: string
           description: '"cookies" in "makes 12 cookies".'
           maxLength: 50
+        equipment:
+          type: array
+          items:
+            type: string
         one_pot:
           type: boolean
         source:
@@ -1177,6 +1195,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NewIngredientGroup'
+        steps:
+          type: array
+          items:
+            type: string
+            maxLength: 2000
+          description: The method, a step each, in order. Sending it replaces every
+            step.
+          maxItems: 100
       required:
       - title
     PatchedAccountChanges:
@@ -1252,6 +1278,10 @@ components:
           type: string
           description: '"cookies" in "makes 12 cookies".'
           maxLength: 50
+        equipment:
+          type: array
+          items:
+            type: string
         one_pot:
           type: boolean
         source:
@@ -1277,6 +1307,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NewIngredientGroup'
+        steps:
+          type: array
+          items:
+            type: string
+            maxLength: 2000
+          description: The method, a step each, in order. Sending it replaces every
+            step.
+          maxItems: 100
     PhotoThumbnail:
       type: object
       properties:

@@ -22,12 +22,23 @@ test('a member edits a recipe another member wrote, and only the household can',
   await ben.page.getByRole('textbox', { name: 'Title' }).fill("Grandma's lamb curry");
   await ben.page.getByRole('textbox', { name: 'Cook time' }).fill('40');
   await ben.page.getByRole('textbox', { name: 'How many people' }).fill('4');
+  const method = ben.page.getByRole('region', { name: 'Method' });
+  await method.getByRole('button', { name: 'Hob' }).click();
+  await method.getByRole('textbox', { name: 'Step 1' }).fill('Fry the onion until golden.');
+  await method.getByRole('button', { name: 'Add a step' }).click();
+  await method.getByRole('textbox', { name: 'Step 2' }).fill('Add the lamb and simmer for 40 minutes.');
+  await accessibility.check(ben.page);
   await ben.page.getByRole('button', { name: 'Save changes' }).click();
 
   await expect(ben.page).toHaveURL(new RegExp(`${address}$`));
   await expect(ben.page.getByRole('heading', { level: 1, name: EDITED_HEADING })).toBeVisible();
-  await expect(ben.page.getByText('No method yet')).toBeVisible();
   await expect(ben.page.getByText('No cook time yet')).toHaveCount(0);
+  await expect(ben.page.getByText('No method yet')).toHaveCount(0);
+  // Each step's text follows its drawn number.
+  await expect(ben.page.getByRole('region', { name: 'Method' }).getByRole('listitem')).toHaveText([
+    '1Fry the onion until golden.',
+    '2Add the lamb and simmer for 40 minutes.'
+  ]);
   await expect(ben.page.getByText('No servings yet')).toHaveCount(0);
   await accessibility.check(ben.page);
 

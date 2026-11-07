@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Variant A: Write each step in place</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.scrolled{position:absolute;top:0;left:0;right:0;padding:8px 20px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-bottom:1px dashed var(--color-line);background:var(--color-ground);z-index:1}
+.page{padding:56px 20px 48px;display:flex;flex-direction:column}
+.form{display:flex;flex-direction:column;gap:40px}
+.grp{display:flex;flex-direction:column;gap:20px}
+.sec{margin:0;font-family:var(--font-serif);font-style:italic;font-size:28px;line-height:30px;font-weight:400}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.lede{margin:0;color:var(--color-muted)}
+.fs{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.lbl{padding:0;font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.steps > li{display:flex;flex-direction:column;gap:8px;padding:16px 0;border-bottom:1px solid var(--color-line)}
+.steps > li:first-child{padding-top:0}
+.steps > li:last-child{border-bottom:0;padding-bottom:0}
+.shead{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.snum{font-family:var(--font-serif);font-style:italic;font-size:32px;line-height:32px;font-weight:400;color:var(--color-pop)}
+.is-focus textarea{outline:1px solid var(--color-ink);outline-offset:0;border-color:var(--color-ink)}
+.status{margin:0;font-size:15px;line-height:20px;font-weight:800}
+.rrow{min-height:72px;display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--color-line)}
+.rows{margin:0;padding:0;list-style:none}
+.rows > li:last-child .rrow{border-bottom:0}
+.rrow .snum{width:28px;flex-shrink:0;text-align:center}
+.rtxt{flex-grow:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.acts{display:flex;gap:8px;flex-shrink:0}
+.btnring{display:inline-flex;border-radius:var(--radius-pill);outline:3px solid var(--color-ink);outline-offset:0}
+.boards{display:grid;grid-template-columns:repeat(3,390px);gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</helmet>
+<div style="width: 1370px; height: 1820px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-117 · /recipes/new and /recipes/:slug/edit · phone, 390 px · the Method section, after Ingredients and before Times</span>
+    <h1 class="ttl">Variant A: Write each step in place</h1>
+    <span class="cap">Recommended. Equipment as chips, like Cuisines and Courses; then each step is its own numbered text area, typed straight into, with “Add a step” at the end and Reorder as its own mode, as Ingredients has it.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>As it opens</b> · a new recipe: no equipment chosen, one blank step ready to type into, so no Remove and no Reorder</span>
+      <div class="frame" style="height: 840px">
+        <div class="scrolled">Scrolled to Method</div>
+        <main class="page"><form class="form" novalidate>
+          <section class="grp" aria-labelledby="a-h">
+            <div class="hd"><h2 id="a-h" class="sec">Method</h2></div>
+            <p class="lede">Choose the equipment it needs, then write each step in its own box, in order.</p>
+            <fieldset class="fs">
+              <legend class="lbl" style="margin-bottom: 8px">Equipment</legend>
+              <div class="chips">
+                <sc-for list="{{equipment}}" as="e" hint-placeholder-count="11"><x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">{{e.name}}</x-import></sc-for>
+              </div>
+            </fieldset>
+            <ol class="steps" aria-label="Steps">
+              <li>
+                <div class="shead"><label for="a-s1" class="snum"><span class="vh">Step </span>1</label></div>
+                <x-import component-from-global-scope="Dino.TextArea" id="a-s1" default-value=""></x-import>
+              </li>
+            </ol>
+            <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a step</x-import></div>
+            <p class="vh" role="status"></p>
+          </section>
+          <section class="grp" aria-labelledby="a-h-times"><h2 id="a-h-times" class="sec">Times</h2></section>
+        </form></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Filled in</b> · Hob and Oven chosen; three steps; typing in step 2, so its border is Ink</span>
+      <div class="frame" style="height: 1240px">
+        <div class="scrolled">Scrolled to Method</div>
+        <main class="page"><form class="form" novalidate>
+          <section class="grp" aria-labelledby="b-h">
+            <div class="hd">
+              <h2 id="b-h" class="sec">Method</h2>
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ArrowUpDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>Reorder</x-import>
+            </div>
+            <p class="lede">Choose the equipment it needs, then write each step in its own box, in order.</p>
+            <fieldset class="fs">
+              <legend class="lbl" style="margin-bottom: 8px">Equipment</legend>
+              <div class="chips">
+                <sc-for list="{{equipment}}" as="e" hint-placeholder-count="11"><x-import component-from-global-scope="Dino.FilterChip" pressed="{{e.on}}" on-pressed-change="{{noop}}">{{e.name}}</x-import></sc-for>
+              </div>
+            </fieldset>
+            <ol class="steps" aria-label="Steps">
+              <li>
+                <div class="shead"><label for="b-s1" class="snum"><span class="vh">Step </span>1</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 1"></x-import></div>
+                <x-import component-from-global-scope="Dino.TextArea" id="b-s1" default-value="Heat the oil in a large pan over a medium heat. Add the onion and cook for 8 to 10 minutes, until soft and golden."></x-import>
+              </li>
+              <li>
+                <div class="shead"><label for="b-s2" class="snum"><span class="vh">Step </span>2</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 2"></x-import></div>
+                <div class="is-focus"><x-import component-from-global-scope="Dino.TextArea" id="b-s2" default-value="Stir in the garlic and chilli flakes and cook for a minute more, until"></x-import></div>
+              </li>
+              <li>
+                <div class="shead"><label for="b-s3" class="snum"><span class="vh">Step </span>3</label><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Trash2}}" label="Remove step 3"></x-import></div>
+                <x-import component-from-global-scope="Dino.TextArea" id="b-s3" default-value="Tip in the tomatoes, season well and simmer for 20 minutes, until thick. Bake in the oven at 200°C for 15 minutes to finish."></x-import>
+              </li>
+            </ol>
+            <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Add a step</x-import></div>
+            <p class="vh" role="status"></p>
+          </section>
+          <section class="grp" aria-labelledby="b-h-times"><h2 id="b-h-times" class="sec">Times</h2></section>
+        </form></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Reordering, after a move</b> · “Move step 3 up” pressed: the step is now 2, focus stays on its button, and the line under the heading says so</span>
+      <div class="frame" style="height: 560px">
+        <div class="scrolled">Scrolled to Method</div>
+        <main class="page"><section class="grp" aria-labelledby="c-h">
+          <div class="hd">
+            <h2 id="c-h" class="sec">Method</h2>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ArrowUpDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>Done reordering</x-import>
+          </div>
+          <p class="status" role="status">Moved step 3 up. It’s now step 2.</p>
+          <ol class="rows" aria-label="Steps">
+            <li><div class="rrow"><span class="snum" aria-hidden="true">1</span><span class="rtxt">Heat the oil in a large pan over a medium heat. Add the onion and cook for 8 to 10 minutes, until soft and golden.</span><span class="acts">
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move step 1 up"></x-import>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move step 1 down"></x-import>
+            </span></div></li>
+            <li><div class="rrow"><span class="snum" aria-hidden="true">2</span><span class="rtxt">Tip in the tomatoes, season well and simmer for 20 minutes, until thick. Bake in the oven at 200°C for 15 minutes to finish.</span><span class="acts">
+              <span class="btnring"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move step 2 up"></x-import></span>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move step 2 down"></x-import>
+            </span></div></li>
+            <li><div class="rrow"><span class="snum" aria-hidden="true">3</span><span class="rtxt">Stir in the garlic and chilli flakes and cook for a minute more, until fragrant.</span><span class="acts">
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowUp}}" label="Move step 3 up"></x-import>
+              <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.ArrowDown}}" label="Move step 3 down"></x-import>
+            </span></div></li>
+          </ol>
+          <h2 class="sec" style="margin-top: 20px">Times</h2>
+        </section></main>
+      </div>
+      <span class="cap" style="margin-top: 8px">In the mode the equipment, the text areas, Remove and “Add a step” are gone: each step shows its number and its first two lines, with Move up and Move down. The buttons are named by number, and the number follows the step, so the announcement says both.</span>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>Equipment is a chip group, as Cuisines and Courses are.</b> A fieldset with the legend “Equipment” and the eleven tools from the shared list as untilted filter chips (off: Field outline; on: mint with a check). It loads and fails as the other chip groups do (drawn on <i>Method: removing, pasting, checking and loading</i>).</p>
+    <p><b>A step is a number and a text area.</b> The number is the Method’s look, Instrument Serif italic in Pop at 32 px, and it is the text area’s label (“Step 2” to a screen reader; the word is visually hidden, the number shown). The text area is Dino’s, unchanged: it grows with the step, never scrolls inside. Hairlines in Line between steps. Remove (an icon button, “Remove step 2”) sits at the end of the number’s row once there are two steps.</p>
+    <p><b>Writing is direct.</b> A step is one field, so it’s typed where it sits, with no sheet to open (NN/g 7). Enter makes a new line inside the step; “Add a step” appends a blank one and puts focus in it. Blank steps are left out when the recipe saves, so a spare empty box never needs removing.</p>
+    <p><b>Reorder</b> sits at the heading’s end once there are two steps and works as Ingredients’ does: the same element turns into “Done reordering”, every move button stays enabled, and pressing one that can’t move says why (“Step 1 is already first.”).</p>
+    <p><b>Laptop and tablet</b> keep this shape: the form is one 640 px column from tablets up, as on the ingredients boards, so the steps just get wider.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1370,"height":1820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var names = ['Air fryer', 'Blender', 'Food processor', 'Grill', 'Hand mixer', 'Hob', 'Microwave', 'Oven', 'Pressure cooker', 'Slow cooker', 'Stand mixer'];
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.5,
+      noop: function () {},
+      equipment: names.map(function (n) { return { name: n, on: n === 'Hob' || n === 'Oven' }; })
+    };
+  }
+}
+</script>
+</body>
+</html>

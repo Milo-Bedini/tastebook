@@ -2,8 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { ComponentProps, ReactNode } from 'react';
 
 import { ErrorWithRetry, FilterChip, SegmentedControl } from '../dino';
-import { useCourses } from './courses-api';
-import { useCuisines } from './cuisines-api';
+import { useCourses, useCuisines } from './choices-api';
 import { dietTagLabels, dietTags } from './diet-tags';
 import { difficulties, difficultyLabels } from './difficulty';
 import { IngredientPicker } from './ingredient-picker';
