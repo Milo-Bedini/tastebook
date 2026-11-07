@@ -81,7 +81,22 @@ describe('deletionWarning', () => {
       { steps: stepsOf(2) },
       "Chana masala and its 2 steps will be deleted for everyone in your household. You can't undo this."
     ],
-    ['neither', {}, "Chana masala will be deleted for everyone in your household. You can't undo this."]
+    ['neither', {}, "Chana masala will be deleted for everyone in your household. You can't undo this."],
+    [
+      'saved by 6 other people',
+      { save_count: 6 },
+      "Chana masala will be deleted for everyone in your household. 6 people saved this; they'll see it's gone. You can't undo this."
+    ],
+    [
+      'saved by 1 other person',
+      { save_count: 1 },
+      "Chana masala will be deleted for everyone in your household. 1 person saved this; they'll see it's gone. You can't undo this."
+    ],
+    [
+      'saved by nobody else',
+      { save_count: 0 },
+      "Chana masala will be deleted for everyone in your household. You can't undo this."
+    ]
   ])('%s', (_, recipe, expected) => {
     expect(deletionWarning({ ...chanaMasala, ...recipe })).toBe(expected);
   });
