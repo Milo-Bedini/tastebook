@@ -15,3 +15,6 @@ overrides:
   # GHSA-mrhx-c7xc-m3w5: @vercel/blob's @vercel/oidc pins @vercel/cli-config@0.3.1, which pins zod 4.1.11. Drop this
   # once @vercel/oidc depends on a @vercel/cli-config with zod 4.6.6 or later.
   "@vercel/cli-config>zod": 4.6.7
+  # GHSA-c475-qrg2-pj4r: get-uri (under @lhci/cli's proxy-agent) depends on basic-ftp ^5.3.1, and the fix is only in
+  # 6.2.1. Tastebook fetches nothing over FTP. Drop this once get-uri depends on basic-ftp 6.2.1 or later.
+  "get-uri>basic-ftp": ^6.2.1
