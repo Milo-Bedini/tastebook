@@ -1,4 +1,4 @@
-import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useMutationState, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '../api/client';
 import type { components } from '../api/schema';
@@ -8,6 +8,8 @@ export type SavedList = components['schemas']['SavedList'];
 
 const LISTS_KEY = ['collections', 'lists'];
 const FAVOURITES_KEY = ['collections', 'favourites'];
+const SAVE_KEY = ['collections', 'save'];
+const UNSAVE_KEY = ['collections', 'unsave'];
 
 export const useLists = () =>
   useQuery({
@@ -55,6 +57,7 @@ export type Saving = { kind: 'saved'; saved: SavedRecipe } | { kind: 'signed-out
 export const useSaveRecipe = () => {
   const queryClient = useQueryClient();
   return useMutation({
+    mutationKey: SAVE_KEY,
     mutationFn: async (slug: string): Promise<Saving> => {
       const { data, response } = await api.POST('/api/lists/favourites/saved/', { body: { recipe: slug } });
       if (data !== undefined) {
@@ -85,6 +88,7 @@ export type Unsaving = { kind: 'unsaved'; undo: string } | { kind: 'signed-out' 
 export const useUnsave = () => {
   const queryClient = useQueryClient();
   return useMutation({
+    mutationKey: UNSAVE_KEY,
     mutationFn: async (saved: SavedRecipe): Promise<Unsaving> => {
       const { data, response } = await api.DELETE('/api/lists/favourites/saved/{saved_id}/', {
         params: { path: { saved_id: saved.id } }
@@ -113,6 +117,19 @@ export const useUnsave = () => {
       await listsChanged(queryClient);
     }
   });
+};
+
+// Which recipes are being saved (by slug) and unsaved (by id) right now, from any heart, so each heart knows its own.
+export const usePendingSaves = () => {
+  const saving = useMutationState({
+    filters: { mutationKey: SAVE_KEY, status: 'pending' },
+    select: ({ state }) => state.variables as string
+  });
+  const unsaving = useMutationState({
+    filters: { mutationKey: UNSAVE_KEY, status: 'pending' },
+    select: ({ state }) => (state.variables as SavedRecipe).recipe?.id
+  });
+  return { saving, unsaving };
 };
 
 export type Restoring = { kind: 'restored'; saved: SavedRecipe } | { kind: 'expired' } | { kind: 'signed-out' };

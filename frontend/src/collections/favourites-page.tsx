@@ -29,26 +29,21 @@ const focusHeart = (element: HTMLElement | null) => element?.querySelector('butt
 type SavedHeartProps = { saved: SavedRecipe; takesFocus: boolean; onUnsave: () => void };
 
 // Every recipe on the page is saved, so its heart only unsaves; the card leaves at once.
-const SavedHeart = ({ saved, takesFocus, onUnsave }: SavedHeartProps) => {
-  const heart = useHeart();
-  return (
-    <span ref={takesFocus ? focusHeart : undefined} className="contents">
-      <FavouriteButton
-        label={`Favourite ${saved.recipe?.title ?? saved.title}`}
-        saved
-        onSavedChange={() => {
-          onUnsave();
-          void heart.remove(saved);
-        }}
-      />
-    </span>
-  );
+const SavedHeart = ({ saved, takesFocus, onUnsave }: SavedHeartProps) => (
+  <span ref={takesFocus ? focusHeart : undefined} className="contents">
+    <FavouriteButton label={`Favourite ${saved.recipe?.title ?? saved.title}`} saved onSavedChange={onUnsave} />
+  </span>
+);
+
+type SavedItemProps = {
+  saved: SavedRecipe;
+  index: number;
+  takesFocus: boolean;
+  onUnsave: (saved: SavedRecipe, index: number) => void;
 };
 
-type SavedItemProps = { saved: SavedRecipe; index: number; takesFocus: boolean; onUnsave: (index: number) => void };
-
 const SavedItem = ({ saved, index, takesFocus, onUnsave }: SavedItemProps) => {
-  const heart = <SavedHeart saved={saved} takesFocus={takesFocus} onUnsave={() => onUnsave(index)} />;
+  const heart = <SavedHeart saved={saved} takesFocus={takesFocus} onUnsave={() => onUnsave(saved, index)} />;
   if (saved.recipe === null) {
     return <UnavailableRecipe title={saved.title} action={heart} />;
   }
@@ -65,13 +60,21 @@ const SavedItem = ({ saved, index, takesFocus, onUnsave }: SavedItemProps) => {
 
 type SavedRecipesProps = { savedRecipes: SavedRecipe[]; focusAt: number | null; onUnsave: (index: number) => void };
 
-const SavedRecipes = ({ savedRecipes, focusAt, onUnsave }: SavedRecipesProps) => (
-  <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
-    {savedRecipes.map((saved, index) => (
-      <SavedItem key={saved.id} saved={saved} index={index} takesFocus={focusAt === index} onUnsave={onUnsave} />
-    ))}
-  </ul>
-);
+// One set of save actions for the whole list, not one per card.
+const SavedRecipes = ({ savedRecipes, focusAt, onUnsave }: SavedRecipesProps) => {
+  const heart = useHeart();
+  const unsave = (saved: SavedRecipe, index: number) => {
+    onUnsave(index);
+    void heart.remove(saved);
+  };
+  return (
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
+      {savedRecipes.map((saved, index) => (
+        <SavedItem key={saved.id} saved={saved} index={index} takesFocus={focusAt === index} onUnsave={unsave} />
+      ))}
+    </ul>
+  );
+};
 
 const NothingSaved = () => (
   <EmptyState

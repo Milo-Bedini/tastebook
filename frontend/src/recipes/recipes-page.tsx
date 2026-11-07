@@ -6,7 +6,7 @@ import { Link, useSearchParams } from 'react-router';
 import type { components } from '../api/schema';
 import { Button, EmptyState, ErrorWithRetry, Loading, Page, Sheet, Squiggle } from '../dino';
 import { ActiveFilters, countActiveFilters, useActiveFilters } from './active-filters';
-import { Favourite } from './favourite-slot';
+import { Favourite, FavouriteHearts } from './favourite-slot';
 import { RecipeCard } from './recipe-card';
 import { RecipeFilterPanel } from './recipe-filter-panel';
 import type { RecipeFilters } from './recipe-filters';
@@ -77,17 +77,19 @@ const Recipes = ({ recipes, query, onClearFilters }: RecipesProps) => {
     return <NoRecipes query={query} onClearFilters={onClearFilters} />;
   }
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
-      {recipes.map((recipe, index) => (
-        <RecipeCard
-          key={recipe.id}
-          recipe={recipe}
-          lean={index % 2 === 0 ? 'left' : 'right'}
-          eager={index < FIRST_ROW_LENGTH}
-          action={<Favourite recipe={recipe} label={`Favourite ${recipe.title}`} />}
-        />
-      ))}
-    </ul>
+    <FavouriteHearts>
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
+        {recipes.map((recipe, index) => (
+          <RecipeCard
+            key={recipe.id}
+            recipe={recipe}
+            lean={index % 2 === 0 ? 'left' : 'right'}
+            eager={index < FIRST_ROW_LENGTH}
+            action={<Favourite recipe={recipe} label={`Favourite ${recipe.title}`} />}
+          />
+        ))}
+      </ul>
+    </FavouriteHearts>
   );
 };
 

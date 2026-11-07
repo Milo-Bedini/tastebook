@@ -91,8 +91,6 @@ export const useHeart = () => {
   return {
     add,
     remove,
-    signIn: (slug: string) => navigate(signInPath(pathname, search, slug)),
-    saving: save.isPending,
-    unsaving: unsave.isPending
+    signIn: (slug: string) => navigate(signInPath(pathname, search, slug))
   };
 };

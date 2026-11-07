@@ -223,6 +223,33 @@ describe('the hearts on the recipe list', () => {
       ['Favourite Banana bread', 'false']
     ]);
   });
+
+  it("are busy one at a time: saving one card doesn't hold up another", async () => {
+    signedIn();
+    answerFavourites([]);
+    const gate = { release: () => {} };
+    const released = new Promise<void>((resolve) => {
+      gate.release = resolve;
+    });
+    const sent = answerSaving(async () => {
+      await released;
+      return saved();
+    });
+    renderRoute('/recipes');
+    const appleHeart = await screen.findByRole('button', { name: 'Favourite Apple tart' });
+    const bananaHeart = screen.getByRole('button', { name: 'Favourite Banana bread' });
+    await waitFor(() => expect(appleHeart).not.toHaveAttribute('aria-busy'));
+
+    await userEvent.click(appleHeart);
+
+    expect(appleHeart).toHaveAttribute('aria-busy', 'true');
+    expect(appleHeart).toHaveAttribute('aria-pressed', 'true');
+    expect(bananaHeart).not.toHaveAttribute('aria-busy');
+    expect(bananaHeart).toHaveAttribute('aria-pressed', 'false');
+    gate.release();
+    await waitFor(() => expect(appleHeart).not.toHaveAttribute('aria-busy'));
+    expect(sent).toEqual(['POST apple-tart']);
+  });
 });
 
 describe('the tabs', () => {
