@@ -51,7 +51,8 @@ const chanaMasala: Recipe = {
   diet_tag_conflicts: [],
   can_delete: true,
   can_edit: true,
-  can_publish: true
+  can_publish: true,
+  save_count: null
 };
 
 describe('deletionWarning', () => {

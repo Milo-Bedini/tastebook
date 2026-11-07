@@ -39,6 +39,7 @@ urlpatterns = [
     # Under HEADLESS_ONLY this is only the providers' own URLs: Google's client redirects to its callback here.
     path('api/accounts/', include('allauth.urls')),
     path('api/recipes/', include('recipes.urls')),
+    path('api/lists/', include('recipe_collections.urls')),
     path('api/cuisines/', CuisineListView.as_view(), name='cuisine-list'),
     path('api/courses/', CourseListView.as_view(), name='course-list'),
     path('api/equipment/', EquipmentListView.as_view(), name='equipment-list'),

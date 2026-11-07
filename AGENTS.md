@@ -86,7 +86,7 @@ The code is organised by domain area, the same areas on both sides, named in the
 | `planning`    | the meal plan, the shopping list                                                           |
 | `importing`   | importing from a web address, pasted text and the Tastebook format                         |
 
-- The backend has one Django app per area. The frontend has one folder per area, `src/<area>/`, with that area's pages, components and API hooks together; `src/dino/` holds the design-system components, `src/app/` the router and providers, `src/lib/` shared code with at least three users.
+- The backend has one Django app per area; `collections`' is `recipe_collections`, as `collections` is Python's own module. The frontend has one folder per area, `src/<area>/`, with that area's pages, components and API hooks together; `src/dino/` holds the design-system components, `src/app/` the router and providers, `src/lib/` shared code with at least three users.
 - [a] reach another area's behaviour through its public surface: its `services.py` (and querysets) in the backend, its `index.ts` exports in the frontend. Foreign keys to another area's models are fine.
 - [n] import another area's internals (views, serializers, private helpers, components it doesn't export).
 - Dependencies point one way: every area may depend on `households` (who owns what); `collections`, `kitchen` and `importing` depend on `recipes`; `planning` depends on `recipes` and `kitchen`; `households` depends on no other area. [n] add a dependency that points back.

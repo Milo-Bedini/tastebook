@@ -199,6 +199,7 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
         'can_delete': False,
         'can_edit': False,
         'can_publish': False,
+        'save_count': None,
     }
 
 

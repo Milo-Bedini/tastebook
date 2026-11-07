@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 from households.models import Household, User
 from tests.conftest import SECRET
 from tests.test_accounts import BrowserClient, signed_in_email
-from tests.test_recipes import ingredient
+from tests.test_recipes import ingredient, make_recipe
 from tests.test_test_accounts import stored_code
 
 SEED = '/api/test-accounts/seed/'
@@ -246,3 +246,35 @@ def test_a_description_the_seed_cannot_make_saves_nothing(
 
     assert (response.status_code, response.json()) == (400, refusal)
     assert (User.objects.count(), Household.objects.count()) == (0, 0)
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_saves_recipes_to_favourites_in_order(test_accounts: Settings) -> None:
+    make_recipe(title='Baklava')
+    sams_curry = {'title': "Sam's curry", 'visibility': 'public'}
+    body = seeded(
+        {'members': [{'key': 'sam', 'name': 'Sam', 'recipes': [sams_curry]}]},
+        {'members': [{'key': 'jo', 'name': 'Jo', 'saves': ['Baklava', "Sam's curry"]}]},
+    )
+
+    saved = signed_in_as(body, 'jo').get('/api/lists/favourites/').json()['saved_recipes']
+
+    assert [entry['recipe']['title'] for entry in saved] == ["Sam's curry", 'Baklava']
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_can_t_save_a_recipe_they_can_t_see(test_accounts: Settings) -> None:
+    response = seed(
+        {
+            'households': [
+                {'members': [{'key': 'sam', 'name': 'Sam', 'recipes': [{'title': "Sam's curry"}]}]},
+                {'members': [{'key': 'jo', 'name': 'Jo', 'saves': ["Sam's curry"]}]},
+            ]
+        }
+    )
+
+    assert (response.status_code, response.json()) == (
+        400,
+        ['Jo can\'t save "Sam\'s curry": no recipe they can see has that title.'],
+    )
+    assert User.objects.count() == 0

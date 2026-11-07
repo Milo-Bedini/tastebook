@@ -298,6 +298,10 @@ class RecipeSerializer(RecipeSummarySerializer):
         help_text='Whether the signed-in account may make this recipe public or private: its author, while it is in '
         'their household.'
     )
+    save_count = serializers.SerializerMethodField(
+        help_text='How many other accounts have saved this recipe, which its delete dialog warns of; '
+        'null unless the signed-in account may delete it.'
+    )
 
     class Meta(RecipeSummarySerializer.Meta):
         fields = [
@@ -321,6 +325,7 @@ class RecipeSerializer(RecipeSummarySerializer):
             'can_delete',
             'can_edit',
             'can_publish',
+            'save_count',
         ]
         # The API always sends these, even when they're '', null or their default, so the schema marks them required.
         extra_kwargs = {
@@ -363,6 +368,13 @@ class RecipeSerializer(RecipeSummarySerializer):
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_can_publish(self, recipe: Recipe) -> bool:
         return Recipe.objects.publishable_by(self.context['request'].user).filter(pk=recipe.pk).exists()
+
+    @extend_schema_field(serializers.IntegerField(allow_null=True))
+    def get_save_count(self, recipe: Recipe) -> int | None:
+        user = self.context['request'].user
+        if not self.get_can_delete(recipe):
+            return None
+        return services.save_count(recipe, excluding=user)
 
 
 NOT_A_VISIBILITY = 'Say whether the recipe is public or private.'

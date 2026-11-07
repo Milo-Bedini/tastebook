@@ -15,6 +15,7 @@ from django.http import HttpResponse
 from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, resolve
 
 from households.models import Household, Invite, User
+from recipe_collections.models import SavedRecipe
 from recipes.models import Recipe
 from tests.test_accounts import BrowserClient
 from tests.test_added_ingredients import line
@@ -138,6 +139,11 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         put('/api/recipes/no-such-recipe/visibility/', {'visibility': 'public'}),
         put('/api/recipes/{recipe}/visibility/', {'visibility': 'public'}),
     ),
+    'api/lists/': (get('/api/lists/'),),
+    'api/lists/favourites/': (get('/api/lists/favourites/'),),
+    'api/lists/favourites/saved/': (post('/api/lists/favourites/saved/', {'recipe': '{recipe}'}),),
+    'api/lists/favourites/saved/restore/': (post('/api/lists/favourites/saved/restore/', {'undo': 'a-forged-token'}),),
+    'api/lists/favourites/saved/<int:saved_id>/': (delete('/api/lists/favourites/saved/{saved}/'),),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),
     'api/equipment/': (get('/api/equipment/'),),
@@ -169,6 +175,7 @@ class Quillfeathers:
     live_token: str
     dead_token: str
     recipe: str
+    saved: int
 
 
 def the_quillfeathers() -> Quillfeathers:
@@ -187,12 +194,16 @@ def the_quillfeathers() -> Quillfeathers:
         format='json',
         **zebedee.csrf_header(),
     )
+    saved = zebedee.client.post(
+        '/api/lists/favourites/saved/', {'recipe': recipe.json()['slug']}, format='json', **zebedee.csrf_header()
+    )
     return Quillfeathers(
         household=User.objects.get(email=ZEBEDEE).household_id,
         member=User.objects.get(email=PHILIPPA).pk,
         live_token=make_link(zebedee).json()['invite']['token'],
         dead_token=dead_token,
         recipe=recipe.json()['slug'],
+        saved=saved.json()['id'],
     )
 
 
@@ -206,6 +217,9 @@ def what_they_hold(quillfeathers: Quillfeathers) -> dict[str, Any]:
         ),
         'invites': sorted(Invite.objects.filter(household=household).values_list('token', 'cancelled_at')),
         'recipes': sorted(Recipe.objects.filter(household=household).values_list('slug', 'title', 'visibility')),
+        'saved': sorted(
+            SavedRecipe.objects.filter(recipe_list__owner__household=household).values_list('pk', 'recipe', 'title')
+        ),
     }
 
 
@@ -215,6 +229,7 @@ def call(browser: BrowserClient, probe: Probe, quillfeathers: Quillfeathers) -> 
         'dead_token': quillfeathers.dead_token,
         'zebedee': ZEBEDEE,
         'recipe': quillfeathers.recipe,
+        'saved': quillfeathers.saved,
     }
     body = {key: value.format(**values) for key, value in probe.body.items()}
     # A server error is answered as a browser gets it, so its body is checked like any other.
@@ -240,7 +255,13 @@ PROBES = [
 
 
 def resolved_route(probe: Probe) -> str:
-    stand_ins = {'member': 1, 'dead_token': 'a-dead-token', 'zebedee': ZEBEDEE, 'recipe': 'a-private-recipe'}
+    stand_ins = {
+        'member': 1,
+        'dead_token': 'a-dead-token',
+        'zebedee': ZEBEDEE,
+        'recipe': 'a-private-recipe',
+        'saved': 1,
+    }
     try:
         return resolve(urlsplit(probe.path.format(**stand_ins)).path).route
     except Resolver404:
@@ -285,6 +306,7 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
         for path in (f'/api/recipes/{quillfeathers.recipe}/', '/api/recipes/?q=crumble')
     ]
     ingredients = philippa.client.get('/api/ingredients/').content.decode()
+    favourites = zebedee.client.get('/api/lists/favourites/').content.decode()
 
     assert [secret for secret in (*SECRETS, quillfeathers.live_token) if secret in seen] == [
         HOUSEHOLD_NAME,
@@ -294,6 +316,7 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
     ]
     assert ['Quillfeather crumble' in page for page in recipes] == [True, True]
     assert 'quillfeather jam' in ingredients
+    assert 'Quillfeather crumble' in favourites
 
 
 @pytest.mark.django_db
