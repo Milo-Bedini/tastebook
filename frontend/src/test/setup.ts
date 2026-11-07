@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 
-import { cleanup } from '@testing-library/react';
-import { afterAll, afterEach, beforeAll } from 'vitest';
+import { cleanup, waitFor } from '@testing-library/react';
+import { afterAll, afterEach, beforeAll, expect } from 'vitest';
+
+import { toast } from '@/dino';
 
 import { matchMedia, setLaptop } from './media';
 import { server } from './server';
@@ -22,8 +24,12 @@ server.events.on('response:mocked', ({ request, response }) => {
 });
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }));
-afterEach(({ task }) => {
+afterEach(async ({ task }) => {
   task.meta.answered = answered.splice(0);
+  // Sonner removes a dismissed toast on a timer; one still pending when a file's environment closes calls into a
+  // React with no window, and one left showing would turn up in the next test.
+  toast.dismiss();
+  await waitFor(() => expect(document.querySelector('[data-sonner-toast]')).toBeNull());
   cleanup();
   server.resetHandlers();
   setLaptop(false);

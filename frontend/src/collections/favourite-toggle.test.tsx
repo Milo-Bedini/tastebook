@@ -1,10 +1,9 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { components } from '../api/schema';
-import { toast } from '../dino';
 import { renderRoute } from '../test/render-route';
 import { server } from '../test/server';
 
@@ -79,10 +78,6 @@ const openRecipe = async () => {
   await waitFor(() => expect(heart()).not.toHaveAttribute('aria-busy'));
   return rendered;
 };
-
-afterEach(() => {
-  toast.dismiss();
-});
 
 describe("the heart on a recipe's page", () => {
   it('saves at once, says so, and Undo takes it out again', async () => {

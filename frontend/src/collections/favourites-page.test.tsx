@@ -1,10 +1,9 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { components } from '../api/schema';
-import { toast } from '../dino';
 import { renderRoute } from '../test/render-route';
 import { server } from '../test/server';
 
@@ -72,10 +71,6 @@ const pressToastButton = async (name: string) => {
   act(() => button.focus());
   await userEvent.keyboard('{Enter}');
 };
-
-afterEach(() => {
-  toast.dismiss();
-});
 
 describe('signed out', () => {
   it.each(['/lists', '/lists/favourites'])('%s goes to sign in and back', async (path) => {
