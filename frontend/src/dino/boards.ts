@@ -2,6 +2,7 @@
 export const boardByTitle: Record<string, `docs/design/${string}.dc.png`> = {
   'Dino/Button': 'docs/design/dino/buttons.dc.png',
   'Dino/IconButton': 'docs/design/dino/controls.dc.png',
+  'Dino/FavouriteButton': 'docs/design/dino/favourite-button.dc.png',
   'Dino/FilterChip': 'docs/design/dino/controls.dc.png',
   'Dino/RemovableChip': 'docs/design/dino/controls.dc.png',
   'Dino/SegmentedControl': 'docs/design/dino/controls.dc.png',
@@ -31,6 +32,7 @@ export const boardByTitle: Record<string, `docs/design/${string}.dc.png`> = {
   'Dino/RecipePhoto': 'docs/design/dino/polaroids.dc.png',
   'Dino/Sticker': 'docs/design/dino/polaroids.dc.png',
   'Dino/PrivateMark': 'docs/design/dino/private-mark.dc.png',
+  'Dino/UnavailableRecipe': 'docs/design/dino/unavailable-recipe.dc.png',
   'Dino/Page': 'docs/design/dino/layout.dc.png',
   'Dino/TopBar': 'docs/design/dino/layout.dc.png',
   'Dino/TopBarTabs': 'docs/design/dino/top-bar-tabs.dc.png',

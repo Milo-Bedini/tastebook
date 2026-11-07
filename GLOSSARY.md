@@ -69,6 +69,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Save | Keeping a link to someone's public recipe, so you see the author's fixes. | `SavedRecipe` _planned_ |
 | List | A named collection of saved and own recipes. Personal or household. | `RecipeList` _planned_ |
 | Favourites | The list every account starts with. | `RecipeList` (default) _planned_ |
+| Unavailable recipe | A saved recipe its author has since made private or deleted. It keeps its place in the list, shown by the title it was saved with, and can only be unsaved. | `UnavailableRecipe` (Dino) |
 | Copy | A private recipe made from another, to change it. Can be published as "Adapted from X by Y". A recipe a member takes along when they move household is copied but isn't a Copy: it links to nothing. | `Recipe.adapted_from` _planned_ |
 | Share link | A read-only link to a private recipe you wrote, for someone outside the household. | `ShareLink` _planned_ |
 
