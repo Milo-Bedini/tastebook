@@ -188,4 +188,4 @@ A Lighthouse accessibility score of 100 doesn't mean WCAG conformance: the revie
 - **Commits:** an imperative, capitalised summary of about 50 characters with no full stop, then a blank line and one or two sentences on *why*. Put the issue ID at the end of the body (`TAS-12`). One logical change per commit. A bug's failing test goes in the same commit as its fix.
 - **PR title:** imperative and in sentence case, e.g. "Add the recipe list page". No issue ID, no full stop.
 - **PR description:** fill in [`.github/pull_request_template.md`](.github/pull_request_template.md) and keep its headings. `Fixes TAS-12` goes on the first line so Linear links the PR and closes the issue on merge.
-- [n] merge your own PR, or push to `main`. Branch protection requires a passing CI and a human merge.
+- [n] merge your own PR, or push to `main`. Two rulesets guard `main`: Checks, with no bypass, so CI must always pass; and Review, which needs a person's approval except that the factory's App may merge a PR the express merge rules allow once its checks pass. Every other merge needs a person.
