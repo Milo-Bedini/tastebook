@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       since:
-        description: Mutate the source files changed on main since (anything git log --since takes)
+        description: Mutate the source files changed on main since (any date git rev-list --before takes)
         default: 7 days ago
 
 permissions:
@@ -32,10 +32,14 @@ jobs:
         env:
           SINCE: ${{ inputs.since || '7 days ago' }}
         run: |
-          # Each command skips what isn't its own source, so the list only drops files main no longer has.
-          files=$(git log origin/main --since="$SINCE" --name-only --pretty=format: | sort -u | while read -r file; do
-            if [ -n "$file" ] && [ -f "$file" ]; then printf '%s\n' "$file"; fi
-          done)
+          # Diff main as it was at SINCE against main now, so a PR merged in the window counts whenever its commits
+          # were written. Each command skips what isn't its own source, so the list only drops deleted files.
+          from=$(git rev-list -1 --first-parent --before="$SINCE" origin/main)
+          if [ -n "$from" ]; then
+            files=$(git diff --name-only --diff-filter=d "$from" origin/main)
+          else
+            files=$(git ls-tree -r --name-only origin/main)
+          fi
           echo "Changed since $SINCE: $(printf '%s' "$files" | grep -c . || true) files"
           {
             echo 'files<<EOF'
