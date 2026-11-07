@@ -157,7 +157,8 @@ describe('NewRecipePage', () => {
     ]);
   });
 
-  it('sends every detail typed, and only the yield once Makes is chosen', async () => {
+  // Its 150-odd keystrokes each re-render the whole form, which took up to 5 s on a busy CI runner.
+  it('sends every detail typed, and only the yield once Makes is chosen', { timeout: 15_000 }, async () => {
     const sent = answerAdding();
     await openForm();
 
