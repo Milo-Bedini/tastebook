@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Top-bar tabs in every state</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.sec{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.cells{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:24px 32px}
+.cell{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:500px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+.tbx{display:inline-flex;padding:16px;border:1px solid var(--color-line);border-radius:20px;align-self:flex-start}
+.tabs{display:flex;align-items:center;gap:8px;margin:0;padding:0;list-style:none}
+.tab{height:44px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800;color:var(--color-ink);text-decoration:none;white-space:nowrap}
+.tab.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.tab.ic{padding:0 16px 0 12px}
+.tab.only{width:44px;padding:0}
+.tab.hov{background:var(--color-surface)}
+.tab.prs{background:var(--color-line)}
+.tab.cur.hov{background:var(--color-peach-hover)}
+.tab.cur.prs{background:var(--color-peach-pressed)}
+.tab.foc{outline:3px solid var(--color-ink);outline-offset:0}
+.tbx.fc{background:Canvas}
+.tbx.fc .tab{color:CanvasText}
+.tbx.fc .tab.cur{background:Highlight;color:HighlightText;border-color:CanvasText}
+</style>
+</helmet>
+<div style="width: 1700px; height: 1180px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-122 · Dino · new component</span>
+    <h1 class="ttl">TopBarTabs</h1>
+    <span class="cap">From 640 px, in the top bar after the wordmark, only with two or more tabs. Tabs are 44 px pills 8 px apart with a 2 px transparent border, their names in Label: the current one peach, the others Ink on the ground, filling with Surface under the pointer like a ghost button.</span>
+  </header>
+  <h2 class="sec">Named and compact</h2>
+  <div class="cells"><div class="cell"><span class="cap"><b>Named</b> · from 1024 px: names only, no icons</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Compact</b> · 640 to 1023 px: the current one named</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur ic" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li><li><a href="#" class="tab only" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li><li><a href="#" class="tab only" aria-label="Household"><x-import component-from-global-scope="Dino.icons.Users" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li></ul></nav></div><div class="cell"><span class="cap"><b>Compact, another current</b></span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li><li><a href="#" class="tab only" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li><li><a href="#" class="tab cur ic" aria-current="page"><x-import component-from-global-scope="Dino.icons.Users" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Two tabs</b> · named and compact</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Household</a></li></ul></nav><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur ic" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li><li><a href="#" class="tab only" aria-label="Household"><x-import component-from-global-scope="Dino.icons.Users" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li></ul></nav></div></div>
+  <h2 class="sec">States</h2>
+  <div class="cells"><div class="cell"><span class="cap"><b>Other tab · hover</b> · Surface fill</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab hov">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Other tab · pressed</b> · Line fill</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab prs">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Other tab · focus</b> · 3 px Ink ring, flush</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab foc">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Forced colours</b> · named and compact</span><nav aria-label="Main" class="tbx fc"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav><nav aria-label="Main" class="tbx fc"><ul class="tabs"><li><a href="#" class="tab cur ic" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li><li><a href="#" class="tab only" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li><li><a href="#" class="tab only" aria-label="Household"><x-import component-from-global-scope="Dino.icons.Users" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li></ul></nav></div><div class="cell"><span class="cap"><b>Current tab · hover</b> · Peach hover</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur hov" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Current tab · pressed</b> · Peach pressed</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur prs" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Current tab · focus</b> · 3 px Ink ring, flush</span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur foc" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Shopping</a></li><li><a href="#" class="tab">Household</a></li></ul></nav></div><div class="cell"><span class="cap"><b>Compact icon · hover and focus</b></span><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur ic" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li><li><a href="#" class="tab only hov" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li><li><a href="#" class="tab only" aria-label="Household"><x-import component-from-global-scope="Dino.icons.Users" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li></ul></nav><nav aria-label="Main" class="tbx"><ul class="tabs"><li><a href="#" class="tab cur ic" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li><li><a href="#" class="tab only" aria-label="Shopping"><x-import component-from-global-scope="Dino.icons.ListChecks" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li><li><a href="#" class="tab only foc" aria-label="Household"><x-import component-from-global-scope="Dino.icons.Users" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li></ul></nav></div></div>
+  <div class="notes">
+    <p><b>Props:</b> the same <code>tabs</code> as the Dock. It is named from 1024 px and compact below by a media query, so the page never chooses; compact icon-only tabs take their <code>label</code> as their name.</p>
+    <p><b>In the TopBar:</b> TopBar takes the tabs as a prop and places them after the wordmark, so the bar’s order is wordmark, tabs, search, account. It draws neither tabs nor dock with fewer than two.</p>
+    <p><b>Contrast:</b> On pastel on Peach 9.5, Ink on the ground 16.4, Ink on Surface 14.2; the focus ring in Ink is 16.4 against the ground.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1700,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, s20: 20, s22: 22, sw: 2.25 };
+  }
+}
+</script>
+</body>
+</html>

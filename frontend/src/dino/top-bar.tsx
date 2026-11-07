@@ -10,6 +10,7 @@ import { Field } from '@/dino/field';
 import { IconButton } from '@/dino/icon-button';
 import { SearchInput } from '@/dino/input';
 import { Menu, type MenuItem } from '@/dino/menu';
+import { type NavTab, TopBarTabs } from '@/dino/top-bar-tabs';
 import { Wordmark } from '@/dino/wordmark';
 
 export type TopBarAccount =
@@ -22,6 +23,8 @@ type TopBarProps = {
   onSearchValueChange: (text: string) => void;
   // Undefined shows neither end, as today; TAS-102 also leaves it undefined while it checks who is signed in.
   account?: TopBarAccount;
+  // Shown from 640 px, and only with two or more; narrower, the Dock holds them.
+  tabs?: NavTab[];
 };
 
 const accountEnd = 'col-start-3 row-start-1';
@@ -57,7 +60,7 @@ const SignInLink = ({ signInTo }: { signInTo: string }) => (
 );
 
 // The inner row has the page's width and gutters, so the wordmark lines up with the content at any width.
-export const TopBar = ({ searchLabel, searchValue, onSearchValueChange, account }: TopBarProps) => {
+export const TopBar = ({ searchLabel, searchValue, onSearchValueChange, account, tabs = [] }: TopBarProps) => {
   const searchId = useId();
   const searchRef = useRef<HTMLElement>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -85,10 +88,11 @@ export const TopBar = ({ searchLabel, searchValue, onSearchValueChange, account 
             : 'grid-cols-[minmax(0,1fr)_auto_auto] gap-x-2 sm:gap-x-6'
         )}
       >
-        <div className="flex min-h-19 items-center">
+        <div className="flex min-h-19 items-center gap-6">
           <NavLink to="/" end className="inline-flex min-h-11 items-center text-display-l no-underline">
             <Wordmark />
           </NavLink>
+          <TopBarTabs tabs={tabs} className="max-sm:hidden" />
         </div>
         <IconButton
           icon={Search}

@@ -1,14 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { BookOpen, ListChecks, Users } from 'lucide-react';
 import { useState } from 'react';
 import { MemoryRouter } from 'react-router';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import type { MenuItem } from '@/dino/menu';
 import { TopBar } from '@/dino/top-bar';
+import type { NavTab } from '@/dino/top-bar-tabs';
 
 const menuItems: MenuItem[] = [
   { kind: 'link', label: 'Account', to: '/account' },
   { kind: 'action', label: 'Sign out', onSelect: fn() }
+];
+
+const tabs: NavTab[] = [
+  { to: '/recipes', label: 'Recipes', icon: BookOpen },
+  { to: '/shopping', label: 'Shopping', icon: ListChecks },
+  { to: '/household', label: 'Household', icon: Users }
 ];
 
 const meta = {
@@ -119,5 +127,44 @@ export const IsSignedInWithoutName = {
     await userEvent.click(avatar);
     await expect(body.getAllByRole('menuitem')).toHaveLength(2);
     await expect((await body.findByRole('menu')).textContent).toBe('AccountSign out');
+  }
+} satisfies Story;
+
+// From 640 px the tabs sit after the wordmark, so focus meets them before search and the account end; the visual run
+// is a phone, where the Dock holds them instead.
+export const WithTabs = {
+  args: { account: { status: 'signed-in', name: 'Milo Bedini', menuItems }, tabs },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    if (!window.matchMedia('(min-width: 40rem)').matches) {
+      await expect(canvas.queryByRole('navigation', { name: 'Main' })).toBeNull();
+      return;
+    }
+    const nav = within(canvas.getByRole('navigation', { name: 'Main' }));
+    await expect(nav.getAllByRole('link').map((link) => link.textContent)).toEqual([
+      'Recipes',
+      'Shopping',
+      'Household'
+    ]);
+    await userEvent.tab();
+    await expect(canvas.getByRole('link', { name: 'Tastebook' })).toHaveFocus();
+    await userEvent.tab();
+    await expect(nav.getByRole('link', { name: 'Recipes' })).toHaveFocus();
+    await userEvent.tab();
+    await userEvent.tab();
+    await expect(nav.getByRole('link', { name: 'Household' })).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByRole('searchbox', { name: 'Search recipes' })).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByRole('button', { name: 'Account for Milo Bedini' })).toHaveFocus();
+  }
+} satisfies Story;
+
+// With one tab there is no navigation.
+export const WithOneTab = {
+  args: { tabs: tabs.slice(0, 1) },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).queryByRole('navigation')).toBeNull();
+    await expect(within(canvasElement).queryByRole('link', { name: 'Recipes' })).toBeNull();
   }
 } satisfies Story;
