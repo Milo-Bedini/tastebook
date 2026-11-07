@@ -19,7 +19,8 @@
       "!pnpm-lock.yaml",
       "!**/.claude/settings.local.json",
       "!!backend/schema.yml",
-      "!docs/design/**/*.html"
+      "!docs/design/**/*.html",
+      "!specs/*/design/**/*.html"
     ]
   },
   "formatter": {
