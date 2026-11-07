@@ -4,9 +4,9 @@ Canvas: https://claude.ai/artifact/SNLdJeYFSJwnHDfkSzZMkS
 
 ## Boards
 
-- **Write each step in place** (`Main.dc.html`, 1370 × 1820): the Method section at phone width (390 px), after Ingredients and before Times, on `/recipes/new` and `/recipes/:slug/edit`: as it opens (no equipment chosen, one blank step), filled in (Hob and Oven chosen, three steps, typing in step 2), and Reorder mode after a move.
-- **Method: removing, pasting, checking and loading** (`method-states.dc.html`, 1800 × 1340): after removing a step, a pasted method split into steps, Save finding a step the API refuses, and the equipment list loading and failing to load.
-- **Text area and filter chip, as they are** (`components.dc.html`, 980 × 1100): Dino's TextArea as a step (rest, hover, focus, error) and FilterChip as equipment (off, hover, focus, on, on and focused), both unchanged.
+- **Write each step in place** (`docs/design/picnic/recipe-method.dc.html`, 1370 × 1820): the Method section at phone width (390 px), after Ingredients and before Times, on `/recipes/new` and `/recipes/:slug/edit`: as it opens (no equipment chosen, one blank step), filled in (Hob and Oven chosen, three steps, typing in step 2), and Reorder mode after a move.
+- **Method: removing, pasting, checking and loading** (`docs/design/picnic/recipe-method-states.dc.html`, 1800 × 1340): after removing a step, a pasted method split into steps, Save finding a step the API refuses, and the equipment list loading and failing to load.
+- **Text area and filter chip, as they are** (`docs/design/picnic/recipe-method-components.dc.html`, 980 × 1100): Dino's TextArea as a step (rest, hover, focus, error) and FilterChip as equipment (off, hover, focus, on, on and focused), both unchanged.
 
 ## Decisions
 
