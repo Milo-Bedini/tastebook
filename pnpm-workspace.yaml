@@ -10,3 +10,8 @@ allowBuilds:
   # Storybook bundles its manager with esbuild; the platform binary comes from its optional dependency, so its
   # postinstall check is not needed.
   esbuild: false
+
+overrides:
+  # GHSA-mrhx-c7xc-m3w5: @vercel/blob's @vercel/oidc pins @vercel/cli-config@0.3.1, which pins zod 4.1.11. Drop this
+  # once @vercel/oidc depends on a @vercel/cli-config with zod 4.6.6 or later.
+  "@vercel/cli-config>zod": 4.6.7
