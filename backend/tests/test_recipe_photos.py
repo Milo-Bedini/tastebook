@@ -14,8 +14,8 @@ from pytest_django.fixtures import DjangoCaptureOnCommitCallbacks, Settings
 
 from recipes.models import Recipe
 from tests.test_accounts import BrowserClient, sign_up
-from tests.test_editing_recipes import CURRY, MILO, add, change, milos_curry
-from tests.test_household import signed_up
+from tests.test_editing_recipes import CURRY, MILO, add, ben_in_milos_household, change, milos_curry
+from tests.test_household import leave, signed_up
 
 PHOTOS = '/api/photos/'
 STORE = 'https://teststore7.public.blob.vercel-storage.com'
@@ -335,6 +335,43 @@ def test_deleting_a_recipe_deletes_its_photo_from_the_store(
 
     assert response.status_code == 204
     assert deleted(blob) == [every_width(uploaded())]
+
+
+def removes_photo(browser: BrowserClient, slug: str) -> HttpResponse:
+    return change(browser, slug, {'photo_url': ''})
+
+
+def replaces_photo(browser: BrowserClient, slug: str) -> HttpResponse:
+    return change(browser, slug, {'photo_url': uploaded(name='ZyXwVuTsRqPoNmLkJiHgFe')})
+
+
+def deletes_recipe(browser: BrowserClient, slug: str) -> HttpResponse:
+    return browser.client.delete(f'/api/recipes/{slug}/', **browser.csrf_header())
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('first', ['the household', 'the member who moved'])
+@pytest.mark.parametrize('let_go', [removes_photo, replaces_photo, deletes_recipe])
+def test_a_photo_another_recipe_uses_stays_in_the_store_until_the_last_lets_it_go(
+    blob: responses.RequestsMock,
+    django_capture_on_commit_callbacks: DjangoCaptureOnCommitCallbacks,
+    first: str,
+    let_go: Callable[[BrowserClient, str], HttpResponse],
+) -> None:
+    milo, slug = milos_curry(photo_url=uploaded())
+    ben = ben_in_milos_household()
+    leave(milo)
+    copy = Recipe.objects.exclude(slug=slug).get(photo_url=uploaded()).slug
+    holders = {'the household': (ben, slug), 'the member who moved': (milo, copy)}
+    last = next(holder for name, holder in holders.items() if name != first)
+
+    with django_capture_on_commit_callbacks(execute=True):
+        assert let_go(*holders[first]).status_code in {200, 204}
+    kept = deleted(blob)
+    with django_capture_on_commit_callbacks(execute=True):
+        assert let_go(*last).status_code in {200, 204}
+
+    assert (kept, deleted(blob)) == ([], [every_width(uploaded())])
 
 
 @pytest.mark.django_db
