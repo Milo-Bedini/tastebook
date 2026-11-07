@@ -605,10 +605,11 @@ paths:
           description: No recipe has this slug, or it's another household's.
     patch:
       operationId: recipes_partial_update
-      description: Edits a recipe of the signed-in account's household; any member
-        may, whoever wrote it. Only the fields sent change, and the address stays
-        as it is. Sending ingredient_lines or ingredient_groups replaces every line
-        and group; the one left out counts as none. Sending steps replaces every step.
+      description: 'Edits a recipe of the signed-in account''s household: any member
+        may edit a private recipe, only its author a public one. Only the fields sent
+        change, and the address stays as it is. Sending ingredient_lines or ingredient_groups
+        replaces every line and group; the one left out counts as none. Sending steps
+        replaces every step.'
       parameters:
       - in: path
         name: slug
@@ -644,7 +645,8 @@ paths:
           description: Signed out, or the account has no household yet.
         '404':
           description: 'No recipe has this slug in the account''s household: there''s
-            none, it''s another household''s, or it''s a catalogue recipe.'
+            none, it''s another household''s, it''s a catalogue recipe, or it''s public
+            and another member wrote it.'
     delete:
       operationId: recipes_destroy
       description: Deletes a recipe of the signed-in account's household, with its
@@ -670,6 +672,51 @@ paths:
           description: 'No recipe has this slug that the account may delete: there''s
             none, it''s another household''s or a catalogue recipe, or another member
             wrote it and is still in the household.'
+  /api/recipes/{slug}/visibility/:
+    put:
+      operationId: recipes_visibility_update
+      description: Makes a recipe of the signed-in account's household public or private.
+        Only its author may. Asking for the visibility it already has changes nothing.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeVisibility'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeVisibility'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeVisibility'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+        '400':
+          description: 'The visibility isn''t public or private, or the recipe lacks
+            something a public recipe needs: ingredients, a method, prep and cook
+            times, servings or a yield.'
+        '403':
+          description: Signed out, or the account has no household yet.
+        '404':
+          description: 'No recipe has this slug that the account may publish: there''s
+            none, it''s another household''s or a catalogue recipe, or another member
+            wrote it.'
   /api/test-accounts/code/:
     get:
       operationId: test_account_code_retrieve
@@ -1421,6 +1468,12 @@ components:
           allOf:
           - $ref: '#/components/schemas/Visibility'
           readOnly: true
+        author:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The name of whoever wrote a public household recipe, shown
+            as "by <name>"; null for a private or catalogue recipe.
         title:
           type: string
           maxLength: 200
@@ -1538,8 +1591,21 @@ components:
           readOnly: true
           description: 'Whether the signed-in account may delete this recipe: its
             author, or any member of its household once the author has left it.'
+        can_edit:
+          type: boolean
+          readOnly: true
+          description: 'Whether the signed-in account may edit this recipe: any member
+            of its household while it is private, only its author once it is public.'
+        can_publish:
+          type: boolean
+          readOnly: true
+          description: 'Whether the signed-in account may make this recipe public
+            or private: its author, while it is in their household.'
       required:
+      - author
       - can_delete
+      - can_edit
+      - can_publish
       - cook_minutes
       - courses
       - cuisines
@@ -1603,6 +1669,12 @@ components:
           allOf:
           - $ref: '#/components/schemas/Visibility'
           readOnly: true
+        author:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The name of whoever wrote a public household recipe, shown
+            as "by <name>"; null for a private or catalogue recipe.
         title:
           type: string
           maxLength: 200
@@ -1633,6 +1705,7 @@ components:
             $ref: '#/components/schemas/DietTag'
           readOnly: true
       required:
+      - author
       - cuisines
       - description
       - diet_tags
@@ -1642,6 +1715,13 @@ components:
       - slug
       - title
       - total_minutes
+      - visibility
+    RecipeVisibility:
+      type: object
+      properties:
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+      required:
       - visibility
     Seed:
       type: object

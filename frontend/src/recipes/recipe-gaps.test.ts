@@ -26,6 +26,7 @@ const complete: Recipe = {
   id: 9,
   slug: 'zaatar-flatbreads-p3x9qa',
   visibility: 'private',
+  author: null,
   title: "Za'atar flatbreads",
   description: '',
   cuisines: [],
@@ -49,7 +50,9 @@ const complete: Recipe = {
   ingredient_groups: [],
   steps: [{ id: 1, text: 'Knead the dough.' }],
   diet_tag_conflicts: [],
-  can_delete: false
+  can_delete: false,
+  can_edit: true,
+  can_publish: false
 };
 
 describe('recipeGaps', () => {

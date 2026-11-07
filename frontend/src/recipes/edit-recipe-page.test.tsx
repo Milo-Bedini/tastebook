@@ -23,6 +23,7 @@ const flatbreads: Recipe = {
   id: 41,
   slug: 'flatbreads-k7m2qx',
   visibility: 'private',
+  author: null,
   title: 'Flatbreads',
   description: 'Soft and blistered.',
   cuisines: [{ slug: 'italian', name: 'Italian' }],
@@ -49,7 +50,9 @@ const flatbreads: Recipe = {
     { id: 8, text: 'Roll it out and bake until blistered.' }
   ],
   diet_tag_conflicts: [],
-  can_delete: false
+  can_delete: false,
+  can_edit: true,
+  can_publish: false
 };
 
 // Signed in, the recipe answered as `recipe`, and each PATCH body recorded and answered by `respond`, which by

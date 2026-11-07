@@ -16,6 +16,7 @@ const baguette: Recipe = {
   id: 3,
   slug: 'baguette',
   visibility: 'public',
+  author: null,
   title: 'Baguette',
   description: '',
   cuisines: [],
@@ -39,7 +40,9 @@ const baguette: Recipe = {
   ingredient_groups: [],
   steps: [],
   diet_tag_conflicts: [],
-  can_delete: false
+  can_delete: false,
+  can_edit: false,
+  can_publish: false
 };
 
 const signedIn = (email: string) =>

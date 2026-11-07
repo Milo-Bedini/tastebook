@@ -256,8 +256,25 @@ export interface paths {
         delete: operations["recipes_destroy"];
         options?: never;
         head?: never;
-        /** @description Edits a recipe of the signed-in account's household; any member may, whoever wrote it. Only the fields sent change, and the address stays as it is. Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. Sending steps replaces every step. */
+        /** @description Edits a recipe of the signed-in account's household: any member may edit a private recipe, only its author a public one. Only the fields sent change, and the address stays as it is. Sending ingredient_lines or ingredient_groups replaces every line and group; the one left out counts as none. Sending steps replaces every step. */
         patch: operations["recipes_partial_update"];
+        trace?: never;
+    };
+    "/api/recipes/{slug}/visibility/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Makes a recipe of the signed-in account's household public or private. Only its author may. Asking for the visibility it already has changes nothing. */
+        put: operations["recipes_visibility_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/test-accounts/code/": {
@@ -578,6 +595,8 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
+            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; null for a private or catalogue recipe. */
+            readonly author: string | null;
             title: string;
             description: string;
             readonly cuisines: components["schemas"]["Cuisine"][];
@@ -616,6 +635,10 @@ export interface components {
             readonly diet_tag_conflicts: components["schemas"]["DietTagConflict"][];
             /** @description Whether the signed-in account may delete this recipe: its author, or any member of its household once the author has left it. */
             readonly can_delete: boolean;
+            /** @description Whether the signed-in account may edit this recipe: any member of its household while it is private, only its author once it is public. */
+            readonly can_edit: boolean;
+            /** @description Whether the signed-in account may make this recipe public or private: its author, while it is in their household. */
+            readonly can_publish: boolean;
         };
         RecipePhoto: {
             /**
@@ -631,6 +654,8 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
+            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; null for a private or catalogue recipe. */
+            readonly author: string | null;
             title: string;
             description: string;
             readonly cuisines: components["schemas"]["Cuisine"][];
@@ -638,6 +663,9 @@ export interface components {
             readonly total_minutes: number | null;
             readonly photo: components["schemas"]["RecipePhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
+        };
+        RecipeVisibility: {
+            visibility: components["schemas"]["Visibility"];
         };
         Seed: {
             households: components["schemas"]["SeedHousehold"][];
@@ -1450,7 +1478,55 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description No recipe has this slug in the account's household: there's none, it's another household's, or it's a catalogue recipe. */
+            /** @description No recipe has this slug in the account's household: there's none, it's another household's, it's a catalogue recipe, or it's public and another member wrote it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recipes_visibility_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecipeVisibility"];
+                "application/x-www-form-urlencoded": components["schemas"]["RecipeVisibility"];
+                "multipart/form-data": components["schemas"]["RecipeVisibility"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+            /** @description The visibility isn't public or private, or the recipe lacks something a public recipe needs: ingredients, a method, prep and cook times, servings or a yield. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account may publish: there's none, it's another household's or a catalogue recipe, or another member wrote it. */
             404: {
                 headers: {
                     [name: string]: unknown;
