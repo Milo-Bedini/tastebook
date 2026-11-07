@@ -107,6 +107,45 @@ describe('EditRecipePage', () => {
     toast.dismiss();
   });
 
+  describe('photo', () => {
+    const STORE = 'https://store.public.blob.vercel-storage.com/recipes/production';
+    const withPhoto: Recipe = {
+      ...flatbreads,
+      photo: {
+        url: `${STORE}/AbCdEfGhIjKlMnOpQrStUv/1600.webp`,
+        thumbnails: [330, 1600].map((width) => ({ width, url: `${STORE}/AbCdEfGhIjKlMnOpQrStUv/${width}.webp` })),
+        credit: null
+      }
+    };
+    const field = () => screen.getByRole('group', { name: 'Photo' });
+
+    it("opens with the recipe's photo, and keeps it on Save", async () => {
+      const sent = answerEditing(withPhoto);
+      await openForm();
+
+      expect(within(field()).getByRole('img', { name: 'The photo for Flatbreads' })).toHaveAttribute(
+        'src',
+        `${STORE}/AbCdEfGhIjKlMnOpQrStUv/330.webp`
+      );
+      expect(within(field()).getByRole('button', { name: 'Replace photo' })).toBeVisible();
+      await save();
+
+      await waitFor(() => expect(sent).toHaveLength(1));
+      expect(sent[0]?.photo_url).toBe(`${STORE}/AbCdEfGhIjKlMnOpQrStUv/1600.webp`);
+    });
+
+    it('saves the recipe without its photo once it is removed', async () => {
+      const sent = answerEditing(withPhoto);
+      await openForm();
+
+      await userEvent.click(within(field()).getByRole('button', { name: 'Remove photo' }));
+      await save();
+
+      await waitFor(() => expect(sent).toHaveLength(1));
+      expect(sent[0]?.photo_url).toBe('');
+    });
+  });
+
   it('opens with every detail of the recipe filled in', async () => {
     answerEditing();
     await openForm();
@@ -149,6 +188,7 @@ describe('EditRecipePage', () => {
       {
         title: "Za'atar flatbreads",
         description: 'Soft and blistered.',
+        photo_url: '',
         cuisines: ['italian'],
         courses: ['main'],
         difficulty: 'medium',
@@ -199,6 +239,7 @@ describe('EditRecipePage', () => {
     expect(sent[0]).toEqual({
       title: 'Flatbreads',
       description: '',
+      photo_url: '',
       cuisines: [],
       courses: [],
       difficulty: '',

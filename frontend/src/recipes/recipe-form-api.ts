@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { api } from '../api/client';
+import { api, apiBaseUrl, csrfToken } from '../api/client';
 import type { components } from '../api/schema';
 
 type Recipe = components['schemas']['Recipe'];
@@ -8,6 +8,8 @@ type Recipe = components['schemas']['Recipe'];
 export type NewRecipe = components['schemas']['NewRecipe'];
 
 export type RecipeChanges = components['schemas']['PatchedRecipeChanges'];
+
+export type StoredPhoto = components['schemas']['RecipePhoto'];
 
 export type RecipeErrors = Partial<Record<keyof NewRecipe | 'non_field_errors', string>>;
 
@@ -121,3 +123,59 @@ export const useEditRecipe = (slug: string) => {
     }
   });
 };
+
+export type PhotoUploading =
+  | { kind: 'stored'; photo: StoredPhoto }
+  // Tastebook refused the file, saying why.
+  | { kind: 'refused'; message: string }
+  | { kind: 'signed-out' };
+
+type PhotoToUpload = {
+  photo: Blob;
+  name: string;
+  // How far the upload has got, from 0 to 100.
+  onProgress: (progress: number) => void;
+  signal: AbortSignal;
+};
+
+const refusalOf = (body: unknown): string | undefined => {
+  const messages = typeof body === 'object' && body !== null && 'photo' in body ? body.photo : undefined;
+  return Array.isArray(messages) && typeof messages[0] === 'string' ? messages[0] : undefined;
+};
+
+// XMLHttpRequest rather than the API client, as only it reports how much of an upload has been sent.
+const sendPhoto = ({ photo, name, onProgress, signal }: PhotoToUpload) =>
+  new Promise<PhotoUploading>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${apiBaseUrl}/api/photos/`);
+    request.responseType = 'json';
+    const token = csrfToken();
+    if (token !== undefined) {
+      request.setRequestHeader('X-CSRFToken', token);
+    }
+    request.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        onProgress((event.loaded / event.total) * 100);
+      }
+    });
+    request.addEventListener('load', () => {
+      const refusal = refusalOf(request.response);
+      if (request.status === 201) {
+        resolve({ kind: 'stored', photo: request.response as StoredPhoto });
+      } else if (request.status === 400 && refusal !== undefined) {
+        resolve({ kind: 'refused', message: refusal });
+      } else if (request.status === 403) {
+        resolve({ kind: 'signed-out' });
+      } else {
+        reject(new Error(`Uploading a photo failed with ${request.status}`));
+      }
+    });
+    request.addEventListener('error', () => reject(new Error('Uploading a photo failed')));
+    request.addEventListener('abort', () => reject(new DOMException('The upload was cancelled', 'AbortError')));
+    signal.addEventListener('abort', () => request.abort());
+    const body = new FormData();
+    body.append('photo', photo, name);
+    request.send(body);
+  });
+
+export const useUploadPhoto = () => useMutation({ mutationFn: sendPhoto });

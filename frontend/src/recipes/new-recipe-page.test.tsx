@@ -14,6 +14,7 @@ type NewIngredient = components['schemas']['NewIngredient'];
 type NewIngredientLine = components['schemas']['NewIngredientLine'];
 type NewRecipe = components['schemas']['NewRecipe'];
 type Recipe = components['schemas']['Recipe'];
+type RecipePhoto = components['schemas']['RecipePhoto'];
 
 const RECIPES = '/api/recipes/';
 
@@ -130,6 +131,7 @@ describe('NewRecipePage', () => {
       {
         title: "Grandma's curry",
         description: '',
+        photo_url: '',
         cuisines: [],
         courses: [],
         difficulty: '',
@@ -179,6 +181,7 @@ describe('NewRecipePage', () => {
     expect(sent[0]).toEqual({
       title: "Za'atar flatbreads",
       description: 'Soft, blistered flatbreads.',
+      photo_url: '',
       cuisines: ['italian'],
       courses: ['main'],
       difficulty: 'medium',
@@ -414,6 +417,326 @@ describe('NewRecipePage', () => {
       'Loading cuisines…'
     );
     expect(await screen.findByRole('button', { name: 'Italian' })).toBeInTheDocument();
+  });
+
+  describe('photo', () => {
+    const PHOTOS = '/api/photos/';
+    const STORE = 'https://store.public.blob.vercel-storage.com/recipes/development';
+
+    const storedPhoto = (name: string): RecipePhoto => ({
+      url: `${STORE}/${name}/1600.webp`,
+      thumbnails: [330, 1600].map((width) => ({ width, url: `${STORE}/${name}/${width}.webp` })),
+      credit: null
+    });
+
+    const photoOf = (name: string, type = 'image/jpeg', size = 2048) =>
+      new File([new Uint8Array(size)], name, { type });
+
+    // Each upload's file name recorded, answered by `respond`. jsdom's File isn't one MSW's formData() can read, so
+    // the multipart body is read as text.
+    const answerUploads = (...responses: (() => Response | Promise<Response>)[]) => {
+      const uploads: string[] = [];
+      server.use(
+        http.post(PHOTOS, async ({ request }) => {
+          const body = await request.text();
+          uploads.push(/name="photo"; filename="([^"]*)"/.exec(body)?.[1] ?? '(no photo)');
+          const respond = responses[Math.min(uploads.length, responses.length) - 1];
+          return respond === undefined ? new HttpResponse(null, { status: 500 }) : respond();
+        })
+      );
+      return uploads;
+    };
+
+    const stores = (name: string) => () => HttpResponse.json<RecipePhoto>(storedPhoto(name), { status: 201 });
+
+    const field = () => screen.getByRole('group', { name: 'Photo' });
+
+    const choose = async (file: File) => {
+      const input = field().querySelector<HTMLInputElement>('input[type="file"]');
+      if (input === null) {
+        throw new Error('No file input');
+      }
+      // The input accepts image/*, which a person can get around in the picker, so a PDF must still be refused.
+      await userEvent.setup({ applyAccept: false }).upload(input, file);
+    };
+
+    const sentPhoto = async (sent: NewRecipe[]) => {
+      await waitFor(() => expect(sent).toHaveLength(1));
+      return sent[0]?.photo_url;
+    };
+
+    it('uploads the photo as soon as it is chosen, shows it, and saves the recipe with it', async () => {
+      const sent = answerAdding();
+      const uploads = answerUploads(stores('AbCdEfGhIjKlMnOpQrStUv'));
+      await openForm();
+      await typeInto('Title', "Grandma's curry");
+
+      expect(field()).toHaveAccessibleDescription(
+        'A JPEG, PNG, WebP or HEIC photo, up to 10 MB. It shows at the top of the recipe, cropped to this shape.'
+      );
+      await choose(photoOf('curry.jpg'));
+
+      const photo = await within(field()).findByRole('img', { name: "The photo for Grandma's curry" });
+      expect(photo).toHaveAttribute('src', `${STORE}/AbCdEfGhIjKlMnOpQrStUv/330.webp`);
+      expect(within(field()).getByRole('status')).toHaveTextContent('Photo uploaded');
+      expect(uploads).toEqual(['curry.jpg']);
+
+      await save();
+
+      expect(await sentPhoto(sent)).toBe(`${STORE}/AbCdEfGhIjKlMnOpQrStUv/1600.webp`);
+    });
+
+    it.each([
+      ['a PDF', photoOf('menu.pdf', 'application/pdf'), "That's a PDF. Choose a photo: a JPEG, PNG, WebP or HEIC."],
+      ['a GIF', photoOf('dance.gif', 'image/gif'), "That's a GIF. Choose a photo: a JPEG, PNG, WebP or HEIC."],
+      [
+        'any other file',
+        photoOf('notes', 'application/octet-stream'),
+        "That file isn't a photo. Choose a photo: a JPEG, PNG, WebP or HEIC."
+      ],
+      [
+        'a photo over 10 MB',
+        photoOf('curry.jpg', 'image/jpeg', 14 * 1024 * 1024),
+        'That photo is 14 MB. Choose one under 10 MB, like one from your camera roll rather than the original file.'
+      ]
+    ])('refuses %s on choosing, before anything is sent', async (_, file, message) => {
+      answerAdding();
+      const uploads = answerUploads(stores('AbCdEfGhIjKlMnOpQrStUv'));
+      await openForm();
+
+      await choose(file);
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(message);
+      expect(field()).toHaveAccessibleDescription(message);
+      expect(within(field()).getByRole('button', { name: 'Add a photo' })).toBeVisible();
+      expect(uploads).toEqual([]);
+    });
+
+    it('takes a HEIC photo whose browser gives it no type', async () => {
+      answerAdding();
+      const uploads = answerUploads(stores('AbCdEfGhIjKlMnOpQrStUv'));
+      await openForm();
+
+      await choose(photoOf('IMG_0412.HEIC', ''));
+
+      expect(await within(field()).findByRole('img', { name: 'The photo for this recipe' })).toBeInTheDocument();
+      expect(uploads).toEqual(['IMG_0412.HEIC']);
+    });
+
+    it("shows Tastebook's refusal of an upload, and tries again with the same photo", async () => {
+      answerAdding();
+      const uploads = answerUploads(
+        () =>
+          HttpResponse.json(
+            { photo: ['That photo has too many pixels to use. Choose a smaller one.'] },
+            { status: 400 }
+          ),
+        stores('AbCdEfGhIjKlMnOpQrStUv')
+      );
+      await openForm();
+
+      await choose(photoOf('curry.jpg'));
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(
+        'That photo has too many pixels to use. Choose a smaller one.'
+      );
+      await userEvent.click(within(field()).getByRole('button', { name: 'Try again' }));
+
+      expect(await within(field()).findByRole('img', { name: 'The photo for this recipe' })).toBeInTheDocument();
+      expect(uploads).toEqual(['curry.jpg', 'curry.jpg']);
+    });
+
+    it.each([
+      ['the store is unavailable', () => new HttpResponse(null, { status: 503 })],
+      ['the connection fails', () => HttpResponse.error()]
+    ])('offers Try again and Choose another when %s', async (_, failure) => {
+      answerAdding();
+      answerUploads(failure);
+      await openForm();
+
+      await choose(photoOf('curry.jpg'));
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(
+        "Couldn't upload the photo. Check your connection, then try again."
+      );
+      expect(within(field()).getByRole('button', { name: 'Try again' })).toBeVisible();
+      expect(within(field()).getByRole('button', { name: 'Choose another' })).toBeVisible();
+    });
+
+    it('sends you to sign in when Tastebook says you are signed out on uploading', async () => {
+      answerAdding();
+      const state = { signedOut: false };
+      answerUploads(() => {
+        state.signedOut = true;
+        return new HttpResponse(null, { status: 403 });
+      });
+      server.use(
+        http.get('/api/account/', () =>
+          HttpResponse.json<CurrentAccount>(state.signedOut ? { account: null } : signedIn)
+        )
+      );
+      const { router } = await openForm();
+
+      await choose(photoOf('curry.jpg'));
+
+      await waitFor(() => expect(router.state.location.pathname).toBe('/sign-in'));
+    });
+
+    it('says the photo was not uploaded when the upload is refused and the session still says signed in', async () => {
+      answerAdding();
+      answerUploads(() => new HttpResponse(null, { status: 403 }));
+      const { router } = await openForm();
+
+      await choose(photoOf('curry.jpg'));
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(
+        "Couldn't upload the photo. Check your connection, then try again."
+      );
+      expect(router.state.location.pathname).toBe('/recipes/new');
+    });
+
+    it('shows the upload under way, and saves the recipe once the photo is stored', async () => {
+      const sent = answerAdding();
+      const upload = { resolve: () => {} };
+      const uploaded = new Promise<void>((resolve) => {
+        upload.resolve = resolve;
+      });
+      answerUploads(async () => {
+        await uploaded;
+        return stores('AbCdEfGhIjKlMnOpQrStUv')();
+      });
+      await openForm();
+      await typeInto('Title', 'Curry');
+
+      await choose(photoOf('curry.jpg'));
+      expect(await within(field()).findByText(/^Uploading… \d+%$/)).toBeVisible();
+      expect(within(field()).getByRole('status')).toHaveTextContent('Uploading the photo');
+      await save();
+
+      expect(screen.getByRole('button', { name: 'Saving…' })).toBeInTheDocument();
+      expect(sent).toEqual([]);
+      upload.resolve();
+
+      expect(await sentPhoto(sent)).toBe(`${STORE}/AbCdEfGhIjKlMnOpQrStUv/1600.webp`);
+    });
+
+    it('keeps the recipe unsaved when the photo fails while Save waits, then saves it without the photo', async () => {
+      const sent = answerAdding();
+      const upload = { resolve: () => {} };
+      const uploaded = new Promise<void>((resolve) => {
+        upload.resolve = resolve;
+      });
+      answerUploads(async () => {
+        await uploaded;
+        return new HttpResponse(null, { status: 503 });
+      });
+      await openForm();
+      await typeInto('Title', 'Curry');
+      await choose(photoOf('curry.jpg'));
+      await save();
+
+      upload.resolve();
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(
+        "Couldn't upload the photo, so the recipe isn't saved yet. Try again, or remove the photo and save without it."
+      );
+      expect(within(field()).getByRole('button', { name: 'Try again' })).toHaveFocus();
+      expect(sent).toEqual([]);
+
+      await userEvent.click(within(field()).getByRole('button', { name: 'Remove photo' }));
+      expect(within(field()).getByRole('button', { name: 'Add a photo' })).toHaveFocus();
+      await save();
+
+      expect(await sentPhoto(sent)).toBe('');
+    });
+
+    it('does not save a recipe whose photo failed until the photo is dealt with', async () => {
+      const sent = answerAdding();
+      answerUploads(() => new HttpResponse(null, { status: 503 }));
+      await openForm();
+      await typeInto('Title', 'Curry');
+      await choose(photoOf('curry.jpg'));
+      await within(field()).findByRole('alert');
+
+      await save();
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent("so the recipe isn't saved yet");
+      expect(sent).toEqual([]);
+    });
+
+    it('cancels an upload, leaving the field empty', async () => {
+      const sent = answerAdding();
+      answerUploads(() => new Promise<Response>(() => undefined));
+      await openForm();
+      await typeInto('Title', 'Curry');
+      await choose(photoOf('curry.jpg'));
+
+      await userEvent.click(await within(field()).findByRole('button', { name: 'Cancel upload' }));
+
+      expect(within(field()).getByRole('button', { name: 'Add a photo' })).toHaveFocus();
+      await save();
+      expect(await sentPhoto(sent)).toBe('');
+    });
+
+    it('removes the photo with an Undo that puts it back', async () => {
+      const sent = answerAdding();
+      answerUploads(stores('AbCdEfGhIjKlMnOpQrStUv'));
+      await openForm();
+      await typeInto('Title', 'Curry');
+      await choose(photoOf('curry.jpg'));
+      await within(field()).findByRole('img', { name: 'The photo for Curry' });
+
+      await userEvent.click(within(field()).getByRole('button', { name: 'Remove photo' }));
+
+      expect(within(field()).queryByRole('img')).not.toBeInTheDocument();
+      expect(within(field()).getByRole('button', { name: 'Add a photo' })).toHaveFocus();
+      expect(await screen.findByText('Photo removed')).toBeInTheDocument();
+      // By keyboard: a pointer on a toast asks jsdom for pointer capture, which it doesn't have.
+      screen.getByRole('button', { name: 'Undo' }).focus();
+      await userEvent.keyboard('{Enter}');
+
+      expect(within(field()).getByRole('img', { name: 'The photo for Curry' })).toBeInTheDocument();
+      await save();
+      expect(await sentPhoto(sent)).toBe(`${STORE}/AbCdEfGhIjKlMnOpQrStUv/1600.webp`);
+    });
+
+    it('replaces the photo with the next one chosen', async () => {
+      const sent = answerAdding();
+      answerUploads(stores('AbCdEfGhIjKlMnOpQrStUv'), stores('ZyXwVuTsRqPoNmLkJiHgFe'));
+      await openForm();
+      await typeInto('Title', 'Curry');
+      await choose(photoOf('curry.jpg'));
+      await within(field()).findByRole('button', { name: 'Replace photo' });
+
+      await choose(photoOf('better-curry.jpg'));
+
+      await waitFor(() =>
+        expect(within(field()).getByRole('img', { name: 'The photo for Curry' })).toHaveAttribute(
+          'src',
+          `${STORE}/ZyXwVuTsRqPoNmLkJiHgFe/330.webp`
+        )
+      );
+      await save();
+      expect(await sentPhoto(sent)).toBe(`${STORE}/ZyXwVuTsRqPoNmLkJiHgFe/1600.webp`);
+    });
+
+    it("shows Tastebook's refusal of the photo on Save in the field", async () => {
+      answerAdding(() =>
+        HttpResponse.json({ photo_url: ['Give the address of a photo uploaded to Tastebook.'] }, { status: 400 })
+      );
+      answerUploads(stores('AbCdEfGhIjKlMnOpQrStUv'));
+      await openForm();
+      await typeInto('Title', 'Curry');
+      await choose(photoOf('curry.jpg'));
+      await within(field()).findByRole('button', { name: 'Replace photo' });
+
+      await save();
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(
+        'Give the address of a photo uploaded to Tastebook.'
+      );
+      expect(within(field()).getByRole('button', { name: 'Replace photo' })).toHaveFocus();
+    });
   });
 
   describe('ingredients', () => {

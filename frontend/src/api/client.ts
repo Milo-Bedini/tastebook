@@ -4,14 +4,16 @@ import type { paths } from './schema';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
-const csrfToken = (): string | undefined =>
+export const csrfToken = (): string | undefined =>
   document.cookie
     .split('; ')
     .find((cookie) => cookie.startsWith('csrftoken='))
     ?.slice('csrftoken='.length);
 
+export const apiBaseUrl: string = import.meta.env.VITE_API_URL ?? window.location.origin;
+
 export const api = createClient<paths>({
-  baseUrl: import.meta.env.VITE_API_URL ?? window.location.origin,
+  baseUrl: apiBaseUrl,
   // Resolve fetch per request so MSW's interception (patched after import) applies in tests.
   fetch: (request) => globalThis.fetch(request)
 });
