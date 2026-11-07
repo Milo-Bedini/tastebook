@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>TopBar and Dock: the Lists tab</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.h2{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.row{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.strip{position:relative;width:390px;height:102px;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;box-sizing:border-box;overflow:hidden}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.dt.hov{background:color-mix(in oklab, var(--color-on-dock) 10%, transparent)}
+.dt.foc{outline:3px solid var(--color-on-dock);outline-offset:0}
+.bar{background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;box-sizing:border-box;overflow:hidden}
+.in{display:flex;align-items:center;column-gap:24px;min-height:76px;padding:0 32px;box-sizing:border-box;border-bottom:1px solid var(--color-line)}
+.start{display:flex;align-items:center;gap:24px}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:24px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.tabs{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:8px}
+.tt{height:44px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--color-ink);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800;white-space:nowrap}
+.tt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.tt.cur.withicon{padding-left:12px}
+.tt.ico{width:44px;padding:0}
+.sf{width:360px;height:48px;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-pill);display:flex;align-items:center;gap:10px;padding:0 18px;color:var(--color-muted);font-size:16px;line-height:24px;font-weight:600}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:440px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1180px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 36px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-123 · TopBar and Dock (changed: their first real tabs) · signed in only</span>
+    <h1 class="ttl">Recipes and Lists</h1>
+    <span class="cap">Signed in, the app passes two tabs, Recipes (BookOpen) and Lists (Library), so the dock and the top-bar tabs appear as the TAS-122 boards drew them. Both components already take <code>tabs</code>: no new props.</span>
+  </header>
+
+  <h2 class="h2">The dock, under 640 px</h2>
+  <div class="row">
+    <div class="col"><span class="cap"><b>Recipes</b> current</span>
+      <div class="strip"><nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav></div>
+    </div>
+    <div class="col"><span class="cap"><b>Lists</b> current · on its page and a list’s</span>
+      <div class="strip"><nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav></div>
+    </div>
+    <div class="col"><span class="cap"><b>Lists</b> under the pointer, then focused</span>
+      <div class="strip"><nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only hov foc" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav></div>
+    </div>
+  </div>
+
+  <h2 class="h2">The top bar, from 640 px</h2>
+  <div class="col"><span class="cap"><b>Laptop</b> · 1280 px · every tab named, no icons</span>
+    <div class="bar" style="width: 1280px"><div class="in">
+      <div class="start">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <nav aria-label="Main"><ul class="tabs">
+          <li><a href="#" class="tt">Recipes</a></li>
+          <li><a href="#" class="tt cur" aria-current="page">Lists</a></li>
+        </ul></nav>
+      </div>
+      <div class="end">
+        <label class="sf"><x-import component-from-global-scope="Dino.icons.Search" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import><span>Search recipes</span></label>
+        <button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button>
+      </div>
+    </div></div>
+  </div>
+  <div class="row">
+    <div class="col"><span class="cap"><b>Tablet</b> · 768 px · the current tab named, Recipes an icon</span>
+      <div class="bar" style="width: 768px"><div class="in">
+        <div class="start">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <nav aria-label="Main"><ul class="tabs">
+            <li><a href="#" class="tt ico" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+            <li><a href="#" class="tt cur withicon" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+          </ul></nav>
+        </div>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></div>
+    </div>
+    <div class="col"><span class="cap"><b>Narrowest</b> · 640 px · still one row</span>
+      <div class="bar" style="width: 640px"><div class="in">
+        <div class="start">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <nav aria-label="Main"><ul class="tabs">
+            <li><a href="#" class="tt cur withicon" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+            <li><a href="#" class="tt ico" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+          </ul></nav>
+        </div>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Lists is current on <code>/lists</code> and under it</b>, so a recipe opened from Favourites puts Recipes back as current (its address is <code>/recipes/…</code>), and its Back link reads “Favourites”.</p>
+    <p><b>Library, not a heart:</b> the heart is the save toggle, and pink means favourites, so the tab that holds every list takes a neutral icon in Ink.</p>
+    <p><b>Grows into</b> Shopping and Household later, in that order after Lists: the dock takes up to four, as the TAS-122 boards show.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, s20: 20, s22: 22, sw: 2.25 };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Saving from a recipe's page</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:16px 20px 104px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.intro{display:flex;flex-direction:column;gap:12px}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:start}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400;overflow-wrap:break-word}
+.trow .fav{padding-top:0}
+.facts{margin:0;color:var(--color-muted);font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.toast{position:absolute;left:20px;right:20px;bottom:94px;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 4px 4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast.foot{bottom:20px}
+.toast .msg{flex-grow:1;display:flex;align-items:center;gap:8px}
+.toast-act{height:44px;padding:0 16px;flex-shrink:0;border-radius:var(--radius-pill);border:2px solid var(--color-on-dock);background:transparent;color:var(--color-on-dock);font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.note b{font-weight:800}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:560px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1900px; height: 1340px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-123 · phone, 390 px · Chana masala, a catalogue recipe</span>
+    <h1 class="ttl">The heart beside the recipe’s name</h1>
+    <span class="cap">One FavouriteButton at the end of the title’s row: empty until saved, then pink and filled. It turns at once and says so in a toast with Undo; if the save fails it turns back and says why.</span>
+  </header>
+
+  <div class="boards">
+    <div class="col"><span class="cap"><b>Not saved</b></span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All recipes</a>
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{r1}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <div class="trow"><h1 class="h1">Chana <x-import component-from-global-scope="Dino.Squiggle">masala</x-import></h1><span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite"></x-import></span></div>
+          <p class="facts">1 hr 45 · Easy · Indian · Main</p>
+          <x-import component-from-global-scope="Dino.TimeBlobs" times="{{times}}"></x-import>
+        </div>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>Named “Favourite”, with <code>aria-pressed</code></b> saying whether it’s saved. The household’s own recipes have it too: a list holds saved and own recipes.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Saved</b> · at once, with Undo</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All recipes</a>
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{r1}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <div class="trow"><h1 class="h1">Chana <x-import component-from-global-scope="Dino.Squiggle">masala</x-import></h1><span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite" pressed="{{yes}}"></x-import></span></div>
+          <p class="facts">1 hr 45 · Easy · Indian · Main</p>
+          <x-import component-from-global-scope="Dino.TimeBlobs" times="{{times}}"></x-import>
+        </div>
+      </main>
+      <div class="toast" role="status"><span class="msg">Saved to Favourites</span><button type="button" class="toast-act">Undo</button></div>
+      <nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>Pressing it again unsaves</b> with “Removed from Favourites · Undo”. No confirm: it can be undone (NN/g 3).</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Didn’t save</b> · offline or a server error</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All recipes</a>
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{r1}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <div class="trow"><h1 class="h1">Chana <x-import component-from-global-scope="Dino.Squiggle">masala</x-import></h1><span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite"></x-import></span></div>
+          <p class="facts">1 hr 45 · Easy · Indian · Main</p>
+          <x-import component-from-global-scope="Dino.TimeBlobs" times="{{times}}"></x-import>
+        </div>
+      </main>
+      <div class="toast" role="alert"><span class="msg"><x-import component-from-global-scope="Dino.icons.CircleAlert" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true" style="flex-shrink: 0"></x-import>Couldn’t save. Check your connection.</span><button type="button" class="toast-act">Try again</button></div>
+      <nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>The heart turns back</b> and the toast says so, with Try again; the same for an unsave that fails (“Couldn’t remove it…”).</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Signed out</b> · the heart goes through sign-in</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div>
+      </div></header>
+      <main class="pg">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All recipes</a>
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{r1}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <div class="trow"><h1 class="h1">Chana <x-import component-from-global-scope="Dino.Squiggle">masala</x-import></h1><span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite"></x-import></span></div>
+          <p class="facts">1 hr 45 · Easy · Indian · Main</p>
+          <x-import component-from-global-scope="Dino.TimeBlobs" times="{{times}}"></x-import>
+        </div>
+      </main>
+      <div class="toast foot" role="status"><span class="msg">Signed in. Saved to Favourites</span><button type="button" class="toast-act">Undo</button></div>
+    </div>
+    <p class="note"><b>Pressed signed out, it opens sign-in</b> with <code>next</code> back to this recipe, and the save happens on the way back, with its toast (drawn here at the foot: no dock until signed in, then the dock appears).</p>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>On a laptop</b> the heart keeps its place at the end of the title’s row, in the right-hand column (design.md, Layout), and the toast sits at the foot, centred.</p>
+    <p><b>Why optimistic:</b> the heart is a toggle with no room for a “Saving…” line, so it shows the new state at once, takes <code>aria-busy</code> and ignores presses until the save settles, then keeps it or turns back with the error toast.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1900,"height":1340}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, nothing: null, r1: 2, s18: 18, s20: 20, s22: 22, sw: 2.25,
+      times: [{ label: 'Prep', value: '15 min' }, { label: 'Cook', value: '30 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>
