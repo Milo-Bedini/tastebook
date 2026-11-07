@@ -31,7 +31,7 @@ const FieldError = ({ id, children }: FieldTextProps) => (
   </p>
 );
 
-const FieldDescription = ({ id, help, error }: { id: string; help?: string; error?: string }) => {
+export const FieldDescription = ({ id, help, error }: { id: string; help?: string; error?: string }) => {
   if (error) {
     return <FieldError id={id}>{error}</FieldError>;
   }
