@@ -4,10 +4,10 @@ Canvas: https://claude.ai/artifact/NrdKZaTP7rfjFzD8EpzGeF
 
 ## Boards
 
-- `Main.dc.html` (Icons until there's room): the top bar with its tabs at 640, 834, 1024 and 1280 px. From 640 px the tabs sit after the wordmark; under 1024 px the current tab shows its icon and name and the others their icons; from 1024 px every tab is named.
-- `Phone.dc.html` (Phones: the dock): the dock at 390 px on Recipes (top and scrolled to the end, with the 104 px kept clear), on Household (the current tab moves), and signed out (one tab, so no dock).
-- `Dock.dc.html` (Dock: every state): two, three and four tabs, another tab current; hover, pressed and focus on the current and other tabs; forced colours.
-- `TopBarTabs.dc.html` (TopBarTabs: every state): named (from 1024 px) and compact (640 to 1023 px), two tabs; hover, pressed and focus on the current and other tabs, compact icon hover and focus; forced colours.
+- `docs/design/dino/navigation.dc.html` (Icons until there's room): the top bar with its tabs at 640, 834, 1024 and 1280 px. From 640 px the tabs sit after the wordmark; under 1024 px the current tab shows its icon and name and the others their icons; from 1024 px every tab is named.
+- `docs/design/dino/navigation-phone.dc.html` (Phones: the dock): the dock at 390 px on Recipes (top and scrolled to the end, with the 104 px kept clear), on Household (the current tab moves), and signed out (one tab, so no dock).
+- `docs/design/dino/dock.dc.html` (Dock: every state): two, three and four tabs, another tab current; hover, pressed and focus on the current and other tabs; forced colours.
+- `docs/design/dino/top-bar-tabs.dc.html` (TopBarTabs: every state): named (from 1024 px) and compact (640 to 1023 px), two tabs; hover, pressed and focus on the current and other tabs, compact icon hover and focus; forced colours.
 
 ## Decisions
 
