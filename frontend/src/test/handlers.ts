@@ -8,9 +8,11 @@ type CurrentAccount = components['schemas']['CurrentAccount'];
 type Equipment = components['schemas']['Equipment'];
 type Health = components['schemas']['Health'];
 type IngredientOption = components['schemas']['IngredientOption'];
+type ListSummary = components['schemas']['ListSummary'];
 type NewIngredient = components['schemas']['NewIngredient'];
 type Recipe = components['schemas']['Recipe'];
 type RecipeSummary = components['schemas']['RecipeSummary'];
+type SavedList = components['schemas']['SavedList'];
 
 const cuisines: Cuisine[] = [
   { slug: 'french', name: 'French' },
@@ -147,6 +149,13 @@ export const handlers = [
       { status: 201 }
     );
   }),
+  // Every account has Favourites, empty until it saves something.
+  http.get('/api/lists/', () =>
+    HttpResponse.json<ListSummary[]>([{ slug: 'favourites', name: 'Favourites', recipe_count: 0, covers: [] }])
+  ),
+  http.get('/api/lists/favourites/', () =>
+    HttpResponse.json<SavedList>({ slug: 'favourites', name: 'Favourites', saved_recipes: [] })
+  ),
   http.get('/api/recipes/', () => HttpResponse.json<RecipeSummary[]>(recipes.map(toSummary))),
   http.get('/api/recipes/:slug/', ({ params }) => {
     const recipe = recipes.find(({ slug }) => slug === params.slug);

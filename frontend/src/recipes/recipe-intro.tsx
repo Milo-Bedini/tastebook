@@ -7,6 +7,7 @@ import { Button, PrivateMark, Squiggle, TimeBlobs } from '../dino';
 import { capitalise } from './capitalise';
 import { describeDietTagConflict } from './diet-tags';
 import { difficultyLabel } from './difficulty';
+import { Favourite } from './favourite-slot';
 import { formatMinutes } from './format-minutes';
 import { DeleteRecipe } from './recipe-delete';
 import { RecipeGaps } from './recipe-gaps';
@@ -111,7 +112,11 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
   const switchGone = useVisibilityGone(recipe.slug) && !recipe.can_publish;
   return (
     <div className="flex flex-col gap-4">
-      <RecipeTitle title={recipe.title} takesFocus={switchGone} />
+      {/* The heart sits at the end of the title's row; the heading names the recipe, so it's just "Favourite". */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
+        <RecipeTitle title={recipe.title} takesFocus={switchGone} />
+        <Favourite recipe={recipe} label="Favourite" />
+      </div>
       <RecipeCredit recipe={recipe} />
       {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
       {facts !== '' && <p className="text-muted tabular-nums">{facts}</p>}

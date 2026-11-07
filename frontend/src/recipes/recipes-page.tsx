@@ -4,11 +4,10 @@ import { useCallback, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import type { components } from '../api/schema';
-import type { Lean } from '../dino';
-import { Button, EmptyState, ErrorWithRetry, Loading, Page, PolaroidCard, PrivateMark, Sheet, Squiggle } from '../dino';
+import { Button, EmptyState, ErrorWithRetry, Loading, Page, Sheet, Squiggle } from '../dino';
 import { ActiveFilters, countActiveFilters, useActiveFilters } from './active-filters';
-import { difficultyLabel } from './difficulty';
-import { formatMinutes } from './format-minutes';
+import { Favourite } from './favourite-slot';
+import { RecipeCard } from './recipe-card';
 import { RecipeFilterPanel } from './recipe-filter-panel';
 import type { RecipeFilters } from './recipe-filters';
 import { hasFilters, noFilters, readFilters, writeFilters } from './recipe-filters';
@@ -26,52 +25,6 @@ const MIN_SEARCH_LENGTH = 3;
 const toSearchTerm = (text: string) => {
   const term = text.trim();
   return term.length >= MIN_SEARCH_LENGTH ? term : '';
-};
-
-const metaOf = (recipe: RecipeSummary) => {
-  const cuisineNames = recipe.cuisines.map(({ name }) => name).join(', ');
-  const totalTime = recipe.total_minutes === null ? '' : formatMinutes(recipe.total_minutes);
-  const parts = [totalTime, difficultyLabel(recipe.difficulty), cuisineNames];
-  return parts.filter((part) => part !== '').join(' · ');
-};
-
-type RecipeMetaProps = { author: string | null; isPrivate: boolean; meta: string };
-
-// The mark, or a public household recipe's credit in its place, sits above the meta, so it's read with the card.
-const RecipeMeta = ({ author, isPrivate, meta }: RecipeMetaProps) => (
-  <>
-    {author !== null && <p>{`by ${author}`}</p>}
-    {author === null && isPrivate && (
-      <span className="mb-1 block">
-        <PrivateMark />
-      </span>
-    )}
-    {meta !== '' && <p className="tabular-nums">{meta}</p>}
-  </>
-);
-
-type RecipeItemProps = { recipe: RecipeSummary; lean: Lean; eager: boolean };
-
-// A card with no mark, credit or meta has no meta block at all, so its link has no empty description.
-const RecipeItem = ({ recipe, lean, eager }: RecipeItemProps) => {
-  const isPrivate = recipe.visibility === 'private';
-  const meta = metaOf(recipe);
-  return (
-    <li>
-      <PolaroidCard
-        title={recipe.title}
-        to={`/recipes/${recipe.slug}`}
-        recipeId={recipe.id}
-        photo={recipe.photo}
-        lean={lean}
-        eager={eager}
-      >
-        {(isPrivate || recipe.author !== null || meta !== '') && (
-          <RecipeMeta author={recipe.author} isPrivate={isPrivate} meta={meta} />
-        )}
-      </PolaroidCard>
-    </li>
-  );
 };
 
 type NoRecipesProps = { query: RecipeQuery; onClearFilters: () => void };
@@ -126,11 +79,12 @@ const Recipes = ({ recipes, query, onClearFilters }: RecipesProps) => {
   return (
     <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
       {recipes.map((recipe, index) => (
-        <RecipeItem
+        <RecipeCard
           key={recipe.id}
           recipe={recipe}
           lean={index % 2 === 0 ? 'left' : 'right'}
           eager={index < FIRST_ROW_LENGTH}
+          action={<Favourite recipe={recipe} label={`Favourite ${recipe.title}`} />}
         />
       ))}
     </ul>

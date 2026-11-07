@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router';
 
+import { FavouritesPage, ListsPage } from '../collections';
 import { AccountPage, HouseholdPage, JoinPage, NameGate, SignInPage, WelcomePage } from '../households';
 import { EditRecipePage, NewRecipePage, RecipePage, RecipesPage } from '../recipes';
 import { AppLayout } from './app-layout';
@@ -21,6 +22,8 @@ export const routes: RouteObject[] = [
           { path: '/recipes/new', Component: NewRecipePage },
           { path: '/recipes/:slug', Component: RecipePage },
           { path: '/recipes/:slug/edit', Component: EditRecipePage },
+          { path: '/lists', Component: ListsPage },
+          { path: '/lists/favourites', Component: FavouritesPage },
           { path: '/account', Component: AccountPage },
           { path: '/household', Component: HouseholdPage },
           { path: '/join/:token', Component: JoinPage },
