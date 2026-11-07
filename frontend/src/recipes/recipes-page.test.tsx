@@ -305,13 +305,16 @@ describe('RecipesPage', () => {
 
   it("loads the first row's photos at once and the rest lazily, at the card width, and shows none on a card without one", async () => {
     const photoOf = (name: string) => ({
+      url: `https://upload.wikimedia.org/wikipedia/commons/a/ab/${name}.jpg`,
       thumbnails: [330, 500].map((width) => ({
         width,
         url: `https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/${name}.jpg/${width}px-${name}.jpg`
       })),
-      author: 'Jane Doe',
-      licence: 'CC BY-SA 4.0',
-      source_url: `https://commons.wikimedia.org/wiki/File:${name}.jpg`
+      credit: {
+        author: 'Jane Doe',
+        licence: 'CC BY-SA 4.0',
+        source_url: `https://commons.wikimedia.org/wiki/File:${name}.jpg`
+      }
     });
     server.use(
       http.get('/api/recipes/', () =>

@@ -22,7 +22,7 @@ import { useSession } from '../households';
 import { useCourses, useCuisines, useEquipment } from './choices-api';
 import { difficulties, difficultyLabels } from './difficulty';
 import { toggled } from './recipe-filters';
-import type { NewRecipe, RecipeErrors, RecipeSaving } from './recipe-form-api';
+import type { NewRecipe, RecipeErrors, RecipeSaving, StoredPhoto } from './recipe-form-api';
 import {
   checkIngredients,
   type IngredientEntry,
@@ -41,6 +41,7 @@ import {
   stepFieldIds,
   toStepPayload
 } from './recipe-form-method';
+import { PhotoSection, refusalOf, usePhotoUpload } from './recipe-form-photo';
 
 type Recipe = components['schemas']['Recipe'];
 
@@ -54,6 +55,7 @@ type Amount = 'serves' | 'makes';
 type Draft = {
   title: string;
   description: string;
+  photo: StoredPhoto | null;
   cuisines: string[];
   courses: string[];
   equipment: string[];
@@ -76,6 +78,7 @@ type Draft = {
 const emptyDraft: Draft = {
   title: '',
   description: '',
+  photo: null,
   cuisines: [],
   courses: [],
   equipment: [],
@@ -99,6 +102,7 @@ const emptyDraft: Draft = {
 const draftOf = (recipe: Recipe): Draft => ({
   title: recipe.title,
   description: recipe.description,
+  photo: recipe.photo,
   cuisines: recipe.cuisines.map(({ slug }) => slug),
   courses: recipe.courses.map(({ slug }) => slug),
   equipment: recipe.equipment.map(({ slug }) => slug),
@@ -119,10 +123,11 @@ const draftOf = (recipe: Recipe): Draft => ({
 });
 
 // The fields that take focus, in the form's order, so the first in error is the first here; the ingredients' and
-// then the steps' come between the description and the times.
+// then the steps' come between the photo and the times.
 const typedFields = [
   'title',
   'description',
+  'photo_url',
   'prep_minutes',
   'cook_minutes',
   'extra_minutes',
@@ -170,6 +175,7 @@ const checkDraft = (draft: Draft): RecipeErrors => {
 const toNewRecipe = (draft: Draft): NewRecipe => ({
   title: draft.title.trim(),
   description: draft.description.trim(),
+  photo_url: draft.photo?.url ?? '',
   cuisines: draft.cuisines,
   courses: draft.courses,
   equipment: draft.equipment,
@@ -328,6 +334,10 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
   const [ingredientsView, setIngredientsView] = useState<IngredientsView>({ kind: 'list' });
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
   const [reorderingSteps, setReorderingSteps] = useState(false);
+  // Why the photo last chosen wasn't sent; cleared by the next choice or removal.
+  const [photoRefusal, setPhotoRefusal] = useState<string>();
+  const [waitingForPhoto, setWaitingForPhoto] = useState(false);
+  const photoUpload = usePhotoUpload((photo) => setDraft((current) => ({ ...current, photo })));
   // Keyed by field id: a typed field's name, or an ingredient's field id, which holds its row.
   const fields = useRef<Record<string, HTMLElement | null>>({});
 
@@ -337,6 +347,12 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
       setDraft((current) => ({ ...current, [key]: value }));
   const refFor = (field: string) => (element: HTMLElement | null) => {
     fields.current[field] = element;
+  };
+
+  // The photo's field is a group, so its first button takes focus.
+  const focusField = (field: string) => {
+    const element = fields.current[field];
+    (field === 'photo_url' ? element?.querySelector('button') : element)?.focus();
   };
 
   // Shows every message at once; focus goes to the first field in error, or the banner when no field is. An
@@ -353,10 +369,11 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
       setStepErrors(refusedSteps);
       setReorderingSteps(false);
     });
-    const [title, description, ...rest] = typedFields;
+    const [title, description, photo, ...rest] = typedFields;
     const order: string[] = [
       title,
       description,
+      photo,
       ...ingredientFieldIds(draft.ingredients),
       ...stepFieldIds(draft.steps),
       ...rest
@@ -364,7 +381,7 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
     const messages: Record<string, string | undefined> = { ...refused, ...refusedIngredients, ...refusedSteps };
     const first = order.find((field) => messages[field] !== undefined);
     if (first !== undefined) {
-      fields.current[first]?.focus();
+      focusField(first);
     }
     if (first !== undefined && refusedIngredients[first] !== undefined) {
       setIngredientsView(viewOfField(first));
@@ -384,8 +401,18 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
     setErrors({});
     setIngredientErrors({});
     setStepErrors({});
+    // Save waits for a photo still uploading, and saves the recipe with it once it's stored.
+    setWaitingForPhoto(true);
+    const uploaded = await photoUpload.settle();
+    setWaitingForPhoto(false);
+    if (uploaded?.kind === 'failed') {
+      // The field's buttons say what to do next: Try again, or Remove photo.
+      focusField('photo_url');
+      return;
+    }
+    const photo = uploaded?.kind === 'stored' ? uploaded.photo : draft.photo;
     try {
-      const result = await onSave(toNewRecipe(draft));
+      const result = await onSave(toNewRecipe({ ...draft, photo }));
       if (result.kind === 'saved') {
         // The recipe opening is the confirmation.
         await navigate(`/recipes/${result.recipe.slug}`, { replace: true });
@@ -408,6 +435,31 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
     } catch {
       toast.error("Couldn't save the recipe. Check your connection and try again.");
     }
+  };
+
+  const choosePhoto = (file: File) => {
+    const refused = refusalOf(file);
+    setPhotoRefusal(refused);
+    if (refused === undefined) {
+      photoUpload.start(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhotoRefusal(undefined);
+    // A photo that couldn't upload goes, leaving the recipe's photo as it was.
+    if (photoUpload.upload !== null) {
+      photoUpload.cancel();
+      return;
+    }
+    const removed = draft.photo;
+    change('photo')(null);
+    toast('Photo removed', {
+      action: {
+        label: 'Undo',
+        onClick: () => setDraft((current) => (current.photo === null ? { ...current, photo: removed } : current))
+      }
+    });
   };
 
   const refusal = bannerMessage(errors);
@@ -439,6 +491,18 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
             />
           )}
         </Field>
+        <div ref={refFor('photo_url')}>
+          <PhotoSection
+            photo={draft.photo}
+            upload={photoUpload.upload}
+            title={draft.title}
+            error={photoRefusal ?? errors.photo_url}
+            onChoose={choosePhoto}
+            onRemove={removePhoto}
+            onRetry={photoUpload.retry}
+            onCancel={photoUpload.cancel}
+          />
+        </div>
         <ChipGroup
           legend="Cuisines"
           query={useCuisines()}
@@ -649,7 +713,7 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
             </Banner>
           </div>
         )}
-        <Button type="submit" loading={isSaving} loadingLabel="Saving…">
+        <Button type="submit" loading={isSaving || waitingForPhoto} loadingLabel="Saving…">
           {submitLabel}
         </Button>
       </div>

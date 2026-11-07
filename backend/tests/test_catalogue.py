@@ -543,7 +543,7 @@ def test_every_photo_in_the_repos_catalogue_has_a_licence_that_allows_reuse() ->
     photos = [summary['photo'] for summary in APIClient().get(reverse('recipe-list')).json() if summary['photo']]
     assert photos != []
     allowed = re.compile(r'^(Public domain|CC0 1\.0|CC BY(-SA)? \d\.\d( [a-z]{2,3})?)$')
-    assert [photo['licence'] for photo in photos if not allowed.match(photo['licence'])] == []
+    assert [photo['credit']['licence'] for photo in photos if not allowed.match(photo['credit']['licence'])] == []
 
 
 @pytest.mark.django_db
@@ -644,12 +644,13 @@ def with_line(**line: Any) -> dict[str, Any]:
         ),
         (
             catalogue({**FLAPJACKS, **PHOTO, 'photo_licence': ''}),
-            'Recipe flapjacks: Give a photo with its author, licence and source, or none of them.',
+            'Recipe flapjacks: Give a Wikimedia Commons photo with its author, licence and source, '
+            'and an uploaded photo with none of them.',
         ),
         (
             catalogue({**FLAPJACKS, **PHOTO, 'photo_url': 'https://example.com/flapjacks.jpg'}),
             'Recipe flapjacks: Give the address of a JPEG, PNG or WebP file on Wikimedia Commons, '
-            'starting https://upload.wikimedia.org/wikipedia/commons/.',
+            'starting https://upload.wikimedia.org/wikipedia/commons/, or of a photo uploaded to Tastebook.',
         ),
         (
             catalogue({**FLAPJACKS, **PHOTO, 'photo_source_url': 'https://example.com/flapjacks'}),

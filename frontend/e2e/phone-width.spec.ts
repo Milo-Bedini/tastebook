@@ -29,13 +29,16 @@ const recipe: Recipe = {
   extra_label: 'dry-brining overnight in the fridge',
   total_minutes: 1140,
   photo: {
+    url: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Roast_pork.jpg',
     thumbnails: [330, 500, 960, 1280].map((width) => ({
       width,
       url: `https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Roast_pork.jpg/${width}px-Roast_pork.jpg`
     })),
-    author: 'The Worshipful Company of Butchers of the City of London, photographed by its archivist',
-    licence: 'CC BY-SA 4.0',
-    source_url: 'https://commons.wikimedia.org/wiki/File:Roast_pork.jpg'
+    credit: {
+      author: 'The Worshipful Company of Butchers of the City of London, photographed by its archivist',
+      licence: 'CC BY-SA 4.0',
+      source_url: 'https://commons.wikimedia.org/wiki/File:Roast_pork.jpg'
+    }
   },
   diet_tags: ['dairy_free'],
   servings: null,

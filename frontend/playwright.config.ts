@@ -40,7 +40,9 @@ export default defineConfig({
         {
           command: 'uv run python manage.py runserver 8000',
           cwd: '../backend',
-          env: { DJANGO_DEBUG: 'true' },
+          // A made-up store, so a recipe takes the photo e2e/recipe-photo.spec.ts answers its upload with; nothing
+          // reaches the real one.
+          env: { DJANGO_DEBUG: 'true', BLOB_READ_WRITE_TOKEN: 'vercel_blob_rw_e2estore_notarealtoken' },
           url: 'http://localhost:8000/api/health/',
           reuseExistingServer: !isCi
         },

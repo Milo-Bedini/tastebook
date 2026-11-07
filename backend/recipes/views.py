@@ -4,10 +4,13 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.parsers import MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from recipes.models import Course, Cuisine, Equipment, Ingredient, IngredientQuerySet, Recipe, RecipeQuerySet
+from recipes.photo_store import PhotoRefusedError, PhotoStoreUnavailableError, store_photo
 from recipes.serializers import (
     CourseSerializer,
     CuisineSerializer,
@@ -15,9 +18,11 @@ from recipes.serializers import (
     IngredientOptionSerializer,
     NewIngredientSerializer,
     NewRecipeSerializer,
+    PhotoUploadSerializer,
     RecipeChangesSerializer,
     RecipeFiltersSerializer,
     RecipeIngredientsSerializer,
+    RecipePhotoSerializer,
     RecipeSerializer,
     RecipeSummarySerializer,
 )
@@ -247,3 +252,37 @@ class IngredientListView(ListAPIView):
         return Response(
             IngredientOptionSerializer(ingredient).data, status=status.HTTP_201_CREATED if added else status.HTTP_200_OK
         )
+
+
+class PhotoUploadView(APIView):
+    parser_classes = [MultiPartParser]
+    permission_classes = []
+
+    @extend_schema(
+        operation_id='photos_create',
+        request={'multipart/form-data': PhotoUploadSerializer},
+        responses={
+            201: RecipePhotoSerializer,
+            400: OpenApiResponse(description='The file is missing, over 10 MB, or not a JPEG, PNG, WebP or HEIC.'),
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            503: OpenApiResponse(description="The photo store isn't set up here, or didn't answer."),
+        },
+        description="Stores a photo for a household's recipe and gives its address, which a recipe's photo_url "
+        'takes. Its address is unguessable but not secret: anyone who has it can see the photo. '
+        '403 when signed out or for an account with no household yet.',
+    )
+    def post(self, request: Request) -> Response:
+        if not request.user.is_authenticated or request.user.household_id is None:
+            raise PermissionDenied
+        given = PhotoUploadSerializer(data=request.data)
+        given.is_valid(raise_exception=True)
+        file = given.validated_data['photo']
+        try:
+            photo = store_photo(file, file.size)
+        except PhotoRefusedError as error:
+            raise ValidationError({'photo': [str(error)]}) from error
+        except PhotoStoreUnavailableError:
+            return Response(
+                {'detail': "Couldn't store the photo. Try again."}, status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        return Response(RecipePhotoSerializer(photo).data, status=status.HTTP_201_CREATED)

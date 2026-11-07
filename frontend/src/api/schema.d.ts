@@ -208,6 +208,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/photos/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Stores a photo for a household's recipe and gives its address, which a recipe's photo_url takes. Its address is unguessable but not secret: anyone who has it can see the photo. 403 when signed out or for an account with no household yet. */
+        post: operations["photos_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recipes/": {
         parameters: {
             query?: never;
@@ -481,6 +498,11 @@ export interface components {
              * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
              */
             source_url?: string;
+            /**
+             * Photo address
+             * @description The address of a photo uploaded with POST /api/photos/, or '' for none.
+             */
+            photo_url?: string;
             ingredient_lines?: components["schemas"]["NewIngredientLine"][];
             ingredient_groups?: components["schemas"]["NewIngredientGroup"][];
             /** @description The method, a step each, in order. Sending it replaces every step. */
@@ -524,15 +546,33 @@ export interface components {
              * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
              */
             source_url?: string;
+            /**
+             * Photo address
+             * @description The address of a photo uploaded with POST /api/photos/, or '' for none.
+             */
+            photo_url?: string;
             ingredient_lines?: components["schemas"]["NewIngredientLine"][];
             ingredient_groups?: components["schemas"]["NewIngredientGroup"][];
             /** @description The method, a step each, in order. Sending it replaces every step. */
             steps?: string[];
         };
+        PhotoCredit: {
+            readonly author: string;
+            readonly licence: string;
+            /** Format: uri */
+            readonly source_url: string;
+        };
         PhotoThumbnail: {
             readonly width: number;
             /** Format: uri */
             readonly url: string;
+        };
+        PhotoUpload: {
+            /**
+             * Format: binary
+             * @description A JPEG, PNG, WebP or HEIC photo of up to 10 MB, which the browser has resized to 1,600 px.
+             */
+            photo: string;
         };
         Recipe: {
             readonly id: number;
@@ -578,11 +618,14 @@ export interface components {
             readonly can_delete: boolean;
         };
         RecipePhoto: {
+            /**
+             * Format: uri
+             * @description The photo's address, which a recipe's photo_url takes.
+             */
+            readonly url: string;
             readonly thumbnails: components["schemas"]["PhotoThumbnail"][];
-            readonly author: string;
-            readonly licence: string;
-            /** Format: uri */
-            readonly source_url: string;
+            /** @description A Wikimedia Commons photo's credit; null for an uploaded photo. */
+            readonly credit: components["schemas"]["PhotoCredit"] | null;
         };
         RecipeSummary: {
             readonly id: number;
@@ -1160,6 +1203,50 @@ export interface operations {
             };
             /** @description No response body */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    photos_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["PhotoUpload"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipePhoto"];
+                };
+            };
+            /** @description The file is missing, over 10 MB, or not a JPEG, PNG, WebP or HEIC. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The photo store isn't set up here, or didn't answer. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

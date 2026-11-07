@@ -133,7 +133,8 @@ const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
               photo={recipe.photo}
               recipeId={recipe.id}
               alt={recipe.title}
-              caption={recipe.photo && <RecipePhotoCredit photo={recipe.photo} />}
+              // Only a Commons photo has a credit; a household's own photo shows bare in its frame.
+              caption={recipe.photo?.credit ? <RecipePhotoCredit credit={recipe.photo.credit} /> : undefined}
             />
           </Polaroid>
         </StickeredPhoto>

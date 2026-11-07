@@ -8,7 +8,10 @@ dependencies = [
     "django-allauth[headless,mfa,socialaccount]>=65.21.0",
     "djangorestframework>=3.18.3",
     "drf-spectacular>=0.30.0",
+    "pillow>=13.0.0",
+    "pillow-heif>=1.8.1",
     "psycopg[binary]>=3.3.6",
+    "requests>=2.34.2",
     "sentry-sdk[django]>=2.73.0",
 ]
 

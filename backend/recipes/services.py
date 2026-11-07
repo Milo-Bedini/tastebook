@@ -3,6 +3,7 @@ from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,7 @@ from recipes.models import (
     Recipe,
     Step,
 )
+from recipes.photo_store import delete_photo
 
 CATALOGUE_PATH = settings.BASE_DIR / 'recipes' / 'catalogue.json'
 
@@ -141,10 +143,15 @@ def edit_recipe(
     steps: list[str] | None,
 ) -> Recipe:
     """Changes the details given and keeps the recipe's address. None leaves the cuisines, courses, equipment,
-    ingredients or steps as they are. Raises ValidationError when a pair is half given, as add_recipe does."""
+    ingredients or steps as they are. A photo replaced or removed is deleted from the store once saved, unless another
+    recipe uses it. Raises ValidationError when a pair is half given, as add_recipe does."""
+    replaced = recipe.photo_url
     with transaction.atomic():
         for name, value in details.items():
             setattr(recipe, name, value)
+        # A new photo, or none, takes the old one's credit with it.
+        if recipe.photo_url != replaced:
+            recipe.photo_author, recipe.photo_licence, recipe.photo_source_url = '', '', ''
         recipe.full_clean()
         recipe.save()
         if cuisines is not None:
@@ -157,13 +164,23 @@ def edit_recipe(
             _set_ingredients(recipe, ingredients)
         if steps is not None:
             _set_steps(recipe, steps)
+        if recipe.photo_url != replaced:
+            transaction.on_commit(partial(_delete_photo_unless_used, replaced))
     return recipe
 
 
 def delete_recipe(recipe: Recipe) -> None:
-    """Deletes the recipe with its ingredient lines, groups and steps. An added ingredient only it used stays,
-    awaiting review."""
-    recipe.delete()
+    """Deletes the recipe with its ingredient lines, groups, steps and uploaded photo, unless another recipe uses the
+    photo. An added ingredient only it used stays, awaiting review."""
+    with transaction.atomic():
+        recipe.delete()
+        transaction.on_commit(partial(_delete_photo_unless_used, recipe.photo_url))
+
+
+def _delete_photo_unless_used(url: str) -> None:
+    # A moving member's copies keep the original's address, and a recipe may be given any uploaded photo's address.
+    if not Recipe.objects.filter(photo_url=url).exists():
+        delete_photo(url)
 
 
 def _set_ingredients(recipe: Recipe, ingredients: IngredientList) -> None:

@@ -46,13 +46,16 @@ const shakshuka: Recipe = {
 };
 
 const photo: RecipePhoto = {
+  url: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Shakshuka.jpg',
   thumbnails: [
     { width: 330, url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Shakshuka.jpg/330px-Shakshuka.jpg' },
     { width: 1280, url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Shakshuka.jpg/1280px-Shakshuka.jpg' }
   ],
-  author: 'Jane Doe',
-  licence: 'CC BY-SA 4.0',
-  source_url: 'https://commons.wikimedia.org/wiki/File:Shakshuka.jpg'
+  credit: {
+    author: 'Jane Doe',
+    licence: 'CC BY-SA 4.0',
+    source_url: 'https://commons.wikimedia.org/wiki/File:Shakshuka.jpg'
+  }
 };
 
 // Each time blob's label with its time, in the order the page shows them.
@@ -243,6 +246,30 @@ describe('RecipePage', () => {
       'href',
       'https://commons.wikimedia.org/wiki/File:Shakshuka.jpg'
     );
+  });
+
+  it("shows a household's uploaded photo bare in its frame, with no credit", async () => {
+    const uploaded = 'https://store.public.blob.vercel-storage.com/recipes/production/AbCdEfGhIjKlMnOpQrStUv';
+    server.use(
+      http.get('/api/recipes/:slug/', () =>
+        HttpResponse.json<Recipe>({
+          ...shakshuka,
+          photo: {
+            url: `${uploaded}/1600.webp`,
+            thumbnails: [330, 1600].map((width) => ({ width, url: `${uploaded}/${width}.webp` })),
+            credit: null
+          }
+        })
+      )
+    );
+
+    renderRoute('/recipes/shakshuka');
+
+    const image = await screen.findByRole('img', { name: 'Shakshuka' });
+    expect(image).toHaveAttribute('srcset', `${uploaded}/330.webp 330w, ${uploaded}/1600.webp 1600w`);
+    expect(image).toHaveAttribute('crossorigin', 'anonymous');
+    expect(screen.queryByRole('figure')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Photo by/)).not.toBeInTheDocument();
   });
 
   it("shows the rug without a credit when the photo can't load", async () => {

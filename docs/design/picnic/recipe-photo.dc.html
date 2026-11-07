@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Variant A: the photo at its real shape</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px}
+.head{display:flex;flex-direction:column;gap:12px}
+.lede{margin:0;color:var(--color-muted)}
+.grp{display:flex;flex-direction:column;gap:24px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.drop{aspect-ratio:7/5;box-sizing:border-box;border:2px dashed var(--color-field);border-radius:var(--radius-card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;text-align:center;color:var(--color-muted)}
+.drop svg{width:32px;height:32px}
+.snap{background:var(--color-paper);padding:10px;box-shadow:var(--shadow-lift)}
+.snap img{display:block;width:100%;aspect-ratio:7/5;object-fit:cover}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.chips{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.chips legend{padding:0;margin:0 0 8px;font-size:15px;line-height:20px;font-weight:800}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:440px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1440px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-118 · /recipes/new and /recipes/:slug/edit · phone, 390 px · signed in as Milo Bedini</span>
+    <h1 class="ttl">Variant A: the photo at its real shape</h1>
+    <span class="cap">A Photo field after Description, drawn 7:5, the shape it takes at the top of the recipe, so you see the crop before you save. Recommended.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>No photo yet</b> · scrolled to the field; Title and Description filled</span>
+      <div class="frame" style="height: 844px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="head">
+            <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+            <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+          </div>
+          <div class="grp">
+            <div class="fld">
+              <label for="a-title" class="lbl">Title</label>
+              <x-import component-from-global-scope="Dino.Input" id="a-title" type="text" default-value="Chana masala"></x-import>
+            </div>
+            <div class="fld">
+              <label for="a-desc" class="lbl">Description</label>
+              <x-import component-from-global-scope="Dino.TextArea" id="a-desc" default-value="Chickpeas in a tomato and ginger sauce. Better the next day." aria-describedby="a-desc-help"></x-import>
+              <p id="a-desc-help" class="help">A line or two about it.</p>
+            </div>
+            <div class="fld" role="group" aria-labelledby="a-photo-lbl" aria-describedby="a-photo-help">
+              <span id="a-photo-lbl" class="lbl">Photo</span>
+              <div class="drop">
+                <x-import component-from-global-scope="Dino.icons.ImagePlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary">Add a photo</x-import>
+              </div>
+              <p id="a-photo-help" class="help">A JPEG, PNG, WebP or HEIC photo, up to 10 MB. It shows at the top of the recipe, cropped to this shape.</p>
+            </div>
+          </div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>With a photo</b> · uploaded; on the edit page it opens like this</span>
+      <div class="frame" style="height: 844px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <div class="head">
+            <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+            <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+          </div>
+          <div class="grp">
+            <div class="fld">
+              <label for="b-title" class="lbl">Title</label>
+              <x-import component-from-global-scope="Dino.Input" id="b-title" type="text" default-value="Chana masala"></x-import>
+            </div>
+            <div class="fld">
+              <label for="b-desc" class="lbl">Description</label>
+              <x-import component-from-global-scope="Dino.TextArea" id="b-desc" default-value="Chickpeas in a tomato and ginger sauce. Better the next day." aria-describedby="b-desc-help"></x-import>
+              <p id="b-desc-help" class="help">A line or two about it.</p>
+            </div>
+            <div class="fld" role="group" aria-labelledby="b-photo-lbl" aria-describedby="b-photo-help">
+              <span id="b-photo-lbl" class="lbl">Photo</span>
+              <div class="snap"><img src="/_blob/962002d93dd66f530b616569fbd4033e" alt="The photo for Chana masala"></div>
+              <div class="acts" style="padding-top: 10px">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary">Replace photo</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="ghost"><x-import component-from-global-scope="Dino.icons.Trash2" aria-hidden="true" stroke-width="{{sw}}"></x-import>Remove photo</x-import>
+              </div>
+              <p id="b-photo-help" class="help">A JPEG, PNG, WebP or HEIC photo, up to 10 MB. It shows at the top of the recipe, cropped to this shape.</p>
+            </div>
+          </div>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="notes" style="padding-top: 27px">
+      <p><b>Good at:</b> what you see is what the recipe shows (the same 7:5 crop in the same Paper frame), and an empty field is a big, plain target for a thumb. <b>Bad at:</b> it takes a screen’s height on a phone, so Cuisines and Courses sit further down.</p>
+      <p><b>Where it goes.</b> After Description, in the form’s first group: Title stays first because it’s the only required field and where focus starts, and the photo sits with the other things that describe the recipe.</p>
+      <p><b>One button, then the system’s picker.</b> “Add a photo” opens the device’s own chooser (an <code>input type="file" accept="image/*"</code>), which on a phone offers the camera or the library. No crop tool: the photo is centred and cropped by the page, as Commons photos are now.</p>
+      <p><b>It uploads as soon as it’s chosen</b>, so Save recipe stays quick; the recipe keeps it only once it’s saved. The frame isn’t tilted: tilt is for polaroids you look at, and this one has controls under it.</p>
+      <p><b>Remove photo</b> is a ghost button with its icon, so Save recipe stays the one peach button. It takes the photo out of the form at once and offers Undo in a toast (PhotoField’s board).</p>
+      <p><b>Assumed</b> (Linear wasn’t reachable from this run, so the triage brief wasn’t read): the file types and the 10 MB limit, and that the form has one photo.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1440}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, no: false, sw: 2.25 };
+  }
+}
+</script>
+</body>
+</html>

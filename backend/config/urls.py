@@ -16,7 +16,7 @@ from households.views import (
     SignUpView,
     VerifyEmailCodeView,
 )
-from recipes.views import CourseListView, CuisineListView, EquipmentListView, IngredientListView
+from recipes.views import CourseListView, CuisineListView, EquipmentListView, IngredientListView, PhotoUploadView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/courses/', CourseListView.as_view(), name='course-list'),
     path('api/equipment/', EquipmentListView.as_view(), name='equipment-list'),
     path('api/ingredients/', IngredientListView.as_view(), name='ingredient-list'),
+    path('api/photos/', PhotoUploadView.as_view(), name='photo-list'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='schema-docs'),
 ]

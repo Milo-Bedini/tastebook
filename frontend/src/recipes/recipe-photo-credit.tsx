@@ -1,14 +1,14 @@
 import type { components } from '../api/schema';
 
-type Photo = components['schemas']['RecipePhoto'];
+type PhotoCredit = components['schemas']['PhotoCredit'];
 
-type RecipePhotoCreditProps = { photo: Photo };
+type RecipePhotoCreditProps = { credit: PhotoCredit };
 
-export const RecipePhotoCredit = ({ photo }: RecipePhotoCreditProps) => (
+export const RecipePhotoCredit = ({ credit }: RecipePhotoCreditProps) => (
   <>
-    {`Photo by ${photo.author}, ${photo.licence}, via `}
+    {`Photo by ${credit.author}, ${credit.licence}, via `}
     {/* On the polaroid's Paper frame, where the base link's Ink text, Field underline and Ink ring would vanish. */}
-    <a href={photo.source_url} className="text-on-pastel decoration-on-pastel focus-visible:outline-on-pastel">
+    <a href={credit.source_url} className="text-on-pastel decoration-on-pastel focus-visible:outline-on-pastel">
       Wikimedia Commons
     </a>
   </>
