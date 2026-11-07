@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Proposed rule change</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.rule{display:flex;flex-direction:column;gap:10px}
+.rule h2{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-weight:400;font-style:italic}
+.pair{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:16px}
+.was,.now{box-sizing:border-box;border:2px solid var(--color-line);border-radius:var(--radius-note);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.now{border-color:var(--color-field);background:var(--color-surface)}
+.was p,.now p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.was p{color:var(--color-muted)}
+.why{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.why b{font-weight:800}
+mark{background:transparent;color:var(--color-ink);text-decoration:underline;text-decoration-color:var(--color-pop);text-decoration-thickness:2px;text-underline-offset:3px}
+</style>
+</helmet>
+<div style="width: 1000px; height: 900px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-119 part 2 · docs/design.md</span>
+    <h1 class="ttl">Proposed rule change</h1>
+    <span class="cap">The boards keep to the rules as they stand; these lines make the departure the spec decided on (ask before publishing) a rule, and record two things the rows don’t yet say. Additions underlined.</span>
+  </header>
+
+  <section class="rule">
+    <h2>Components › Dialog</h2>
+    <div class="pair">
+      <div class="was"><span class="cap">Now</span><p>For anything that can’t be undone: says exactly what happens; the danger button names the action (“Delete account”), the other is “Cancel”, or names what it keeps when the action itself is a cancel (“Keep link”).</p></div>
+      <div class="now"><span class="cap">Proposed</span><p>For anything that can’t be undone: … (“Keep link”). <mark>A change that can be undone but reaches beyond the household (making a recipe public) may ask first, with a primary button that names it (“Make public”). Undoing it acts at once, without asking.</mark></p></div>
+    </div>
+    <p class="why"><b>Why:</b> principle 3 (NN/g 3) says offer Undo rather than asking. Publishing shows the recipe and Sam’s name to everyone at once, and takes editing from the household: an Undo toast would come after the name was already out. Making it private only narrows who sees it, so it keeps principle 3.</p>
+  </section>
+
+  <section class="rule">
+    <h2>Components › Private mark</h2>
+    <div class="pair">
+      <div class="was"><span class="cap">Now</span><p>… under its title on its page; a public recipe has none.</p></div>
+      <div class="now"><span class="cap">Proposed</span><p>… under its title on its page; a public recipe has none. <mark>A household’s public recipe shows “by &lt;name&gt;” in its place, in the text around it (Muted Body on the page, the card’s Small meta), as plain text, never a mark.</mark></p></div>
+    </div>
+  </section>
+
+  <section class="rule">
+    <h2>Components › Switch</h2>
+    <div class="pair">
+      <div class="was"><span class="cap">Now</span><p>… Disabled keeps its thumb’s end and check, in Field, on a Surface track with a dashed border, under a Muted label and over its reason.</p></div>
+      <div class="now"><span class="cap">Proposed</span><p>… over its reason. <mark>While the change it makes is saving, it’s disabled with the reason “Saving…”, and moves only once the change is saved.</mark></p></div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

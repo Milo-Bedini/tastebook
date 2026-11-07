@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The author's page, laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:1286px;height:900px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) 360px auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 72px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:32px 72px 48px;display:flex;flex-direction:column;gap:24px}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.cols{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:start}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0}
+.intro p{margin:0}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.credit{margin:0;color:var(--color-muted)}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.sw{max-width:400px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.after{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-top:1px dashed var(--color-line);padding-top:12px;margin:0}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;flex:1;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1200px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-119 part 2 · laptop, 1280 px · Sam, a public recipe · drawn for variant A</span>
+    <h1 class="ttl">The author’s page, laptop</h1>
+    <span class="cap">The credit, the switch and the buttons belong to the intro, so all sit in the right-hand column. The switch row stops at 400 px, so its label and track stay together.</span>
+  </header>
+
+  <div class="frame">
+    <header class="bar"><div class="in">
+      <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+      <x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import>
+      <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+    </div></header>
+    <main class="page">
+      <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+      <div class="cols">
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+          <p class="credit">by Sam</p>
+          <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+          <p class="facts">1 hr · Easy · Indian · Main</p>
+          <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+          <div class="ctrls">
+            <div class="sw"><x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">Public</x-import></div>
+            <div class="btnrow">
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+              <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+            </div>
+          </div>
+          <p class="after">Servings, units and method follow, as today.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="notes">
+    <p><b>At most 400 px wide</b> from tablets up, as the photo field: a 52 px track at the far end of a 700 px row would sit a long way from “Public”. On a phone the row spans the column.</p>
+    <p><b>The dialog</b> is the ConfirmDialog as it is from tablets up: centred, at its own width. No other layout changes at tablet or laptop.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, nothing: null, t7: 7, noop: function () {},
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>
