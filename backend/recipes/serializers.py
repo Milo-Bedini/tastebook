@@ -96,11 +96,32 @@ class PhotoThumbnailSerializer(serializers.Serializer):
     url = serializers.URLField(read_only=True)
 
 
-class RecipePhotoSerializer(serializers.Serializer):
-    thumbnails = PhotoThumbnailSerializer(many=True, read_only=True)
+class PhotoCreditSerializer(serializers.Serializer):
     author = serializers.CharField(read_only=True)
     licence = serializers.CharField(read_only=True)
     source_url = serializers.URLField(read_only=True)
+
+
+class RecipePhotoSerializer(serializers.Serializer):
+    url = serializers.URLField(read_only=True, help_text="The photo's address, which a recipe's photo_url takes.")
+    thumbnails = PhotoThumbnailSerializer(many=True, read_only=True)
+    credit = PhotoCreditSerializer(
+        read_only=True, allow_null=True, help_text="A Wikimedia Commons photo's credit; null for an uploaded photo."
+    )
+
+
+# The schema's default for a file is a URI, which holds only when requests and responses get components of their own.
+@extend_schema_field(OpenApiTypes.BINARY)
+class UploadedFileField(serializers.FileField):
+    pass
+
+
+class PhotoUploadSerializer(serializers.Serializer):
+    photo = UploadedFileField(
+        allow_empty_file=False,
+        help_text='A JPEG, PNG, WebP or HEIC photo of up to 10 MB, which the browser has resized to 1,600 px.',
+        error_messages={'required': 'Choose a photo.', 'empty': 'Choose a photo.', 'invalid': 'Choose a photo.'},
+    )
 
 
 class DietTagsField(serializers.ListField):
@@ -459,10 +480,16 @@ class NewRecipeSerializer(RecipeIngredientsSerializer, serializers.ModelSerializ
             'one_pot',
             'source',
             'source_url',
+            'photo_url',
             'ingredient_lines',
             'ingredient_groups',
             'steps',
         ]
+        extra_kwargs = {
+            'photo_url': {
+                'help_text': "The address of a photo uploaded with POST /api/photos/, or '' for none.",
+            }
+        }
 
 
 class RecipeChangesSerializer(NewRecipeSerializer):

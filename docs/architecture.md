@@ -66,12 +66,11 @@ Each build runs Django's migrations against its own database (`backend/build.py`
 
 ## Photos
 
-- Until uploads arrive, a photo is an image on Wikimedia Commons: the recipe stores its address and credit, and pages load Commons' thumbnails straight from `upload.wikimedia.org`.
-
-Uploads are _planned: Accounts and households._
-
-- Resized in the browser before upload (longest side 1,600 px), stored in Vercel Blob.
+- A photo is an image on Wikimedia Commons or one a household uploads. A Commons photo's recipe stores its address and credit, and pages load Commons' thumbnails straight from `upload.wikimedia.org`.
+- An upload is resized in the browser before it's sent (longest side 1,600 px), then Tastebook (`POST /api/photos/`) turns it upright, drops its metadata (a phone's photo can carry where it was taken), and stores it as WebP at 330, 500, 960, 1,280 and 1,600 px in the Vercel Blob store `tastebook-photos` (`backend/recipes/photo_store.py`). The browser can't resize a HEIC in most browsers, so that one is sent as it is.
 - Every photo has an unguessable address. A private recipe's photo is only reachable by someone who has its address; there's no access check per image, which would need a server in front of every request.
+- Production and every preview share the store, so each environment stores under `recipes/<VERCEL_ENV>/` (`development` locally), and a recipe takes only an address in this store. A photo replaced, removed or deleted with its recipe is deleted from the store, but only by the environment that stored it: a preview's database starts as a copy, so it never deletes production's photos. A photo chosen but never saved stays in the store.
+- Without `BLOB_READ_WRITE_TOKEN` (CI and local runs), uploads answer 503.
 
 ## On the phone
 

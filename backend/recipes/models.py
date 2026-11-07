@@ -12,7 +12,7 @@ from django.utils.text import slugify
 
 from households.models import Household, User
 from households.signals import counting_recipes_to_copy, member_moved
-from recipes.photos import COMMONS_FILE, COMMONS_FILE_PAGE, Photo
+from recipes.photos import COMMONS_FILE_PAGE, COMMONS_HOST, Photo, validate_photo_address
 from recipes.slugs import base_slug, first_free_slug, random_suffix
 
 
@@ -293,15 +293,7 @@ class Recipe(models.Model):
         'photo address',
         max_length=500,
         blank=True,
-        validators=[
-            RegexValidator(
-                COMMONS_FILE,
-                'Give the address of a JPEG, PNG or WebP file on Wikimedia Commons, '
-                'starting https://upload.wikimedia.org/wikipedia/commons/.',
-                # A code of its own, as the admin form swaps the default 'invalid' for "Enter a valid URL."
-                code='not_commons_file',
-            )
-        ],
+        validators=[validate_photo_address],
         help_text=(
             'On the photo\'s Wikimedia Commons page, copy the address of "Original file". '
             'Leave the photo empty to show the cuisine plate.'
@@ -347,16 +339,23 @@ class Recipe(models.Model):
                 name='recipe_extra_time_has_label',
                 violation_error_message='Give extra time with its label (marinating, resting, proving), or neither.',
             ),
+            # A Commons photo carries the credit its licence asks for; a photo a household uploads has none.
             models.CheckConstraint(
                 condition=(
                     models.Q(photo_url='', photo_author='', photo_licence='', photo_source_url='')
-                    | ~models.Q(photo_url='')
+                    | models.Q(photo_url__startswith=COMMONS_HOST)
                     & ~models.Q(photo_author='')
                     & ~models.Q(photo_licence='')
                     & ~models.Q(photo_source_url='')
+                    | ~models.Q(photo_url='')
+                    & ~models.Q(photo_url__startswith=COMMONS_HOST)
+                    & models.Q(photo_author='', photo_licence='', photo_source_url='')
                 ),
                 name='recipe_photo_is_credited',
-                violation_error_message='Give a photo with its author, licence and source, or none of them.',
+                violation_error_message=(
+                    'Give a Wikimedia Commons photo with its author, licence and source, '
+                    'and an uploaded photo with none of them.'
+                ),
             ),
             # The fields are optional for a household's recipe, so this keeps a catalogue file from leaving one out.
             models.CheckConstraint(

@@ -886,6 +886,7 @@ PHOTO = {
 }
 
 PHOTO_IN_THE_API = {
+    'url': 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Shakshuka_%28Tel_Aviv%29.jpg',
     'thumbnails': [
         {
             'width': width,
@@ -894,9 +895,11 @@ PHOTO_IN_THE_API = {
         }
         for width in [330, 500, 960, 1280]
     ],
-    'author': 'Jane Doe',
-    'licence': 'CC BY-SA 4.0',
-    'source_url': 'https://commons.wikimedia.org/wiki/File:Shakshuka_(Tel_Aviv).jpg',
+    'credit': {
+        'author': 'Jane Doe',
+        'licence': 'CC BY-SA 4.0',
+        'source_url': 'https://commons.wikimedia.org/wiki/File:Shakshuka_(Tel_Aviv).jpg',
+    },
 }
 
 

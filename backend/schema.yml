@@ -377,6 +377,38 @@ paths:
           description: No response body
         '409':
           description: No response body
+  /api/photos/:
+    post:
+      operationId: photos_create
+      description: 'Stores a photo for a household''s recipe and gives its address,
+        which a recipe''s photo_url takes. Its address is unguessable but not secret:
+        anyone who has it can see the photo. 403 when signed out or for an account
+        with no household yet.'
+      tags:
+      - photos
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhotoUpload'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipePhoto'
+          description: ''
+        '400':
+          description: The file is missing, over 10 MB, or not a JPEG, PNG, WebP or
+            HEIC.
+        '403':
+          description: Signed out, or the account has no household yet.
+        '503':
+          description: The photo store isn't set up here, or didn't answer.
   /api/recipes/:
     get:
       operationId: recipes_list
@@ -1187,6 +1219,16 @@ components:
             maxLength: 500
           - type: string
             maxLength: 0
+        photo_url:
+          title: Photo address
+          description: The address of a photo uploaded with POST /api/photos/, or
+            '' for none.
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
         ingredient_lines:
           type: array
           items:
@@ -1299,6 +1341,16 @@ components:
             maxLength: 500
           - type: string
             maxLength: 0
+        photo_url:
+          title: Photo address
+          description: The address of a photo uploaded with POST /api/photos/, or
+            '' for none.
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
         ingredient_lines:
           type: array
           items:
@@ -1315,6 +1367,23 @@ components:
           description: The method, a step each, in order. Sending it replaces every
             step.
           maxItems: 100
+    PhotoCredit:
+      type: object
+      properties:
+        author:
+          type: string
+          readOnly: true
+        licence:
+          type: string
+          readOnly: true
+        source_url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - author
+      - licence
+      - source_url
     PhotoThumbnail:
       type: object
       properties:
@@ -1328,6 +1397,16 @@ components:
       required:
       - url
       - width
+    PhotoUpload:
+      type: object
+      properties:
+        photo:
+          type: string
+          format: binary
+          description: A JPEG, PNG, WebP or HEIC photo of up to 10 MB, which the browser
+            has resized to 1,600 px.
+      required:
+      - photo
     Recipe:
       type: object
       properties:
@@ -1490,26 +1569,26 @@ components:
     RecipePhoto:
       type: object
       properties:
+        url:
+          type: string
+          format: uri
+          readOnly: true
+          description: The photo's address, which a recipe's photo_url takes.
         thumbnails:
           type: array
           items:
             $ref: '#/components/schemas/PhotoThumbnail'
           readOnly: true
-        author:
-          type: string
+        credit:
+          allOf:
+          - $ref: '#/components/schemas/PhotoCredit'
           readOnly: true
-        licence:
-          type: string
-          readOnly: true
-        source_url:
-          type: string
-          format: uri
-          readOnly: true
+          nullable: true
+          description: A Wikimedia Commons photo's credit; null for an uploaded photo.
       required:
-      - author
-      - licence
-      - source_url
+      - credit
       - thumbnails
+      - url
     RecipeSummary:
       type: object
       properties:

@@ -176,6 +176,11 @@ if VERCEL_ENV:
 HEADLESS_ONLY = True
 HEADLESS_CLIENTS = ('browser',)
 
+# Photos people upload go to the Vercel Blob store tastebook-photos, which production and every preview share, so each
+# environment keeps its own under recipes/<environment>/ and deletes only those. Without the token, uploads answer 503.
+BLOB_READ_WRITE_TOKEN = os.environ.get('BLOB_READ_WRITE_TOKEN', '')
+PHOTO_ENVIRONMENT = VERCEL_ENV or 'development'
+
 SOCIALACCOUNT_ADAPTER = 'households.adapter.SocialAccountAdapter'
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID', '')
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET', '')

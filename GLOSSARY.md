@@ -39,8 +39,8 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Yield | How much a recipe makes, with a unit ("makes 12 cookies"), instead of servings. | `Recipe.yield_amount`, `yield_unit` |
 | Scaling | Changing servings or yield, which changes every amount, rounded to what you can measure. | `scale()` |
 | Source credit | Where a recipe came from: an author, a website, or "Adapted from the Wikibooks Cookbook (CC BY-SA 4.0), …", linked to the original page when the recipe has its address. | `Recipe.source`, `Recipe.source_url` |
-| Photo | A recipe's one picture, an image on Wikimedia Commons: 7:5 at the top of its page, 4:3 in its polaroid card. | `Recipe.photo_url`, `Recipe.photo` |
-| Photo credit | A photo's author, its licence and a link to its page on Wikimedia Commons, shown inside its polaroid's frame on the recipe's page. | `photo_author`, `photo_licence`, `photo_source_url` |
+| Photo | A recipe's one picture: an image on Wikimedia Commons, or one a household uploads from the recipe form. 7:5 at the top of its page, 4:3 in its polaroid card. | `Recipe.photo_url`, `Recipe.photo`, `PhotoField` |
+| Photo credit | A Wikimedia Commons photo's author, its licence and a link to its page on Commons, shown inside its polaroid's frame on the recipe's page. An uploaded photo has none. | `photo_author`, `photo_licence`, `photo_source_url`, `Photo.credit` |
 | Photo filler | The place setting or gingham rug drawn in a recipe's polaroid where it has no photo, picked from the recipe's ID. | `PhotoFiller` |
 | Catalogue | The public recipes Tastebook seeds itself with, loaded from a file in the repo with the shared ingredient and equipment lists. | `catalogue.json`, `load_catalogue` |
 | Report | A signed-in person flagging a public recipe, which hides it until staff review it. | `Report` _planned_ |
