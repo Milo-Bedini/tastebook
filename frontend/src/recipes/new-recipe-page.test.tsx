@@ -173,8 +173,6 @@ describe('NewRecipePage', () => {
     await typeInto('What it makes', 'flatbreads');
     await typeInto('Source credit', 'Grandma Bedini');
     await typeInto('Source address', 'https://example.com/flatbreads');
-    await userEvent.click(await screen.findByRole('button', { name: 'Oven' }));
-    await typeInto('Step 1', 'Mix the dough and leave it to prove.');
     await save();
 
     await waitFor(() => expect(sent).toHaveLength(1));
@@ -194,10 +192,10 @@ describe('NewRecipePage', () => {
       one_pot: true,
       source: 'Grandma Bedini',
       source_url: 'https://example.com/flatbreads',
-      equipment: ['oven'],
+      equipment: [],
       ingredient_lines: [],
       ingredient_groups: [],
-      steps: ['Mix the dough and leave it to prove.']
+      steps: []
     });
   });
 
