@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Proposed rule change: photo credits</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.rule{box-sizing:border-box;border:2px solid var(--color-line);border-radius:var(--radius-card);padding:20px 24px;display:flex;flex-direction:column;gap:8px}
+.rule h2{margin:0;font-size:15px;line-height:20px;font-weight:800}
+.rule p{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.rule.now p{color:var(--color-muted)}
+ins{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--color-mint)}
+del{text-decoration-thickness:2px;color:var(--color-muted)}
+.why{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.why b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 960px; height: 760px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 28px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-118 · docs/design.md, Space and shape, Photos</span>
+    <h1 class="ttl">Proposed rule change</h1>
+  </header>
+  <div class="rule now">
+    <h2>Now</h2>
+    <p>Photos: in a polaroid (below), 4:3 in lists and 7:5 at the top of a recipe, always with the credit.</p>
+  </div>
+  <div class="rule">
+    <h2>Proposed</h2>
+    <p>Photos: in a polaroid (below), 4:3 in lists and 7:5 at the top of a recipe. <del>always with the credit.</del> <ins>A photo from Wikimedia Commons always has its credit; a photo a household uploads has none.</ins></p>
+  </div>
+  <p class="why"><b>Why:</b> the credit is there because Commons licences ask for the author, the licence and a link. A household’s own photo has no licence to honour, and the only credit we could give is the uploader’s name, which would go public with the recipe once it’s published (TAS-119): personal data the feature doesn’t need (UK GDPR, Apple Responsibility). The boards read today’s rule as “a photo with a credit always shows it”, which a Commons photo still does; this change writes that down, so review doesn’t ask for a credit an uploaded photo can’t give.</p>
+  <p class="why"><b>Also in the same paragraph, unchanged:</b> the filler when there’s no photo, and the centred crop.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

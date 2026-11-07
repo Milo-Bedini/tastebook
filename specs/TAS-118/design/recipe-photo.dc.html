@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>RecipePhoto: a household's own photo</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:24px}
+.page h1,.page h2{margin:0}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.body{display:flex;flex-direction:column;gap:32px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0;overflow-wrap:break-word}
+.intro p{margin:0}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.pmark{display:inline-flex;align-items:center;gap:4px;width:fit-content;box-sizing:border-box;padding:2px 8px 2px 6px;border:2px solid transparent;border-radius:var(--radius-check);background:var(--color-surface);color:var(--color-ink);font-size:13px;line-height:17px;font-weight:700}
+.pmark svg{width:14px;height:14px;flex-shrink:0}
+.meta{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cards{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 16px}
+.cards li{display:flex;flex-direction:column;gap:6px;min-width:0}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:440px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1340px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-118 · changed Dino component · phone, 390 px</span>
+    <h1 class="ttl">RecipePhoto: a household’s own photo</h1>
+    <span class="cap">An uploaded photo shows as a Commons one does: the same polaroid, 7:5 at the top of the page and 4:3 on a card, centred and cropped. It has no credit line, since it’s the household’s own.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>The recipe’s page</b> · a private recipe with its uploaded photo</span>
+      <div class="frame" style="height: 1000px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{photo}}" recipe-id="{{t7}}" alt="Chana masala" eager="{{yes}}"></x-import></x-import>
+            <div class="intro">
+              <h1><x-import component-from-global-scope="Dino.Squiggle">Chana</x-import> masala</h1>
+              <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+              <p class="muted">Chickpeas in a tomato and ginger sauce. Better the next day.</p>
+              <p class="facts">40 min · Easy · One-pot · Indian · Main · Serves 4</p>
+              <div><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>In the list</b> · its card at 4:3, beside a recipe with no photo</span>
+      <div class="frame" style="height: 1000px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page">
+          <h1>All <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipes</x-import></h1>
+          <ul class="cards">
+            <li>
+              <x-import component-from-global-scope="Dino.PolaroidCard" title="Chana masala" to="#" recipe-id="{{t7}}" photo="{{photo}}" lean="left">
+                <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+                <p class="meta">40 min · Easy · Indian</p>
+              </x-import>
+            </li>
+            <li>
+              <x-import component-from-global-scope="Dino.PolaroidCard" title="Midweek dal" to="#" recipe-id="{{t8}}" photo="{{nothing}}" lean="right">
+                <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+                <p class="meta">30 min · Easy · Indian</p>
+              </x-import>
+            </li>
+          </ul>
+        </main>
+      </div>
+    </div>
+
+    <div class="notes" style="padding-top: 27px">
+      <p><b>What changes in RecipePhoto:</b> it takes a photo Tastebook stores (the same <code>thumbnails</code> list, made on upload at the widths the page asks for) as well as one from Wikimedia Commons. Its <code>sizes</code>, shapes, lazy loading and the filler when it can’t load stay as they are.</p>
+      <p><b>No credit for an uploaded photo.</b> The page passes a caption only for a Commons photo, which its licence needs; a household’s own photo shows bare in its frame. That reads “always with the credit” as “a photo with a credit always shows it”: see Proposed rule change.</p>
+      <p><b>Not the uploader’s name.</b> Crediting “Photo by Milo Bedini” would put a person’s name on the recipe once it’s published (TAS-119), which UK GDPR asks us not to do without a reason.</p>
+      <p><b>The crop is the centre</b> of the photo, as now (<code>object-cover</code>). Choosing the crop is out of this issue.</p>
+      <p><b>Can’t load</b> (deleted, or the network fails): the filler for its ID shows, as for a Commons photo today.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1340}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, nothing: null, t7: 7, t8: 8,
+      photo: { thumbnails: [{ width: 318, url: '/_blob/962002d93dd66f530b616569fbd4033e' }] }
+    };
+  }
+}
+</script>
+</body>
+</html>

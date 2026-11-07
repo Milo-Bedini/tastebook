@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The form's photo on a laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:1280px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 32px;max-width:1200px;margin:0 auto;box-sizing:border-box}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.sf{width:360px}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:32px 32px 48px;max-width:1200px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:640px}
+.head{display:flex;flex-direction:column;gap:12px}
+.lede{margin:0;color:var(--color-muted)}
+.grp{display:flex;flex-direction:column;gap:24px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.drop{width:400px;aspect-ratio:7/5;box-sizing:border-box;border:2px dashed var(--color-field);border-radius:var(--radius-card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;text-align:center;color:var(--color-muted)}
+.drop svg{width:32px;height:32px}
+.drop.over{border:3px solid var(--color-ink);background:var(--color-surface);color:var(--color-ink)}
+.drop .say{margin:0;font-size:15px;line-height:20px;font-weight:800}
+.chips{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.chips legend{padding:0;margin:0 0 8px;font-size:15px;line-height:20px;font-weight:800}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1300px; box-sizing: border-box; padding: 56px 80px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-118 · /recipes/new · laptop, 1280 px · variant A · signed in as Milo Bedini</span>
+    <h1 class="ttl">The photo on a laptop</h1>
+    <span class="cap">The form keeps its one 640 px column. The photo stops at 400 px wide from tablets up (286 px tall), so it previews the crop without taking the screen.</span>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <span class="cap"><b>Dragging a photo over it</b> · pointers only: the box takes a field’s focus border in Ink on Surface and says what dropping does</span>
+    <div class="frame" style="height: 880px">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="sf"><x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import></div>
+        <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+      </div></header>
+      <main class="page"><div class="stack">
+        <div class="head">
+          <h1>Add a <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">recipe</x-import></h1>
+          <p class="lede">Only the title is needed. Its page lists whatever’s still missing.</p>
+        </div>
+        <div class="grp">
+          <div class="fld">
+            <label for="l-title" class="lbl">Title</label>
+            <x-import component-from-global-scope="Dino.Input" id="l-title" type="text" default-value="Chana masala"></x-import>
+          </div>
+          <div class="fld">
+            <label for="l-desc" class="lbl">Description</label>
+            <x-import component-from-global-scope="Dino.TextArea" id="l-desc" default-value="Chickpeas in a tomato and ginger sauce. Better the next day." aria-describedby="l-desc-help"></x-import>
+            <p id="l-desc-help" class="help">A line or two about it.</p>
+          </div>
+          <div class="fld" role="group" aria-labelledby="l-photo-lbl" aria-describedby="l-photo-help">
+            <span id="l-photo-lbl" class="lbl">Photo</span>
+            <div class="drop over">
+              <x-import component-from-global-scope="Dino.icons.ImageDown" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+              <p class="say">Drop the photo to add it</p>
+            </div>
+            <p id="l-photo-help" class="help">A JPEG, PNG, WebP or HEIC photo, up to 10 MB. Or drag one here. It shows at the top of the recipe, cropped to this shape.</p>
+          </div>
+          <fieldset class="chips">
+            <legend>Cuisines</legend>
+            <div class="wrap">
+              <sc-for list="{{cuisines}}" as="c" hint-placeholder-count="18">
+                <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">{{c.name}}</x-import>
+              </sc-for>
+            </div>
+          </fieldset>
+        </div>
+      </div></main>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Dropping is extra, never the only way:</b> Add a photo still works by keyboard and touch, and a dropped file goes through the same checks. Uploaded, the filled field is the phone’s at 400 px, with its buttons under it. Tablet is the phone’s layout with 32 px gutters and the same 400 px cap.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var names = ['American', 'British', 'Caribbean', 'Chinese', 'French', 'German', 'Greek', 'Indian', 'Italian', 'Japanese', 'Korean', 'Mexican', 'Middle Eastern', 'Moroccan', 'Spanish', 'Thai', 'Turkish', 'Vietnamese'];
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, noop: function () {},
+      cuisines: names.map(function (name) { return { name: name }; })
+    };
+  }
+}
+</script>
+</body>
+</html>
