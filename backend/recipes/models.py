@@ -659,12 +659,16 @@ def _copy_links(pairs: list[tuple[Recipe, Recipe]], field_name: str) -> None:
 
 
 # The households area sends these and depends on no other, so the recipes it moves an account away from are copied here.
-@receiver(member_moved, dispatch_uid='recipes-copy-written-recipes')
-def copy_recipes_written(sender: type[User], account: User, left: int, **kwargs: Any) -> None:
-    """Gives an account that moved household a copy of each recipe it wrote in the one it left, which keeps its own."""
-    Recipe.objects.written_by_in(account, left).copy_into(account.household_id)
+@receiver(member_moved, dispatch_uid='recipes-take-written-recipes')
+def take_recipes_written(sender: type[User], account: User, left: int, **kwargs: Any) -> None:
+    """Moves each public recipe an account wrote in the household it left into its new one, and gives it a copy of
+    each private one, which the household it left keeps."""
+    written = Recipe.objects.written_by_in(account, left)
+    # One public recipe, still its author's to edit, rather than a stranded original and a duplicate.
+    written.public().update(household_id=account.household_id)
+    written.private().copy_into(account.household_id)
 
 
 @receiver(counting_recipes_to_copy, dispatch_uid='recipes-count-written-recipes')
 def count_recipes_written(sender: type[User], account: User, **kwargs: Any) -> int:
-    return Recipe.objects.written_by_in(account, account.household_id).count()
+    return Recipe.objects.written_by_in(account, account.household_id).private().count()

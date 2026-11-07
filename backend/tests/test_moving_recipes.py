@@ -153,3 +153,68 @@ def test_a_link_says_how_many_recipes_joining_would_copy(written: int) -> None:
 
     assert lookup(milo, token).json()['recipes_to_copy'] == written
     assert lookup(jo, token).json()['recipes_to_copy'] == 0
+
+
+def publish_the_curry() -> Recipe:
+    curry = Recipe.objects.get(title="Grandma's curry")
+    Recipe.objects.filter(pk=curry.pk).update(visibility='public')
+    return curry
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'move',
+    [
+        pytest.param(leaves, id='leaving'),
+        pytest.param(is_removed, id='being removed'),
+        pytest.param(joins_jo, id='joining another household'),
+    ],
+)
+def test_a_public_recipe_moves_with_its_author(move: Callable[[BrowserClient, BrowserClient], None]) -> None:
+    milo = signed_up(MILO, 'Milo')
+    ann = signed_up(ANN, 'Ann')
+    join(ANN, MILO)
+    write_curry(milo)
+    curry = publish_the_curry()
+    add(milo, {'title': 'Flatbreads'})
+
+    move(milo, ann)
+
+    moved = Recipe.objects.get(pk=curry.pk)
+    assert (moved.slug, moved.household_id, moved.visibility) == (
+        curry.slug,
+        User.objects.get(email=MILO).household_id,
+        'public',
+    )
+    assert Recipe.objects.filter(title="Grandma's curry").count() == 1
+    seen_by_ann = detail(ann, "Grandma's curry")
+    assert (seen_by_ann['author'], seen_by_ann['can_edit']) == ('Milo', False)
+    assert private_titles(ann) == ['Flatbreads']
+    assert 'Flatbreads' in private_titles(milo)
+
+
+@pytest.mark.django_db
+def test_joining_as_the_only_member_keeps_your_public_recipe() -> None:
+    milo = signed_up(MILO, 'Milo')
+    old = User.objects.get(email=MILO).household_id
+    write_curry(milo)
+    curry = publish_the_curry()
+    jo = signed_up(JO, 'Jo')
+
+    join_through(milo, make_link(jo).json()['invite']['token'])
+
+    assert Household.objects.filter(pk=old).exists() is False
+    assert Recipe.objects.get(pk=curry.pk).household_id == User.objects.get(email=JO).household_id
+
+
+@pytest.mark.django_db
+def test_a_link_counts_only_the_private_recipes_joining_would_copy() -> None:
+    milo = signed_up(MILO, 'Milo')
+    write_curry(milo)
+    publish_the_curry()
+    add(milo, {'title': 'Flatbreads'})
+    jo = signed_up(JO, 'Jo')
+
+    response = lookup(milo, make_link(jo).json()['invite']['token'])
+
+    assert response.json()['recipes_to_copy'] == 1
