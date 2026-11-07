@@ -18,8 +18,7 @@ import {
   toast
 } from '../dino';
 import { useSession } from '../households';
-import { useCourses } from './courses-api';
-import { useCuisines } from './cuisines-api';
+import { useCourses, useCuisines } from './choices-api';
 import { difficulties, difficultyLabels } from './difficulty';
 import { toggled } from './recipe-filters';
 import type { NewRecipe, RecipeErrors, RecipeSaving } from './recipe-form-api';

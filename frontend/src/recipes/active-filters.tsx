@@ -1,8 +1,7 @@
 import type { ComponentProps } from 'react';
 
 import { Button, RemovableChip } from '../dino';
-import { useCourses } from './courses-api';
-import { useCuisines } from './cuisines-api';
+import { useCourses, useCuisines } from './choices-api';
 import { dietTagLabels } from './diet-tags';
 import { difficultyLabels } from './difficulty';
 import { useIngredients } from './ingredients-api';
