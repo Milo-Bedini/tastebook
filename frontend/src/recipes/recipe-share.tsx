@@ -23,7 +23,7 @@ const copy = async (address: string) => {
 const SharedAddress = ({ token }: { token: string }) => {
   const address = sharedAddress(token);
   return (
-    <div className="flex flex-col items-start gap-3 px-2">
+    <div className="flex flex-col gap-3 px-2">
       <Field label="Share link" help="Turn it off and the link stops working.">
         {(control) => (
           <Input
@@ -35,10 +35,12 @@ const SharedAddress = ({ token }: { token: string }) => {
           />
         )}
       </Field>
-      <Button variant="secondary" onClick={() => copy(address)}>
-        <Copy aria-hidden="true" strokeWidth={2.5} />
-        Copy link
-      </Button>
+      <div className="flex flex-wrap items-start gap-2">
+        <Button variant="secondary" onClick={() => copy(address)}>
+          <Copy aria-hidden="true" strokeWidth={2.5} />
+          Copy link
+        </Button>
+      </div>
     </div>
   );
 };
