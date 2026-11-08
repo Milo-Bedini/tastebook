@@ -28,6 +28,7 @@ const flatbreads: Recipe = {
   description: 'Soft and blistered.',
   cuisines: [{ slug: 'italian', name: 'Italian' }],
   adapted_from: null,
+  is_copy: false,
   courses: [{ slug: 'main', name: 'Main' }],
   difficulty: 'medium',
   prep_minutes: 15,
@@ -44,6 +45,8 @@ const flatbreads: Recipe = {
   one_pot: true,
   source: "Nonna's notebook",
   source_url: 'https://example.com/flatbreads',
+  original_source: '',
+  original_source_url: '',
   ingredient_lines: [],
   ingredient_groups: [],
   steps: [

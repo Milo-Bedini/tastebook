@@ -758,6 +758,8 @@ export interface components {
         OriginalRecipe: {
             readonly slug: string;
             readonly title: string;
+            /** @description The name of whoever wrote the original, by the rule the recipe's own "author" follows. */
+            readonly author: string | null;
         };
         PatchedAccountChanges: {
             name?: string;
@@ -842,8 +844,10 @@ export interface components {
             readonly total_minutes: number | null;
             readonly photo: components["schemas"]["RecipePhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
-            /** @description The recipe this is a copy of, shown as "Copied from <title>"; null for a recipe that is no copy, or when its original was deleted or the signed-in account can't see it. */
+            /** @description The recipe this is a copy of, shown as "Copied from <title>" on a private copy and "Adapted from <title> by <author>" on a public one; null for a recipe that is no copy, or when its original was deleted or the signed-in account can't see it. */
             readonly adapted_from: components["schemas"]["OriginalRecipe"] | null;
+            /** @description Whether this recipe was made as a copy of another, which it stays once its original is deleted or made private: with adapted_from null, it's shown as "Adapted from a recipe that's no longer public". */
+            readonly is_copy: boolean;
             readonly courses: components["schemas"]["Course"][];
             prep_minutes: number | null;
             cook_minutes: number | null;
@@ -869,6 +873,10 @@ export interface components {
              * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
              */
             source_url: string;
+            /** @description A catalogue original's source credit, with its licence, which a copy of it keeps and can't edit; '' for any other recipe. */
+            readonly original_source: string;
+            /** @description The page original_source links to, or '' when there is none. */
+            readonly original_source_url: string;
             readonly ingredient_lines: components["schemas"]["IngredientLine"][];
             readonly ingredient_groups: components["schemas"]["IngredientGroup"][];
             readonly steps: components["schemas"]["Step"][];
@@ -1000,6 +1008,8 @@ export interface components {
             lists?: components["schemas"]["SeedList"][];
             /** @description Titles of the recipes this member makes a copy of, once every list is made, as saves name them. Each copy is listed after the member's own recipes. */
             copies?: string[];
+            /** @description Titles of this member's own public recipes they make private once every copy is made, so a copy of one is adapted from a recipe that's no longer public. */
+            made_private?: string[];
         };
         Seeded: {
             session_cookie: string;

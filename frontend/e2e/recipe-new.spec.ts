@@ -35,17 +35,16 @@ test('a cook adds a private recipe that only their household finds', async ({ pa
 
   await sam.page.getByRole('link', { name: 'All recipes' }).click();
   await sam.page.getByRole('searchbox', { name: 'Search recipes' }).fill('Grandma');
-  const card = sam.page.getByRole('link', { name: "Grandma's curry" });
-  await expect(card).toBeVisible();
-  await expect(card).toHaveAccessibleDescription('Private Italian');
+  // The specs share one database, where someone else's public recipe can have the same title.
+  await expect(sam.page.getByRole('link', { name: "Grandma's curry", description: 'Private Italian' })).toBeVisible();
   await accessibility.check(sam.page);
 
   // Someone signed out neither opens nor finds it.
   await page.goto(address);
   await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
   await page.goto('/recipes?q=Grandma');
-  await expect(page.getByText('No recipes match “Grandma”.')).toBeVisible();
-  await expect(page.getByRole('link', { name: "Grandma's curry" })).toHaveCount(0);
+  await expect(page.getByRole('status').filter({ hasText: /^\d+ recipes?$/ })).toHaveCount(1);
+  await expect(page.locator(`a[href="${new URL(address).pathname}"]`)).toHaveCount(0);
 });
 
 test('only the household sees what a private recipe is missing', async ({ seed, accessibility }) => {

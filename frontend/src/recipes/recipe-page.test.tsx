@@ -24,6 +24,7 @@ const shakshuka: Recipe = {
   description: 'Eggs in spiced tomatoes.',
   cuisines: [],
   adapted_from: null,
+  is_copy: false,
   courses: [{ slug: 'main', name: 'Main' }],
   difficulty: 'easy',
   prep_minutes: 10,
@@ -40,6 +41,8 @@ const shakshuka: Recipe = {
   one_pot: true,
   source: 'Adapted from the Wikibooks Cookbook (CC BY-SA 4.0)',
   source_url: '',
+  original_source: '',
+  original_source_url: '',
   ingredient_lines: [],
   ingredient_groups: [],
   steps: [],
@@ -1667,7 +1670,10 @@ const ourCopy: Recipe = {
   id: 8,
   slug: 'shakshuka-q4w8zn',
   visibility: 'private',
-  adapted_from: { slug: 'shakshuka', title: 'Shakshuka' },
+  adapted_from: { slug: 'shakshuka', title: 'Shakshuka', author: null },
+  is_copy: true,
+  source: '',
+  original_source: shakshuka.source,
   can_edit: true,
   can_delete: true,
   can_publish: true
@@ -1787,5 +1793,66 @@ describe('Making a copy', () => {
     expect(await screen.findByText(NOT_COPIED)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/recipes/shakshuka');
     expect(copyButton()).toHaveFocus();
+  });
+});
+
+describe('Crediting a copy', () => {
+  const openCopy = (copy: Recipe) => {
+    server.use(http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>(copy)));
+    return renderRoute(`/recipes/${copy.slug}`);
+  };
+
+  it.each<[string, Partial<Recipe>, string]>([
+    ['a private copy', {}, 'Copied from Shakshuka'],
+    [
+      'a public copy',
+      { visibility: 'public', author: 'Jo', adapted_from: { slug: 'shakshuka', title: 'Shakshuka', author: 'Sam' } },
+      'Adapted from Shakshuka by Sam'
+    ],
+    ['a public copy of a catalogue recipe', { visibility: 'public', author: 'Jo' }, 'Adapted from Shakshuka']
+  ])('credits the original of %s, linked to it', async (_, changes, credit) => {
+    openCopy({ ...ourCopy, ...changes });
+
+    const original = await screen.findByRole('link', { name: 'Shakshuka' });
+
+    expect(original).toHaveAttribute('href', '/recipes/shakshuka');
+    expect(original.parentElement).toHaveTextContent(new RegExp(`^${credit}$`));
+  });
+
+  it.each<[string, Recipe['visibility']]>([
+    ['public', 'public'],
+    ['private', 'private']
+  ])(
+    "says a %s copy is adapted from a recipe that's no longer public once its original can't be seen",
+    async (_, visibility) => {
+      openCopy({ ...ourCopy, visibility, adapted_from: null });
+
+      expect(await screen.findByText("Adapted from a recipe that's no longer public")).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Shakshuka' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Copied from/)).not.toBeInTheDocument();
+    }
+  );
+
+  it('credits nothing on a recipe that is no copy', async () => {
+    openCopy({ ...shakshuka, author: 'Sam' });
+
+    expect(await screen.findByText('by Sam')).toBeInTheDocument();
+    expect(screen.queryByText(/Copied from|Adapted from a recipe/)).not.toBeInTheDocument();
+  });
+
+  it("shows a catalogue original's credit, linked to its page, before the copy's own", async () => {
+    openCopy({
+      ...ourCopy,
+      original_source_url: 'https://en.wikibooks.org/wiki/Cookbook:Shakshuka',
+      source: 'My nan'
+    });
+
+    const credit = await screen.findByRole('link', { name: 'Adapted from the Wikibooks Cookbook (CC BY-SA 4.0)' });
+
+    expect(credit).toHaveAttribute('href', 'https://en.wikibooks.org/wiki/Cookbook:Shakshuka');
+    expect(screen.getAllByText(/^Source:/).map((line) => line.textContent)).toEqual([
+      'Source: Adapted from the Wikibooks Cookbook (CC BY-SA 4.0)',
+      'Source: My nan'
+    ]);
   });
 });

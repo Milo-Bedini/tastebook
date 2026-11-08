@@ -101,3 +101,25 @@ export const householdLists: SeedHouseholdOf<'milo' | 'ann' | 'jo'>[] = [
   },
   { members: [{ key: 'jo', name: 'Jo' }] }
 ];
+
+const sharedDal = {
+  title: "Nana's dal",
+  visibility: 'public',
+  cuisines: ['Indian'],
+  prep_minutes: 20,
+  cook_minutes: 40,
+  servings: 4,
+  ingredient_lines: [
+    { amount: 1, ingredient: 'onion' },
+    { amount: 2, ingredient: 'garlic', note: 'cloves' }
+  ],
+  steps: ['Fry the onion and garlic until soft.', 'Add the spices and simmer for 40 minutes.']
+};
+
+// Sam, in "Sam's household", wrote "Nana's dal", complete and public. Jo, in a household of their own, made a
+// private copy of it, which Jo can publish. Its title is its own: Jo's published copy stays in the database other
+// specs search.
+export const copiedRecipe: SeedHouseholdOf<'sam' | 'jo'>[] = [
+  { members: [{ key: 'sam', name: 'Sam', recipes: [sharedDal] }] },
+  { members: [{ key: 'jo', name: 'Jo', copies: ["Nana's dal"] }] }
+];
