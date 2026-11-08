@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Save to list on a laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.lap{width:1280px;height:820px;border-radius:24px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:24px;min-height:76px;padding:0 72px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:24px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.tabs{display:flex;gap:8px;list-style:none;margin:0;padding:0}
+.tab{display:inline-flex;align-items:center;height:44px;padding:0 18px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.tab.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.srch{width:360px}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:24px 72px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.cols{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:start}
+.intro{display:flex;flex-direction:column;gap:16px}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:start}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.facts,.saved{margin:0;color:var(--color-muted);font-size:16px;line-height:24px;font-weight:600}
+.lnk{color:var(--color-ink);text-decoration:underline;text-decoration-color:var(--color-field);text-decoration-thickness:2px;text-underline-offset:3px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.scrim{position:absolute;inset:0;background:var(--color-scrim);z-index:2}
+.sheet{position:absolute;bottom:0;left:50%;width:576px;transform:translateX(-50%);z-index:3;box-sizing:border-box;background:var(--color-surface);border:2px solid transparent;border-bottom:0;border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:6px 24px 28px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lift)}
+.grab{align-self:center;width:40px;height:5px;border-radius:var(--radius-pill);background:var(--color-field)}
+.shd{margin-top:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.shd div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.st{margin:0;font-family:var(--font-serif);font-style:italic;font-size:34px;line-height:36px;font-weight:400}
+.sdesc{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.grp{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:2px}
+.grp legend{padding:0 0 6px;font-size:15px;line-height:20px;font-weight:800}
+.prow{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 8px 6px 12px;box-sizing:border-box;border-radius:var(--radius-row);cursor:pointer}
+.prow input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.prow .nm{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.prow .nm b{font-size:16px;line-height:24px;font-weight:600}
+.prow .nm span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.box{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-check);display:grid;place-items:center;color:var(--color-on-pastel)}
+.box.on{background:var(--color-mint);border-color:transparent}
+.prow.hv{background:var(--color-line)}
+.prow.hv .box{border-color:var(--color-ink)}
+.sfoot{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:560px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1480px; height: 1240px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-125 · laptop, 1280 px · Milo · drawn for variant A</span>
+    <h1 class="ttl">On a laptop: the same sheet, centred</h1>
+    <span class="cap">The button and the “Saved in” line belong to the intro, so they sit in the right-hand column. The sheet is design.md’s Sheet from tablets up: centred, 576 px wide. Drawn with the pointer over Christmas.</span>
+  </header>
+
+  <div class="lap">
+    <header class="bar"><div class="in">
+      <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+      <nav aria-label="Main"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Lists</a></li></ul></nav>
+      <div class="end">
+        <div class="srch"><x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import></div>
+        <button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button>
+      </div>
+    </div></header>
+    <main class="pg">
+      <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All recipes</a>
+      <div class="cols">
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{r1}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <div class="trow"><h1 class="h1">Chana <x-import component-from-global-scope="Dino.Squiggle">masala</x-import></h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{yes}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+          <p class="facts">1 hr 45 · Easy · Indian · Main</p>
+          <x-import component-from-global-scope="Dino.TimeBlobs" times="{{times}}"></x-import>
+          <p class="saved">Saved in <a href="#" class="lnk">Favourites</a>, <a href="#" class="lnk">Weeknight dinners</a> and <a href="#" class="lnk">Sunday roasts</a>.</p>
+          <div class="acts">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div class="scrim" aria-hidden="true"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="l-t" aria-describedby="l-d">
+      <span class="grab" aria-hidden="true"></span>
+      <div class="shd"><div><h2 id="l-t" class="st">Save to a list</h2><p id="l-d" class="sdesc">Chana masala</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+      <fieldset class="grp"><legend>Just you</legend>
+        <label class="prow"><input type="checkbox" checked><span class="nm"><b>Favourites</b><span>5 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+        <label class="prow"><input type="checkbox" checked><span class="nm"><b>Weeknight dinners</b><span>8 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+      </fieldset>
+      <fieldset class="grp"><legend>The Bedinis</legend>
+        <label class="prow hv"><input type="checkbox"><span class="nm"><b>Christmas</b><span>Nothing here yet</span></span><span class="box" aria-hidden="true"></span></label>
+        <label class="prow"><input type="checkbox" checked><span class="nm"><b>Sunday roasts</b><span>13 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+      </fieldset>
+      <p class="sfoot">Make another list on the <a href="#" class="lnk">Lists</a> page.</p>
+    </section>
+  </div>
+
+  <div class="notes">
+    <p><b>Not a popover:</b> design.md names the Sheet for adding a recipe to a list, and keeping one sheet at every width keeps one behaviour (Apple Familiarity). Tablet is the same sheet, centred; the page behind is its one column.</p>
+    <p><b>Keyboard:</b> Tab moves row to row (each a checkbox), Space ticks, Escape closes and focus returns to Save to list. Ticking Favourites here fills the heart behind the scrim.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1480,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, nothing: null, r1: 2, s18: 18, sw: 2.25, s3: 3,
+      noop: () => {},
+      times: [{ label: 'Prep', value: '15 min' }, { label: 'Cook', value: '30 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>
