@@ -18,5 +18,5 @@ or {
     $import <: r"[\s\S]*from\s*[\x27\x22](?:\.|@/)[\s\S]*",
     $import <: contains $local
   },
-  register_diagnostic(span=$image, message="Give an <img> crossOrigin=\"anonymous\", as RecipePhoto does, so its host can't set a cookie; only an image imported from a local file goes without (specs/lessons/wikimedia-photos-load-anonymously.md).")
+  register_diagnostic(span=$image, message="Give an <img> crossOrigin='anonymous', as RecipePhoto does, so its host can't set a cookie; only an image imported from a local file goes without (specs/lessons/wikimedia-photos-load-anonymously.md).")
 }
