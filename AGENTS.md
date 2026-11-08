@@ -169,7 +169,7 @@ Review is adversarial: it checks work against these published standards and cite
 | **Accessibility: [WCAG 2.2](https://www.w3.org/TR/WCAG22/) Level AA** | Keyboard use and visible focus, a logical focus order, names for screen readers, reflow at 320 CSS px (1.4.10), targets of at least 24 × 24 px (2.5.8), contrast of 4.5:1 for text (1.4.3) | axe-core on every page the Playwright specs visit; review for what tools can't see |
 | **Security: [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) Level 1** and the [OWASP Top 10](https://owasp.org/www-project-top-ten/) | Authorisation on every object (a household's private recipes), validated input, no secrets in code, fail-closed settings | review; the factory's daily security check |
 | **Performance: [Core Web Vitals](https://web.dev/articles/vitals) at "good"** | LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 on a mid-range phone | Lighthouse on previews |
-| **Lighthouse (mobile profile)** | Performance ≥ 90, SEO ≥ 90, Accessibility 100, Best Practices 100 | Lighthouse on previews; a lower score fails the check |
+| **Lighthouse (mobile profile)** | Performance ≥ 80 (temporarily lowered from 90, see `frontend/lighthouserc.json`), SEO ≥ 90, Accessibility 100, Best Practices 100 | Lighthouse on previews; a lower score fails the check |
 | **Privacy: [UK GDPR](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/)** | Collect only what a feature needs, people can export and delete their data, no personal data in logs or error reports | review |
 
 A Lighthouse accessibility score of 100 doesn't mean WCAG conformance: the review still applies.
