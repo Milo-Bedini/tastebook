@@ -10,6 +10,7 @@ type Health = components['schemas']['Health'];
 type IngredientOption = components['schemas']['IngredientOption'];
 type Lists = components['schemas']['Lists'];
 type NewIngredient = components['schemas']['NewIngredient'];
+type RecipeLists = components['schemas']['RecipeLists'];
 type Recipe = components['schemas']['Recipe'];
 type RecipeSummary = components['schemas']['RecipeSummary'];
 type SavedList = components['schemas']['SavedList'];
@@ -157,6 +158,12 @@ export const handlers = [
       household_name: "Milo's household",
       household_members: 1,
       lists: [{ slug: 'favourites', name: 'Favourites', scope: 'personal', recipe_count: 0, covers: [] }]
+    })
+  ),
+  http.get('/api/lists/recipes/:slug/', () =>
+    HttpResponse.json<RecipeLists>({
+      household_name: "Milo's household",
+      lists: [{ slug: 'favourites', name: 'Favourites', scope: 'personal', recipe_count: 0, saved_id: null }]
     })
   ),
   http.get('/api/lists/favourites/', () =>

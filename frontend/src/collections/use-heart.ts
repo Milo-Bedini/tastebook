@@ -1,6 +1,6 @@
 import { toast } from '../dino';
 import { FAVOURITES, useSaveRecipe } from './lists-api';
-import { useStillSignedIn } from './still-signed-in';
+import { SAVE_PARAM, useStillSignedIn } from './still-signed-in';
 import { useRemoval } from './use-removal';
 
 const SAVE_FAILED = "Couldn't save. Check your connection.";
@@ -21,7 +21,7 @@ export const useHeart = () => {
         toast(`${saidFirst}Saved to Favourites`, { action: { label: 'Undo', onClick: () => void remove(saved) } });
       } else if (result.kind === 'gone') {
         toast.error("This recipe isn't available any more.");
-      } else if (await stillSignedIn(slug)) {
+      } else if (await stillSignedIn([SAVE_PARAM, slug])) {
         failed();
       }
     } catch {
@@ -29,5 +29,5 @@ export const useHeart = () => {
     }
   };
 
-  return { add, remove, signIn };
+  return { add, remove, signIn: (slug: string) => signIn([SAVE_PARAM, slug]) };
 };
