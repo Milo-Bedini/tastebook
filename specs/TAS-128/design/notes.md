@@ -4,14 +4,16 @@ Canvas: https://claude.ai/artifact/NzAEmMBULWdq92SLUxm8nd
 
 ## Boards
 
-- `Main` — A Share by link switch under Public: the author's private recipe page at phone width with sharing off, on (read-only link field and Copy link), and on while the recipe isn't ready to publish.
-- `Share-states` — The share link's states: turning on (saving), link copied, couldn't copy, turning off asks first (ConfirmDialog, Keep link / Turn off link), link turned off, couldn't turn it on, made public (the share switch goes and the link stops), and another member (no switches).
-- `Switch-description` — Switch with a help line: Dino Switch's new optional `description` prop, off, on and saving.
-- `Shared-page` — The shared recipe, opened from the link, at phone width: signed out, signed in (any household, including the recipe's own) and loading; noindex and the "<recipe> · Tastebook" title.
-- `Shared-not-found` — A link that's off or unknown: the recipe page's own "Recipe not found", and the couldn't-load state with Try again.
-- `Shared-laptop` — The shared recipe at laptop width, on the recipe page's existing grid.
+Moved to `docs/design/picnic/` (the page boards) and `docs/design/dino/` (Switch), each as `<name>.dc.html` with its `<name>.dc.png`.
 
-The `Shared-page` board's notes ran 42 px past its 2380 px frame on the canvas; the hand-off copy is 2480 px tall so nothing is clipped. Nothing else differs from the canvas.
+- `recipe-share` (was `Main`) — A Share by link switch under Public: the author's private recipe page at phone width with sharing off, on (read-only link field and Copy link), and on while the recipe isn't ready to publish.
+- `recipe-share-states` (was `Share-states`) — The share link's states: turning on (saving), link copied, couldn't copy, turning off asks first (ConfirmDialog, Keep link / Turn off link), link turned off, couldn't turn it on, made public (the share switch goes and the link stops), and another member (no switches).
+- `switch-description` (was `Switch-description`) — Switch with a help line: Dino Switch's new optional `description` prop, off, on and saving.
+- `recipe-shared` (was `Shared-page`) — The shared recipe, opened from the link, at phone width: signed out, signed in (any household, including the recipe's own) and loading; noindex and the "<recipe> · Tastebook" title.
+- `recipe-shared-not-found` (was `Shared-not-found`) — A link that's off or unknown: the recipe page's own "Recipe not found", and the couldn't-load state with Try again.
+- `recipe-shared-laptop` (was `Shared-laptop`) — The shared recipe at laptop width, on the recipe page's existing grid.
+
+The `recipe-shared` board's notes ran 42 px past its 2380 px frame on the canvas; the hand-off copy is 2480 px tall so nothing is clipped. Nothing else differs from the canvas.
 
 ## Decided at Design Review
 
