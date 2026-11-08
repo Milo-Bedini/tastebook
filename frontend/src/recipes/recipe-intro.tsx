@@ -76,6 +76,14 @@ const SourceCredit = ({ source, sourceUrl }: SourceCreditProps) => {
   return <a href={sourceUrl}>{source}</a>;
 };
 
+// A copy of a catalogue recipe shows the original's credit, which it can't edit, before any credit of its own.
+const SourceLine = ({ source, sourceUrl }: SourceCreditProps) =>
+  source === '' ? null : (
+    <p className="min-w-0 break-words text-muted">
+      Source: <SourceCredit source={source} sourceUrl={sourceUrl} />
+    </p>
+  );
+
 type Times = ComponentProps<typeof TimeBlobs>['times'];
 
 // Only the times the recipe has, in TimeBlobs' order: prep, cook, then the extra time.
@@ -108,6 +116,25 @@ const RecipeCredit = ({ recipe }: RecipeProps) => {
   return recipe.visibility === 'private' ? <PrivateMark /> : null;
 };
 
+// A private copy says where it was copied from; a public one credits the original as an adaptation. An original the
+// account can't see any more is named by nothing, so a copy says nothing of a recipe that's no longer public.
+const AdaptedFrom = ({ recipe }: RecipeProps) => {
+  if (recipe.adapted_from === null) {
+    return recipe.is_copy ? <p className="text-muted">Adapted from a recipe that's no longer public</p> : null;
+  }
+  const { slug, title, author } = recipe.adapted_from;
+  const original = <Link to={`/recipes/${slug}`}>{title}</Link>;
+  if (recipe.visibility === 'private') {
+    return <p className="min-w-0 break-words text-muted">Copied from {original}</p>;
+  }
+  return (
+    <p className="min-w-0 break-words text-muted">
+      Adapted from {original}
+      {author === null ? '' : ` by ${author}`}
+    </p>
+  );
+};
+
 const isMadeCopy = (state: unknown) =>
   typeof state === 'object' && state !== null && MADE_COPY in state && state[MADE_COPY] === true;
 
@@ -127,19 +154,12 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
         </FavouriteHearts>
       </div>
       <RecipeCredit recipe={recipe} />
-      {recipe.adapted_from !== null && (
-        <p className="min-w-0 break-words text-muted">
-          Copied from <Link to={`/recipes/${recipe.adapted_from.slug}`}>{recipe.adapted_from.title}</Link>
-        </p>
-      )}
+      <AdaptedFrom recipe={recipe} />
       {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
       {facts !== '' && <p className="text-muted tabular-nums">{facts}</p>}
       {recipe.equipment.length > 0 && <p className="text-muted">{`Equipment: ${namesOf(recipe.equipment)}`}</p>}
-      {recipe.source !== '' && (
-        <p className="min-w-0 break-words text-muted">
-          Source: <SourceCredit source={recipe.source} sourceUrl={recipe.source_url} />
-        </p>
-      )}
+      <SourceLine source={recipe.original_source} sourceUrl={recipe.original_source_url} />
+      <SourceLine source={recipe.source} sourceUrl={recipe.source_url} />
       {recipe.diet_tag_conflicts.map((conflict) => (
         <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
       ))}

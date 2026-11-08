@@ -101,3 +101,24 @@ export const householdLists: SeedHouseholdOf<'milo' | 'ann' | 'jo'>[] = [
   },
   { members: [{ key: 'jo', name: 'Jo' }] }
 ];
+
+const sharedCurry = {
+  title: "Grandma's curry",
+  visibility: 'public',
+  cuisines: ['Indian'],
+  prep_minutes: 20,
+  cook_minutes: 40,
+  servings: 4,
+  ingredient_lines: [
+    { amount: 1, ingredient: 'onion' },
+    { amount: 2, ingredient: 'garlic', note: 'cloves' }
+  ],
+  steps: ['Fry the onion and garlic until soft.', 'Add the spices and simmer for 40 minutes.']
+};
+
+// Sam, in "Sam's household", wrote "Grandma's curry", complete and public. Jo, in a household of their own, made a
+// private copy of it, which Jo can publish.
+export const copiedRecipe: SeedHouseholdOf<'sam' | 'jo'>[] = [
+  { members: [{ key: 'sam', name: 'Sam', recipes: [sharedCurry] }] },
+  { members: [{ key: 'jo', name: 'Jo', copies: ["Grandma's curry"] }] }
+];
