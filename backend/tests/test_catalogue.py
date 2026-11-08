@@ -229,6 +229,7 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
         'slug': 'shakshuka',
         'visibility': 'public',
         'author': None,
+        'adapted_from': None,
         'title': 'Shakshuka',
         'description': 'Eggs in spiced tomatoes.',
         'cuisines': [{'slug': 'spanish', 'name': 'Spanish'}],

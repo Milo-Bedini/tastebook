@@ -135,6 +135,10 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         patch('/api/recipes/{recipe}/', {'title': 'Taken'}),
         delete('/api/recipes/{recipe}/'),
     ),
+    'api/recipes/<slug:slug>/copy/': (
+        post('/api/recipes/no-such-recipe/copy/'),
+        post('/api/recipes/{recipe}/copy/'),
+    ),
     'api/recipes/<slug:slug>/visibility/': (
         put('/api/recipes/no-such-recipe/visibility/', {'visibility': 'public'}),
         put('/api/recipes/{recipe}/visibility/', {'visibility': 'public'}),

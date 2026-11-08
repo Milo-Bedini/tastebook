@@ -179,16 +179,29 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
     def written_by_in(self, author: User, household_id: int) -> RecipeQuerySet:
         return self.filter(household_id=household_id, created_by=author)
 
-    def copy_into(self, household_id: int) -> list[Recipe]:
-        """Copies each recipe into the household as a private recipe by the same author, with its ingredients, steps,
-        cuisines, courses and equipment. A copy links to nothing, so changing either one leaves the other alone."""
+    def copy_into(self, household_id: int, copier: User | None = None) -> list[Recipe]:
+        """Copies each recipe into the household with its ingredients, steps, cuisines, courses and equipment, so
+        changing either one leaves the other alone. With a copier, each is a private Copy: written by them and linked to
+        its original. Without one, each keeps its author and visibility and links to nothing new, as a moving member's
+        recipes do."""
         originals = list(
             self.prefetch_related('cuisines', 'courses', 'equipment', 'ingredient_groups', 'ingredient_lines', 'steps')
         )
+
+        def made_by_copier(original: Recipe) -> dict[str, Any]:
+            if copier is None:
+                return {}
+            return {'created_by_id': copier.pk, 'visibility': Visibility.PRIVATE, 'adapted_from_id': original.pk}
+
         # A few queries however many recipes there are, besides one per recipe to find a free slug.
         copies = Recipe.objects.bulk_create(
             [
-                _copied(original, household_id=household_id, slug=Recipe.objects.private_slug_for(original.title))
+                _copied(
+                    original,
+                    household_id=household_id,
+                    slug=Recipe.objects.private_slug_for(original.title),
+                    **made_by_copier(original),
+                )
                 for original in originals
             ]
         )
@@ -280,6 +293,14 @@ class Recipe(models.Model):
         choices=Visibility.choices,
         default=Visibility.PRIVATE,
         help_text='A catalogue recipe is always public; a household recipe is private until its author publishes it.',
+    )
+    adapted_from = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='copies',
+        help_text='The recipe this is a copy of. Empty for a recipe that is no copy, or whose original was deleted.',
     )
     cuisines = models.ManyToManyField(Cuisine, related_name='recipes', blank=True)
     courses = models.ManyToManyField(Course, related_name='recipes', blank=True)

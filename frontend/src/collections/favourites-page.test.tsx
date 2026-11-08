@@ -179,6 +179,7 @@ describe('the Favourites page', () => {
       http.get('/api/recipes/:slug/', () =>
         HttpResponse.json<components['schemas']['Recipe']>({
           ...(bibimbap.recipe as ListedRecipe),
+          adapted_from: null,
           courses: [],
           prep_minutes: 15,
           cook_minutes: 20,

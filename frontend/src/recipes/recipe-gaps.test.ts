@@ -30,6 +30,7 @@ const complete: Recipe = {
   title: "Za'atar flatbreads",
   description: '',
   cuisines: [],
+  adapted_from: null,
   courses: [],
   difficulty: 'medium',
   prep_minutes: 15,

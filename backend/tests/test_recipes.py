@@ -173,6 +173,7 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
         'slug': 'shakshuka',
         'visibility': 'public',
         'author': None,
+        'adapted_from': None,
         'title': 'Shakshuka',
         'description': 'Eggs in spiced tomatoes.',
         'cuisines': [{'slug': 'italian', 'name': 'Italian'}],

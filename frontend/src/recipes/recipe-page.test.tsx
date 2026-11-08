@@ -23,6 +23,7 @@ const shakshuka: Recipe = {
   title: 'Shakshuka',
   description: 'Eggs in spiced tomatoes.',
   cuisines: [],
+  adapted_from: null,
   courses: [{ slug: 'main', name: 'Main' }],
   difficulty: 'easy',
   prep_minutes: 10,

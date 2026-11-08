@@ -29,7 +29,15 @@ from recipes.serializers import (
     RecipeSummarySerializer,
     RecipeVisibilitySerializer,
 )
-from recipes.services import IngredientList, add_ingredient, add_recipe, delete_recipe, edit_recipe, set_visibility
+from recipes.services import (
+    IngredientList,
+    add_ingredient,
+    add_recipe,
+    copy_recipe,
+    delete_recipe,
+    edit_recipe,
+    set_visibility,
+)
 
 INGREDIENT_FIELDS = tuple(RecipeIngredientsSerializer().fields)
 
@@ -241,6 +249,30 @@ class RecipeVisibilityView(APIView):
             raise _refusals(error) from error
         changed = _detail_queryset(request.user).get(pk=recipe.pk)
         return Response(RecipeSerializer(changed, context={'request': request}).data)
+
+
+class RecipeCopyView(APIView):
+    permission_classes = []
+
+    @extend_schema(
+        operation_id='recipes_copy_create',
+        request=None,
+        responses={
+            201: RecipeSerializer,
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            404: OpenApiResponse(description="No recipe has this slug, or it's another household's private recipe."),
+        },
+        description='Makes a private copy of a recipe the signed-in account can see, in its household: written by it, '
+        "with the original's title, details, ingredients, method and photo, and linked to the original.",
+    )
+    def post(self, request: Request, slug: str) -> Response:
+        # Refused before the lookup, so a signed-out answer says nothing about the slug.
+        if not request.user.is_authenticated or request.user.household_id is None:
+            raise PermissionDenied
+        original = get_object_or_404(Recipe.objects.visible_to(request.user), slug=slug)
+        copy = copy_recipe(original, request.user)
+        made = _detail_queryset(request.user).get(pk=copy.pk)
+        return Response(RecipeSerializer(made, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
 
 class CuisineListView(ListAPIView):

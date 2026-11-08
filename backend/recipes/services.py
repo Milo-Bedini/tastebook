@@ -135,6 +135,14 @@ def add_recipe(
     return recipe
 
 
+def copy_recipe(original: Recipe, copier: User) -> Recipe:
+    """Makes a private Copy of the recipe in the copier's household, written by them and linked to the original, with
+    the original's title, details, ingredients, method and photo."""
+    with transaction.atomic():
+        [copy] = Recipe.objects.filter(pk=original.pk).copy_into(copier.household_id, copier=copier)
+    return copy
+
+
 def edit_recipe(
     recipe: Recipe,
     details: Record,

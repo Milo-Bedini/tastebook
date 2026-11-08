@@ -28,6 +28,7 @@ const saved: Recipe = {
   title: "Grandma's curry",
   description: '',
   cuisines: [],
+  adapted_from: null,
   courses: [],
   difficulty: '',
   prep_minutes: null,

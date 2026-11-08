@@ -816,6 +816,35 @@ paths:
           description: 'No recipe has this slug that the account may delete: there''s
             none, it''s another household''s or a catalogue recipe, or another member
             wrote it and is still in the household.'
+  /api/recipes/{slug}/copy/:
+    post:
+      operationId: recipes_copy_create
+      description: 'Makes a private copy of a recipe the signed-in account can see,
+        in its household: written by it, with the original''s title, details, ingredients,
+        method and photo, and linked to the original.'
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - recipes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+        '403':
+          description: Signed out, or the account has no household yet.
+        '404':
+          description: No recipe has this slug, or it's another household's private
+            recipe.
   /api/recipes/{slug}/visibility/:
     put:
       operationId: recipes_visibility_update
@@ -1602,6 +1631,18 @@ components:
           maxItems: 100
       required:
       - title
+    OriginalRecipe:
+      type: object
+      properties:
+        slug:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+      required:
+      - slug
+      - title
     PatchedAccountChanges:
       type: object
       properties:
@@ -1811,6 +1852,14 @@ components:
           items:
             $ref: '#/components/schemas/DietTag'
           readOnly: true
+        adapted_from:
+          allOf:
+          - $ref: '#/components/schemas/OriginalRecipe'
+          nullable: true
+          readOnly: true
+          description: The recipe this is a copy of, shown as "Copied from <title>";
+            null for a recipe that is no copy, or when its original was deleted or
+            the signed-in account can't see it.
         courses:
           type: array
           items:
@@ -1916,6 +1965,7 @@ components:
           description: How many other accounts have saved this recipe, which its delete
             dialog warns of; null unless the signed-in account may delete it.
       required:
+      - adapted_from
       - author
       - can_delete
       - can_edit
@@ -2153,6 +2203,15 @@ components:
           description: 'Titles of the recipes this member saves to Favourites, oldest
             first, once every member''s recipes are made: a recipe a member of this
             seed wrote, or a catalogue recipe. Each must be one the member can see.'
+          maxItems: 20
+        copies:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Titles of the recipes this member makes a copy of, once every
+            save is made, as saves name them. Each copy is listed after the member's
+            own recipes.
           maxItems: 20
       required:
       - key
