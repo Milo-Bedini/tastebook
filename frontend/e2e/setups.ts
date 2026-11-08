@@ -79,3 +79,25 @@ export const savedRecipes: SeedHouseholdOf<'sam' | 'jo'>[] = [
   },
   { members: [{ key: 'jo', name: 'Jo', saves: ['Black bean chilli', "Sam's dal"] }] }
 ];
+
+// Milo and Ann in "The Bedinis", and Jo in a household of their own. Milo made "Weeknight dinners", just for him,
+// with the catalogue's Bibimbap and Chana masala; Ann made "Sunday roasts" for the household, with Pot roast and
+// Toad in the hole. Each list's recipes were added oldest first.
+export const householdLists: SeedHouseholdOf<'milo' | 'ann' | 'jo'>[] = [
+  {
+    name: 'The Bedinis',
+    members: [
+      {
+        key: 'milo',
+        name: 'Milo',
+        lists: [{ name: 'Weeknight dinners', recipes: ['Chana masala', 'Bibimbap'] }]
+      },
+      {
+        key: 'ann',
+        name: 'Ann',
+        lists: [{ name: 'Sunday roasts', scope: 'household', recipes: ['Toad in the hole', 'Pot roast'] }]
+      }
+    ]
+  },
+  { members: [{ key: 'jo', name: 'Jo' }] }
+];
