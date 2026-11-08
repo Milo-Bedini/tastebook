@@ -1,0 +1,14 @@
+{
+  "name": "@tastebook/biome",
+  "private": true,
+  "type": "module",
+  "description": "Tastebook's Biome GritQL plugins, registered in the root biome.json, and the fixtures that prove each one still reports what it should. Its tests run in CI's Frontend job.",
+  "scripts": {
+    "test": "node --test plugins.test.ts",
+    "type-check": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "7.0.2"
+  }
+}
