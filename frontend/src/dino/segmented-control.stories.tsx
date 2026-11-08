@@ -59,3 +59,40 @@ const otherSegment = 'label:not(:has(:checked))';
 export const IsHover = { parameters: { pseudo: { hover: [otherSegment] } } } satisfies Story;
 export const IsPressed = { parameters: { pseudo: { active: [otherSegment] } } } satisfies Story;
 export const IsFocus = { parameters: { pseudo: { focusVisible: ['input:checked'] } } } satisfies Story;
+
+type Scope = 'personal' | 'household';
+
+const scopes: { value: Scope; label: string }[] = [
+  { value: 'personal', label: 'Just you' },
+  { value: 'household', label: 'Household' }
+];
+
+const whoSees = (scope: Scope) =>
+  scope === 'personal' ? 'Only you see it.' : 'Everyone in The Bedinis sees it and can change it.';
+
+// In a form: the label shown above the track, and a line under it saying what the chosen option means.
+export const WithHelpLine = {
+  render: () => {
+    const [value, setValue] = useState<Scope>('personal');
+    return (
+      <SegmentedControl
+        label="Who's it for?"
+        labelVisible
+        description={whoSees(value)}
+        options={scopes}
+        value={value}
+        onValueChange={setValue}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole('group', { name: "Who's it for?" });
+    await expect(canvas.getByText("Who's it for?")).toBeVisible();
+    await expect(group).toHaveAccessibleDescription('Only you see it.');
+
+    await userEvent.click(within(group).getByRole('radio', { name: 'Household' }));
+
+    await expect(group).toHaveAccessibleDescription('Everyone in The Bedinis sees it and can change it.');
+  }
+} satisfies Story;
