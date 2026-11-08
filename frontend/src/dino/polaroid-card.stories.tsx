@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { MemoryRouter } from 'react-router';
-import { expect, within } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 
+import { FavouriteButton } from '@/dino/favourite-button';
 import { PolaroidCard } from '@/dino/polaroid-card';
 import { isHover, isPressed } from '@/dino/story-states';
 
@@ -52,3 +53,29 @@ export const LongTitle = {
   args: { title: 'Slow-roasted pork shoulder with crackling, apple sauce and Yorkshire puddings' }
 } satisfies Story;
 export const LargeText = {} satisfies Story;
+
+const heart = <FavouriteButton label="Favourite Bibimbap" saved onSavedChange={() => undefined} />;
+
+export const WithAction = {
+  args: { action: heart },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole('link', { name: 'Bibimbap' });
+    await expect(link).toHaveAccessibleDescription('35 min · Easy · Korean');
+    // The heart sits above the link's stretched target, so a press reaches it and not the link.
+    const button = canvas.getByRole('button', { name: 'Favourite Bibimbap' });
+    const { x, y, width, height } = button.getBoundingClientRect();
+    await expect(document.elementFromPoint(x + width / 2, y + height / 2)?.closest('button')).toBe(button);
+    // Focusing the heart rings the heart, not the card.
+    await userEvent.tab();
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await expect(getComputedStyle(canvasElement.querySelector('.group') as Element).outlineStyle).toBe('none');
+  }
+} satisfies Story;
+export const WithActionAndLongMeta = {
+  args: {
+    action: heart,
+    children: <p className="tabular-nums">1 hr 45 · Medium · Korean, Japanese and Chinese</p>
+  }
+} satisfies Story;

@@ -45,7 +45,8 @@ const shakshuka: Recipe = {
   diet_tag_conflicts: [],
   can_delete: false,
   can_edit: false,
-  can_publish: false
+  can_publish: false,
+  save_count: null
 };
 
 const photo: RecipePhoto = {
@@ -1283,6 +1284,16 @@ describe('Deleting a recipe', () => {
     );
     await waitFor(() => expect(queryClient.isFetching()).toBe(0));
     expect(screen.queryByRole('button', { name: 'Delete recipe' })).not.toBeInTheDocument();
+  });
+
+  it('says how many other people saved the recipe before deleting it', async () => {
+    answerDeleting(() => new HttpResponse(null, { status: 204 }));
+    server.use(http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>({ ...ours, save_count: 6 })));
+    const { dialog } = await openDeleteDialog();
+
+    expect(dialog).toHaveAccessibleDescription(
+      "Our shakshuka, its 2 ingredients and 2 steps will be deleted for everyone in your household. 6 people saved this; they'll see it's gone. You can't undo this."
+    );
   });
 
   it('says what goes before deleting', async () => {

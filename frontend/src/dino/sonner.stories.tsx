@@ -1,7 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { BookOpen, Library } from 'lucide-react';
+import { MemoryRouter } from 'react-router';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '@/dino/button';
+import { Dock } from '@/dino/dock';
 import { Toaster, toast } from '@/dino/sonner';
 
 const showToast = (toasterId: string) =>
@@ -77,3 +80,35 @@ const ErrorStory = {
 } satisfies Story;
 
 export { ErrorStory as Error };
+
+// Under 640 px, beside the Dock: the toast clears the dock's 62 px and 20 px under it by 12 px.
+export const AboveDock = {
+  args: { aboveDock: true },
+  parameters: {
+    viewport: { options: { phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' } } }
+  },
+  globals: { viewport: { value: 'phone' } },
+  render: (args, { id }) => (
+    <MemoryRouter>
+      <Toaster {...args} id={id} />
+      <Button variant="secondary" onClick={() => showToast(id)}>
+        Show a toast
+      </Button>
+      <Dock
+        tabs={[
+          { to: '/', label: 'Recipes', icon: BookOpen },
+          { to: '/lists', label: 'Lists', icon: Library }
+        ]}
+      />
+    </MemoryRouter>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Show a toast' }));
+    await waitFor(() => expect(canvas.getByText('Saved to Favourites')).toBeVisible());
+    const dock = canvas.getByRole('navigation', { name: 'Main' }).getBoundingClientRect();
+    const toaster = canvasElement.querySelector('[data-sonner-toaster]') as Element;
+    // The toast's own box slides as it enters, so the stack's foot is what's measured.
+    await expect(window.innerHeight - Number.parseFloat(getComputedStyle(toaster).bottom)).toBe(dock.top - 12);
+  }
+} satisfies Story;

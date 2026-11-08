@@ -101,7 +101,8 @@ const recipe: Recipe = {
   diet_tag_conflicts: [],
   can_delete: false,
   can_edit: false,
-  can_publish: false
+  can_publish: false,
+  save_count: null
 };
 
 const summary: RecipeSummary = {

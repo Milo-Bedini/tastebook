@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Lists: an index of lists</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:24px 20px 104px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.count{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.lists{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.lrow{display:flex;align-items:center;gap:16px;min-height:112px;padding:12px 12px 12px 16px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
+.fan{position:relative;width:96px;height:80px;flex-shrink:0}
+.fan span{position:absolute;top:8px;width:56px;height:62px;box-sizing:border-box;padding:5px 5px 14px;background:var(--color-paper);box-shadow:var(--shadow-lift)}
+.fan span i{display:block;height:100%;background:var(--color-line)}
+.fan .a{left:0;transform:rotate(-8deg)}.fan .b{left:20px;transform:rotate(3deg);top:4px}.fan .c{left:40px;transform:rotate(9deg)}
+.lname{display:flex;flex-direction:column;gap:2px;flex-grow:1}
+.lname b{font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.cards{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}
+.cards li{position:relative;display:flex;flex-direction:column;min-width:0}
+.meta{margin:0;min-height:44px;display:flex;align-items:center;padding-right:52px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.fav{position:absolute;right:0;bottom:0}
+.gone{display:flex;flex-direction:column;gap:12px}
+.gone .frm{display:flex;flex-direction:column;padding:8px 8px 0;border:2px dashed var(--color-field)}
+.gone .ph{aspect-ratio:4 / 3;background:var(--color-surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--color-muted);font-size:13px;line-height:17px;font-weight:700;text-align:center;padding:0 8px}
+.gone .capn{margin:0;padding:4px 2px 8px;font-family:var(--font-serif);font-size:21px;line-height:22px;font-style:italic;font-weight:400;color:var(--color-muted);overflow-wrap:break-word}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.toast{position:absolute;left:20px;right:20px;bottom:94px;height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:0 4px 0 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast .msg{flex-grow:1}
+.toast-act{height:44px;padding:0 16px;border-radius:var(--radius-pill);border:2px solid var(--color-on-dock);background:transparent;color:var(--color-on-dock);font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.note b{font-weight:800}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:520px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1800px; height: 1440px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-123 · phone, 390 px · Milo, signed in</span>
+    <h1 class="ttl">Lists as an index, each list its own page</h1>
+    <span class="cap">Lists is the second tab, so the dock appears. The Lists tab shows one row per list, Favourites the only one for now; the row opens /lists/favourites, where the polaroids live, newest saved first. Every card has the heart, so unsaving is one press with Undo.</span>
+  </header>
+
+  <div class="boards">
+    <div class="col"><span class="cap"><b>Lists</b> · one row per list</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <h1 class="h1">Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">lists</x-import></h1>
+        <ul class="lists">
+          <li><a href="#" class="lrow">
+            <span class="fan" aria-hidden="true"><span class="a"><i></i></span><span class="b"><i></i></span><span class="c"><i></i></span></span>
+            <span class="lname"><b>Favourites</b><span class="count">4 recipes</span></span>
+            <x-import component-from-global-scope="Dino.icons.ChevronRight" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>
+          </a></li>
+        </ul>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>The row is one link on a Surface card</b>: a fan of the list’s first three photos (decorative), its name and its count. Named lists will stack here as more rows.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Favourites</b> · /lists/favourites, with one recipe no longer available</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg" style="gap: 16px">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All lists</a>
+        <h1 class="h1"><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Favourites</x-import></h1>
+        <p class="count">4 recipes</p>
+        <ul class="cards" style="margin-top: 8px">
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Bibimbap" to="#" recipe-id="{{r2}}" photo="{{nothing}}" lean="left"><p class="meta">35 min · Easy · Korean</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Bibimbap" pressed="{{yes}}"></x-import></span>
+          </li>
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Shakshuka" to="#" recipe-id="{{r3}}" photo="{{nothing}}" lean="right"><p class="meta">by Sam · 30 min · Easy</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Shakshuka" pressed="{{yes}}"></x-import></span>
+          </li>
+          <li>
+            <div class="gone">
+              <div class="frm"><div class="ph"><x-import component-from-global-scope="Dino.icons.EyeOff" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>No longer available</div><p class="capn">Grandma’s curry</p></div>
+              <p class="meta">Made private or deleted</p>
+            </div>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Grandma’s curry" pressed="{{yes}}"></x-import></span>
+          </li>
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Baklava" to="#" recipe-id="{{r4}}" photo="{{nothing}}" lean="right"><p class="meta">1 hr 20 · Medium · Turkish</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Baklava" pressed="{{yes}}"></x-import></span>
+          </li>
+        </ul>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>Lists stays the current tab</b> on a list’s page. The unavailable card stays where it was saved until Milo unsaves it, so a recipe never vanishes without a word (UnavailableRecipe board).</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Unsaved</b> · Milo pressed Bibimbap’s heart</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg" style="gap: 16px">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All lists</a>
+        <h1 class="h1"><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Favourites</x-import></h1>
+        <p class="count">3 recipes</p>
+        <ul class="cards" style="margin-top: 8px">
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Shakshuka" to="#" recipe-id="{{r3}}" photo="{{nothing}}" lean="left"><p class="meta">by Sam · 30 min · Easy</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Shakshuka" pressed="{{yes}}"></x-import></span>
+          </li>
+          <li>
+            <div class="gone">
+              <div class="frm"><div class="ph"><x-import component-from-global-scope="Dino.icons.EyeOff" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>No longer available</div><p class="capn">Grandma’s curry</p></div>
+              <p class="meta">Made private or deleted</p>
+            </div>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Grandma’s curry" pressed="{{yes}}"></x-import></span>
+          </li>
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Baklava" to="#" recipe-id="{{r4}}" photo="{{nothing}}" lean="right"><p class="meta">1 hr 20 · Medium · Turkish</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Baklava" pressed="{{yes}}"></x-import></span>
+          </li>
+        </ul>
+      </main>
+      <div class="toast" role="status"><span class="msg">Removed from Favourites</span><button type="button" class="toast-act">Undo</button></div>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>The card leaves at once</b> and the count drops, here and on the index row; Undo puts it back in its place. Focus moves to the next card’s heart (or the heading when none is left). The toast sits 12 px above the dock.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Recipes</b> · the heart on every card</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <h1 class="h1">What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1>
+        <p class="count" style="margin-top: -8px">24 recipes</p>
+        <ul class="cards">
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Chana masala" to="#" recipe-id="{{r1}}" photo="{{nothing}}" lean="left"><p class="meta">1 hr 45 · Easy · Indian</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Chana masala"></x-import></span>
+          </li>
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Bibimbap" to="#" recipe-id="{{r2}}" photo="{{nothing}}" lean="right"><p class="meta">35 min · Easy · Korean</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Bibimbap"></x-import></span>
+          </li>
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Shakshuka" to="#" recipe-id="{{r3}}" photo="{{nothing}}" lean="right"><p class="meta">by Sam · 30 min · Easy</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Shakshuka" pressed="{{yes}}"></x-import></span>
+          </li>
+          <li>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Baklava" to="#" recipe-id="{{r4}}" photo="{{nothing}}" lean="left"><p class="meta">1 hr 20 · Medium · Turkish</p></x-import>
+            <span class="fav"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Heart}}" label="Favourite Baklava" pressed="{{yes}}"></x-import></span>
+          </li>
+        </ul>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>Saved shows on browse too:</b> a pink heart, filled. Pressing an empty one saves to Favourites with “Saved to Favourites · Undo”.</p>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Each list gets its own address</b> (/lists/favourites), ready for named and household lists, and for sharing a list later, without reshaping the Lists tab. The index costs one extra press while Favourites is the only list.</p>
+    <p><b>The heart sits beside the meta, outside the card’s link</b>, so the link’s name and description stay the caption and meta. PolaroidCard gains an <code>action</code> slot for it (FavouriteButton board).</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":1440}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, nothing: null, r1: 2, r2: 5, r3: 8, r4: 11, s18: 18, s20: 20, s22: 22, sw: 2.25 };
+  }
+}
+</script>
+</body>
+</html>

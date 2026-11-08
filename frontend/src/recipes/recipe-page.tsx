@@ -1,6 +1,6 @@
 import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useLocation, useParams } from 'react-router';
 
 import type { components } from '../api/schema';
 import {
@@ -245,15 +245,26 @@ const RecipeContent = () => {
   return <RecipeForSlug slug={slug} />;
 };
 
-export const RecipePage = () => (
-  <Page>
+const isOpenedFromFavourites = (state: unknown) =>
+  typeof state === 'object' && state !== null && 'openedFrom' in state && state.openedFrom === 'favourites';
+
+// Opened from Favourites, the way back is to Favourites.
+const BackLink = () => {
+  const fromFavourites = isOpenedFromFavourites(useLocation().state);
+  return (
     <Link
-      to="/recipes"
+      to={fromFavourites ? '/lists/favourites' : '/recipes'}
       className="inline-flex min-h-11 items-center gap-1 self-start text-label no-underline hover:underline"
     >
       <ChevronLeft aria-hidden="true" className="size-4.5" strokeWidth={2.5} />
-      All recipes
+      {fromFavourites ? 'Favourites' : 'All recipes'}
     </Link>
+  );
+};
+
+export const RecipePage = () => (
+  <Page>
+    <BackLink />
     <RecipeContent />
   </Page>
 );

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Lists page: empty, loading, error, signed out</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:24px 20px 104px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.sec{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.h2{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.count{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.lists{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.lrow{display:flex;align-items:center;gap:16px;min-height:112px;padding:12px 12px 12px 16px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
+.fan{position:relative;width:96px;height:80px;flex-shrink:0}
+.fan span{position:absolute;top:8px;width:56px;height:62px;box-sizing:border-box;padding:5px 5px 14px;background:var(--color-paper);box-shadow:var(--shadow-lift)}
+.fan span i{display:block;height:100%;background:var(--color-line)}
+.fan .a{left:0;transform:rotate(-8deg)}.fan .b{left:20px;transform:rotate(3deg);top:4px}.fan .c{left:40px;transform:rotate(9deg)}
+.fan.blank span{background:transparent;box-shadow:none;border:2px dashed var(--color-field)}
+.fan.blank span i{background:transparent}
+.lname{display:flex;flex-direction:column;gap:2px;flex-grow:1}
+.lname b{font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.addr{display:inline-flex;align-self:flex-start;padding:4px 10px;border-radius:var(--radius-pill);background:var(--color-surface);font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.note b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 2240px; height: 1340px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-123 · phone, 390 px · the Lists index’s and Favourites’ other states</span>
+    <h1 class="ttl">Nothing saved, waiting, failed, and signed out</h1>
+    <span class="cap">The heading stays put in every state, so the page never jumps when the rows arrive; only their place changes. Favourites’ own page loads and fails the same way, with “Finding your favourites…” and “Couldn’t load your favourites”.</span>
+  </header>
+
+  <div class="boards">
+    <div class="col"><span class="cap"><b>Empty</b> · a new account’s Lists</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <h1 class="h1">Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">lists</x-import></h1>
+        <ul class="lists">
+          <li><a href="#" class="lrow">
+            <span class="fan blank" aria-hidden="true"><span class="a"><i></i></span><span class="b"><i></i></span><span class="c"><i></i></span></span>
+            <span class="lname"><b>Favourites</b><span class="count">Nothing saved yet</span></span>
+            <x-import component-from-global-scope="Dino.icons.ChevronRight" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>
+          </a></li>
+        </ul>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>Favourites is always there</b>, even empty: its fan is three dashed frames, as the empty state’s polaroid, and the count reads “Nothing saved yet”.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Empty</b> · /lists/favourites</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div>
+      </div></header>
+      <main class="pg" style="gap: 16px">
+        <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" size="{{s18}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>All lists</a>
+        <h1 class="h1"><x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">Favourites</x-import></h1>
+        <x-import component-from-global-scope="Dino.EmptyState" title="Nothing saved yet" action="{{browse}}" doodle="find one you love">Press the heart on any recipe and it lands here, ready for when you need it.</x-import>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>The way out is “Browse recipes”</b>, a secondary button: the empty page has no main action of its own. The count is left out at zero.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Loading</b> · after half a second</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <h1 class="h1">Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">lists</x-import></h1>
+        <x-import component-from-global-scope="Dino.Loading">Finding your lists…</x-import>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>Dino’s Loading</b>: blank polaroids that don’t shimmer and the “-ing” line, only after half a second.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Failed</b> · the lists didn’t load</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+        </div>
+      </div></header>
+      <main class="pg">
+        <h1 class="h1">Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">lists</x-import></h1>
+        <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load your lists" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+      </main>
+      <nav aria-label="Main" class="dock"><ul>
+        <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>Dino’s ErrorWithRetry</b> in the rows’ place; the tabs and the top bar still work.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Signed out</b> · one tab, so no Lists and no dock</span>
+    <div class="phone">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <div class="end">
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div>
+      </div></header>
+      <main class="pg">
+        <span class="addr">tastebook · /lists or /lists/favourites</span>
+        <p class="note" style="color: var(--color-muted); border: 2px dashed var(--color-line); border-radius: var(--radius-card); padding: 16px">Opening /lists, or a list under it, signed out goes straight to the sign-in page with <code>next</code> set to that address, as every gated page does (TAS-102), and comes back here once signed in. Nothing of anyone’s lists shows first.</p>
+      </main>
+    </div>
+    <p class="note"><b>Signed out there’s only Recipes</b>, so no tabs at all (design.md, Layout › Navigation). The hearts on cards still show, and each sends its press through sign-in (Saving board).</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2240,"height":1340}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = window.React.createElement;
+    return {
+      icons: window.Dino.icons, yes: true, s18: 18, s20: 20, s22: 22, sw: 2.25,
+      browse: h(window.Dino.Button, { variant: 'secondary', asChild: true }, h('a', { href: '#' }, 'Browse recipes')),
+      retry: () => Promise.resolve()
+    };
+  }
+}
+</script>
+</body>
+</html>

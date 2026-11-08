@@ -274,6 +274,7 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
         'can_delete': False,
         'can_edit': False,
         'can_publish': False,
+        'save_count': None,
     }
     assert [
         (group['name'], [(line['amount'], line['amount_max'], line['ingredient']['name']) for line in group['lines']])

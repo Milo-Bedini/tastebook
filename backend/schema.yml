@@ -377,6 +377,150 @@ paths:
           description: No response body
         '409':
           description: No response body
+  /api/lists/:
+    get:
+      operationId: lists_list
+      description: 'The signed-in account''s lists: Favourites, even before anything
+        is saved to it.'
+      tags:
+      - lists
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ListSummary'
+          description: ''
+        '403':
+          description: Signed out.
+  /api/lists/favourites/:
+    get:
+      operationId: lists_favourites_retrieve
+      description: The signed-in account's Favourites, newest saved first. A recipe
+        its author has since made private or deleted keeps its place with the title
+        it was saved with and no recipe.
+      tags:
+      - lists
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedList'
+          description: ''
+        '403':
+          description: Signed out.
+  /api/lists/favourites/saved/:
+    post:
+      operationId: lists_favourites_saved_create
+      description: Saves a recipe to Favourites as a link, never a copy (201), or
+        answers the save it already has (200).
+      tags:
+      - lists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveRecipe'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaveRecipe'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaveRecipe'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedRecipe'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedRecipe'
+          description: ''
+        '400':
+          description: No recipe slug was sent.
+        '403':
+          description: Signed out.
+        '404':
+          description: 'No recipe has this slug that the account can see: there''s
+            none, or it''s another household''s private recipe.'
+  /api/lists/favourites/saved/{saved_id}/:
+    delete:
+      operationId: lists_favourites_saved_destroy
+      description: Takes a saved recipe out of Favourites, available or not, and answers
+        a token that puts it back.
+      parameters:
+      - in: path
+        name: saved_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - lists
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Undo'
+          description: ''
+        '403':
+          description: Signed out.
+        '404':
+          description: 'The account has no such saved recipe: it''s been taken out
+            already.'
+  /api/lists/favourites/saved/restore/:
+    post:
+      operationId: lists_favourites_saved_restore_create
+      description: Puts a saved recipe back in its old place, with the token taking
+        it out answered.
+      tags:
+      - lists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Undo'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Undo'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Undo'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedRecipe'
+          description: ''
+        '400':
+          description: The token is missing, over an hour old, forged or another account's.
+        '403':
+          description: Signed out.
   /api/photos/:
     post:
       operationId: photos_create
@@ -1112,6 +1256,170 @@ components:
       - is_member
       - recipes_to_copy
       - status
+    ListCover:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        photo:
+          allOf:
+          - $ref: '#/components/schemas/ListedPhoto'
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - photo
+    ListSummary:
+      type: object
+      properties:
+        slug:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        recipe_count:
+          type: integer
+          readOnly: true
+          description: Unavailable recipes count too.
+        covers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListCover'
+          readOnly: true
+          description: Up to three of the list's newest available recipes, for its
+            fan.
+      required:
+      - covers
+      - name
+      - recipe_count
+      - slug
+    ListedCuisine:
+      type: object
+      properties:
+        slug:
+          type: string
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        name:
+          type: string
+          maxLength: 50
+      required:
+      - name
+      - slug
+    ListedPhoto:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          readOnly: true
+        thumbnails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListedPhotoThumbnail'
+          readOnly: true
+        credit:
+          allOf:
+          - $ref: '#/components/schemas/ListedPhotoCredit'
+          readOnly: true
+          nullable: true
+      required:
+      - credit
+      - thumbnails
+      - url
+    ListedPhotoCredit:
+      type: object
+      properties:
+        author:
+          type: string
+          readOnly: true
+        licence:
+          type: string
+          readOnly: true
+        source_url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - author
+      - licence
+      - source_url
+    ListedPhotoThumbnail:
+      type: object
+      properties:
+        width:
+          type: integer
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - url
+      - width
+    ListedRecipe:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/Visibility'
+          readOnly: true
+        author:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The name of whoever wrote a public household recipe; null for
+            a private or catalogue recipe.
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 300
+        cuisines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListedCuisine'
+          readOnly: true
+        difficulty:
+          oneOf:
+          - $ref: '#/components/schemas/DifficultyEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        total_minutes:
+          type: integer
+          readOnly: true
+          nullable: true
+        photo:
+          allOf:
+          - $ref: '#/components/schemas/ListedPhoto'
+          readOnly: true
+          nullable: true
+        diet_tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/DietTag'
+          readOnly: true
+      required:
+      - author
+      - cuisines
+      - description
+      - diet_tags
+      - difficulty
+      - id
+      - photo
+      - slug
+      - title
+      - total_minutes
+      - visibility
     Member:
       type: object
       properties:
@@ -1601,6 +1909,12 @@ components:
           readOnly: true
           description: 'Whether the signed-in account may make this recipe public
             or private: its author, while it is in their household.'
+        save_count:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: How many other accounts have saved this recipe, which its delete
+            dialog warns of; null unless the signed-in account may delete it.
       required:
       - author
       - can_delete
@@ -1622,6 +1936,7 @@ components:
       - one_pot
       - photo
       - prep_minutes
+      - save_count
       - servings
       - slug
       - source
@@ -1723,6 +2038,61 @@ components:
           $ref: '#/components/schemas/Visibility'
       required:
       - visibility
+    SaveRecipe:
+      type: object
+      properties:
+        recipe:
+          type: string
+          description: 'The slug of a recipe the account can see: a public recipe,
+            or its household''s own.'
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - recipe
+    SavedList:
+      type: object
+      properties:
+        slug:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        saved_recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedRecipe'
+          readOnly: true
+          description: Newest saved first.
+      required:
+      - name
+      - saved_recipes
+      - slug
+    SavedRecipe:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          description: The title the recipe had when it was saved.
+        saved_at:
+          type: string
+          format: date-time
+          readOnly: true
+        recipe:
+          allOf:
+          - $ref: '#/components/schemas/ListedRecipe'
+          readOnly: true
+          nullable: true
+          description: 'null once the recipe is unavailable: its author made it private
+            or deleted it.'
+      required:
+      - id
+      - recipe
+      - saved_at
+      - title
     Seed:
       type: object
       properties:
@@ -1774,6 +2144,15 @@ components:
           items:
             type: object
             additionalProperties: {}
+          maxItems: 20
+        saves:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: 'Titles of the recipes this member saves to Favourites, oldest
+            first, once every member''s recipes are made: a recipe a member of this
+            seed wrote, or a catalogue recipe. Each must be one the member can see.'
           maxItems: 20
       required:
       - key
@@ -1837,6 +2216,14 @@ components:
       required:
       - id
       - text
+    Undo:
+      type: object
+      properties:
+        undo:
+          type: string
+          description: Puts the recipe back where it was, for an hour.
+      required:
+      - undo
     UnitEnum:
       enum:
       - g

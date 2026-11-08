@@ -21,6 +21,13 @@ class SeedMemberSerializer(serializers.Serializer):
         'name them.',
     )
     recipes = serializers.ListField(child=serializers.DictField(), max_length=20, default=list)
+    saves = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text="Titles of the recipes this member saves to Favourites, oldest first, once every member's recipes "
+        'are made: a recipe a member of this seed wrote, or a catalogue recipe. Each must be one the member can see.',
+    )
 
 
 class SeedHouseholdSerializer(serializers.Serializer):

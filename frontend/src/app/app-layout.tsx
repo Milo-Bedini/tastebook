@@ -1,10 +1,20 @@
+import { BookOpen, Library } from 'lucide-react';
 import { Outlet, useLocation } from 'react-router';
 
-import { Toaster, TopBar, type TopBarAccount, toast } from '../dino';
+import { FavouriteToggle, Hearts, SaveOnReturn } from '../collections';
+import { Dock, type NavTab, Toaster, TopBar, type TopBarAccount, toast } from '../dino';
 import { useSession, useSignOut } from '../households';
-import { useRecipeSearch } from '../recipes';
+import { FavouriteSlot, useRecipeSearch } from '../recipes';
 
 const SIGN_IN_PATH = '/sign-in';
+
+const FAVOURITE_PARTS = { Heart: FavouriteToggle, Hearts };
+
+// Signed out there's only Recipes, so no tabs at all.
+const TABS: NavTab[] = [
+  { to: '/recipes', label: 'Recipes', icon: BookOpen },
+  { to: '/lists', label: 'Lists', icon: Library }
+];
 
 const SIGN_OUT_FAILED = "Couldn't sign out. Check your connection and try again.";
 
@@ -38,16 +48,20 @@ const useAccountEnd = (): TopBarAccount | undefined => {
 export const AppLayout = () => {
   const { searchText, changeSearchText } = useRecipeSearch();
   const account = useAccountEnd();
+  const tabs = account?.status === 'signed-in' ? TABS : [];
   return (
-    <>
+    <FavouriteSlot value={FAVOURITE_PARTS}>
       <TopBar
         searchLabel="Search recipes"
         searchValue={searchText}
         onSearchValueChange={changeSearchText}
         account={account}
+        tabs={tabs}
       />
       <Outlet />
-      <Toaster />
-    </>
+      <Dock tabs={tabs} />
+      <SaveOnReturn />
+      <Toaster aboveDock={tabs.length > 0} />
+    </FavouriteSlot>
   );
 };

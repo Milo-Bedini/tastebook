@@ -52,7 +52,8 @@ const flatbreads: Recipe = {
   diet_tag_conflicts: [],
   can_delete: false,
   can_edit: true,
-  can_publish: false
+  can_publish: false,
+  save_count: null
 };
 
 // Signed in, the recipe answered as `recipe`, and each PATCH body recorded and answered by `respond`, which by

@@ -50,7 +50,8 @@ const saved: Recipe = {
   diet_tag_conflicts: [],
   can_delete: false,
   can_edit: true,
-  can_publish: false
+  can_publish: false,
+  save_count: null
 };
 
 // Signed in, with each POST body recorded and answered by `respond`; the saved recipe's page answers with it.
@@ -156,7 +157,8 @@ describe('NewRecipePage', () => {
     ]);
   });
 
-  it('sends every detail typed, and only the yield once Makes is chosen', async () => {
+  // Its 150-odd keystrokes each re-render the whole form, which took up to 5 s on a busy CI runner.
+  it('sends every detail typed, and only the yield once Makes is chosen', { timeout: 15_000 }, async () => {
     const sent = answerAdding();
     await openForm();
 

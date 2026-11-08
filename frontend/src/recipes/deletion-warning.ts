@@ -16,5 +16,10 @@ export const deletionWarning = (recipe: Recipe): string => {
     counts.length === 0
       ? recipe.title
       : `${recipe.title}${counts.length === 2 ? ',' : ' and'} its ${counts.join(' and ')}`;
-  return `${what} will be deleted for everyone in your household. You can't undo this.`;
+  // "6 people saved this; they'll see it's gone."; nothing when nobody else did.
+  const saves =
+    recipe.save_count === null || recipe.save_count === 0
+      ? ''
+      : ` ${counted(recipe.save_count, 'person', 'people')} saved this; they'll see it's gone.`;
+  return `${what} will be deleted for everyone in your household.${saves} You can't undo this.`;
 };

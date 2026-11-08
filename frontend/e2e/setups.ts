@@ -47,3 +47,35 @@ export const publishedRecipe: SeedHouseholdOf<'sam' | 'ben' | 'cy'>[] = [
   },
   { members: [{ key: 'cy', name: 'Cy' }] }
 ];
+
+// Sam, in "Sam's household", wrote two public recipes, Sam's shakshuka and Sam's dal. Jo, in a household of their own,
+// saved the catalogue's Black bean chilli, then Sam's dal, to Favourites.
+export const savedRecipes: SeedHouseholdOf<'sam' | 'jo'>[] = [
+  {
+    members: [
+      {
+        key: 'sam',
+        name: 'Sam',
+        recipes: [
+          {
+            title: "Sam's shakshuka",
+            visibility: 'public',
+            cuisines: ['Middle Eastern'],
+            prep_minutes: 10,
+            cook_minutes: 20,
+            servings: 2
+          },
+          {
+            title: "Sam's dal",
+            visibility: 'public',
+            cuisines: ['Indian'],
+            prep_minutes: 10,
+            cook_minutes: 30,
+            servings: 4
+          }
+        ]
+      }
+    ]
+  },
+  { members: [{ key: 'jo', name: 'Jo', saves: ['Black bean chilli', "Sam's dal"] }] }
+];

@@ -29,6 +29,7 @@ from recipes.models import (
     Visibility,
 )
 from recipes.photo_store import delete_photo
+from recipes.signals import counting_saves
 
 CATALOGUE_PATH = settings.BASE_DIR / 'recipes' / 'catalogue.json'
 
@@ -210,6 +211,11 @@ def _together(parts: list[str]) -> str:
     if len(parts) == 1:
         return parts[0]
     return f'{", ".join(parts[:-1])} and {parts[-1]}'
+
+
+def save_count(recipe: Recipe, excluding: User) -> int:
+    """How many accounts other than `excluding` have saved the recipe, and will find it gone once it's deleted."""
+    return sum(count for _, count in counting_saves.send(sender=Recipe, recipe=recipe, excluding=excluding))
 
 
 def delete_recipe(recipe: Recipe) -> None:

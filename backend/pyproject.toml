@@ -40,13 +40,13 @@ filterwarnings = [
 # The area rules in AGENTS.md (Domain areas). config wires the areas' views into URLs, so it's no area's caller.
 # A new area joins root_packages and the contracts below when it's added: import-linter refuses a missing package.
 [tool.importlinter]
-root_packages = ["config", "health", "households", "recipes", "seed"]
+root_packages = ["config", "health", "households", "recipe_collections", "recipes", "seed"]
 
 [[tool.importlinter.contracts]]
 name = "An area reaches another only through its services, models (and their querysets) and signals"
 type = "forbidden"
-source_modules = ["health", "households", "recipes", "seed"]
-forbidden_modules = ["health.*", "households.*", "recipes.*"]
+source_modules = ["health", "households", "recipe_collections", "recipes", "seed"]
+forbidden_modules = ["health.*", "households.*", "recipe_collections.*", "recipes.*"]
 ignore_imports = ["** -> *.services", "** -> *.models", "** -> *.signals"]
 # The public modules import their own area's private ones: only a direct import crosses the boundary.
 allow_indirect_imports = true
@@ -55,13 +55,13 @@ allow_indirect_imports = true
 name = "households depends on no other area"
 type = "forbidden"
 source_modules = ["households"]
-forbidden_modules = ["health", "recipes"]
+forbidden_modules = ["health", "recipe_collections", "recipes"]
 
 [[tool.importlinter.contracts]]
 name = "recipes depends on no area but households"
 type = "forbidden"
 source_modules = ["recipes"]
-forbidden_modules = ["health"]
+forbidden_modules = ["health", "recipe_collections"]
 
 [[tool.importlinter.contracts]]
 name = "seed is imported by nothing"

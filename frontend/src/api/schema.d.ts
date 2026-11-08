@@ -208,6 +208,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lists/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The signed-in account's lists: Favourites, even before anything is saved to it. */
+        get: operations["lists_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lists/favourites/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The signed-in account's Favourites, newest saved first. A recipe its author has since made private or deleted keeps its place with the title it was saved with and no recipe. */
+        get: operations["lists_favourites_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lists/favourites/saved/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Saves a recipe to Favourites as a link, never a copy (201), or answers the save it already has (200). */
+        post: operations["lists_favourites_saved_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lists/favourites/saved/{saved_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Takes a saved recipe out of Favourites, available or not, and answers a token that puts it back. */
+        delete: operations["lists_favourites_saved_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lists/favourites/saved/restore/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Puts a saved recipe back in its old place, with the token taking it out answered. */
+        post: operations["lists_favourites_saved_restore_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/photos/": {
         parameters: {
             query?: never;
@@ -460,6 +545,53 @@ export interface components {
             /** @description How many private recipes the viewer wrote in their household and would take a copy of by joining. 0 when the link offers them no household to join. */
             recipes_to_copy: number;
         };
+        ListCover: {
+            readonly id: number;
+            readonly photo: components["schemas"]["ListedPhoto"] | null;
+        };
+        ListSummary: {
+            readonly slug: string;
+            readonly name: string;
+            /** @description Unavailable recipes count too. */
+            readonly recipe_count: number;
+            /** @description Up to three of the list's newest available recipes, for its fan. */
+            readonly covers: components["schemas"]["ListCover"][];
+        };
+        ListedCuisine: {
+            slug: string;
+            name: string;
+        };
+        ListedPhoto: {
+            /** Format: uri */
+            readonly url: string;
+            readonly thumbnails: components["schemas"]["ListedPhotoThumbnail"][];
+            readonly credit: components["schemas"]["ListedPhotoCredit"] | null;
+        };
+        ListedPhotoCredit: {
+            readonly author: string;
+            readonly licence: string;
+            /** Format: uri */
+            readonly source_url: string;
+        };
+        ListedPhotoThumbnail: {
+            readonly width: number;
+            /** Format: uri */
+            readonly url: string;
+        };
+        ListedRecipe: {
+            readonly id: number;
+            readonly slug: string;
+            readonly visibility: components["schemas"]["Visibility"];
+            /** @description The name of whoever wrote a public household recipe; null for a private or catalogue recipe. */
+            readonly author: string | null;
+            title: string;
+            description: string;
+            readonly cuisines: components["schemas"]["ListedCuisine"][];
+            difficulty: components["schemas"]["DifficultyEnum"] | components["schemas"]["BlankEnum"];
+            readonly total_minutes: number | null;
+            readonly photo: components["schemas"]["ListedPhoto"] | null;
+            readonly diet_tags: components["schemas"]["DietTag"][];
+        };
         Member: {
             id: number;
             name: string;
@@ -639,6 +771,8 @@ export interface components {
             readonly can_edit: boolean;
             /** @description Whether the signed-in account may make this recipe public or private: its author, while it is in their household. */
             readonly can_publish: boolean;
+            /** @description How many other accounts have saved this recipe, which its delete dialog warns of; null unless the signed-in account may delete it. */
+            readonly save_count: number | null;
         };
         RecipePhoto: {
             /**
@@ -667,6 +801,25 @@ export interface components {
         RecipeVisibility: {
             visibility: components["schemas"]["Visibility"];
         };
+        SaveRecipe: {
+            /** @description The slug of a recipe the account can see: a public recipe, or its household's own. */
+            recipe: string;
+        };
+        SavedList: {
+            readonly slug: string;
+            readonly name: string;
+            /** @description Newest saved first. */
+            readonly saved_recipes: components["schemas"]["SavedRecipe"][];
+        };
+        SavedRecipe: {
+            readonly id: number;
+            /** @description The title the recipe had when it was saved. */
+            readonly title: string;
+            /** Format: date-time */
+            readonly saved_at: string;
+            /** @description null once the recipe is unavailable: its author made it private or deleted it. */
+            readonly recipe: components["schemas"]["ListedRecipe"] | null;
+        };
         Seed: {
             households: components["schemas"]["SeedHousehold"][];
         };
@@ -689,6 +842,8 @@ export interface components {
             recipes?: {
                 [key: string]: unknown;
             }[];
+            /** @description Titles of the recipes this member saves to Favourites, oldest first, once every member's recipes are made: a recipe a member of this seed wrote, or a catalogue recipe. Each must be one the member can see. */
+            saves?: string[];
         };
         Seeded: {
             session_cookie: string;
@@ -713,6 +868,10 @@ export interface components {
         Step: {
             readonly id: number;
             text: string;
+        };
+        Undo: {
+            /** @description Puts the recipe back where it was, for an hour. */
+            undo: string;
         };
         /**
          * @description * `g` - g
@@ -1231,6 +1390,186 @@ export interface operations {
             };
             /** @description No response body */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListSummary"][];
+                };
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_favourites_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedList"];
+                };
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_favourites_saved_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveRecipe"];
+                "application/x-www-form-urlencoded": components["schemas"]["SaveRecipe"];
+                "multipart/form-data": components["schemas"]["SaveRecipe"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedRecipe"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedRecipe"];
+                };
+            };
+            /** @description No recipe slug was sent. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account can see: there's none, or it's another household's private recipe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_favourites_saved_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                saved_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Undo"];
+                };
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The account has no such saved recipe: it's been taken out already. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_favourites_saved_restore_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Undo"];
+                "application/x-www-form-urlencoded": components["schemas"]["Undo"];
+                "multipart/form-data": components["schemas"]["Undo"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedRecipe"];
+                };
+            };
+            /** @description The token is missing, over an hour old, forged or another account's. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
