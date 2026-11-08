@@ -28,7 +28,10 @@ CREDIT = 'Adapted from the Wikibooks Cookbook (CC BY-SA 4.0), converted to metri
 WIKIBOOKS_PAGE = re.compile(r'^https://en\.wikibooks\.org/wiki/Cookbook:[^?#]+$')
 SHORTLIST = Path(__file__).resolve().parent.parent / 'recipes' / 'catalogue-shortlist.json'
 CATALOGUE = Path(__file__).resolve().parent.parent / 'recipes' / 'catalogue.json'
-BIOME_CONFIG = Path(__file__).resolve().parents[2] / 'biome.json'
+# mutmut runs the tests from a copy in backend/mutants/, a folder deeper than the repo root's biome.json.
+BIOME_CONFIG = next(
+    folder / 'biome.json' for folder in Path(__file__).resolve().parents if (folder / 'biome.json').is_file()
+)
 
 # A small catalogue for tests about loading, not about the repo's own file.
 SHAKSHUKA: dict[str, Any] = {
