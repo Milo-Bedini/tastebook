@@ -27,7 +27,7 @@ import {
 import { RecipeIntro } from './recipe-intro';
 import { RecipeMethod } from './recipe-method';
 import { RecipePhotoCredit } from './recipe-photo-credit';
-import { useRecipe, useVisibilityGone } from './recipes-api';
+import { useCopyGone, useRecipe, useVisibilityGone } from './recipes-api';
 
 type Recipe = components['schemas']['Recipe'];
 
@@ -217,8 +217,9 @@ const RecipeForSlug = ({ slug }: RecipeForSlugProps) => {
   const { data, errorUpdatedAt, refetch } = useRecipe(slug);
   const preferredSystem = usePreferredSystem();
   const visibilityGone = useVisibilityGone(slug);
+  const copyGone = useCopyGone(slug);
   if (data === null) {
-    return <RecipeNotFound takesFocus={visibilityGone} />;
+    return <RecipeNotFound takesFocus={visibilityGone || copyGone} />;
   }
   // A recipe already shown stays up if a background refetch fails. It waits for the session, so a US account never
   // sees metric first.

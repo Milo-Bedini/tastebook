@@ -158,3 +158,52 @@ export const useVisibilityGone = (slug: string) =>
     filters: { mutationKey: visibilityKey(slug) },
     select: ({ state }) => (state.data as VisibilityChange | undefined)?.kind === 'gone'
   }).at(-1) === true;
+
+export type RecipeCopying = { kind: 'copied'; recipe: Recipe } | { kind: 'signed-out' } | { kind: 'gone' };
+
+const copyKey = (slug: string) => ['recipes', slug, 'copy'];
+
+export const useCopyRecipe = (slug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: copyKey(slug),
+    mutationFn: async (): Promise<RecipeCopying> => {
+      const { data, response } = await api.POST('/api/recipes/{slug}/copy/', { params: { path: { slug } } });
+      if (data !== undefined) {
+        return { kind: 'copied', recipe: data };
+      }
+      // Signed out, or no household any more: the page asks the session again.
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // Deleted, or made private by another household, since the page opened.
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Copying a recipe failed with ${response.status}`);
+    },
+    onSuccess: async (result) => {
+      if (result.kind === 'signed-out') {
+        return;
+      }
+      if (result.kind === 'copied') {
+        queryClient.setQueryData<Recipe>(['recipes', result.recipe.slug], result.recipe);
+        // Only the lists: the copy just set is already current.
+        await queryClient.invalidateQueries({
+          queryKey: ['recipes'],
+          predicate: ({ queryKey }) => queryKey[1] !== result.recipe.slug
+        });
+        return;
+      }
+      // Gone, the page shows what's true now.
+      await queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    }
+  });
+};
+
+// Whether the latest copy of the recipe found it gone, which takes the page, and the focused button, away.
+export const useCopyGone = (slug: string) =>
+  useMutationState({
+    filters: { mutationKey: copyKey(slug) },
+    select: ({ state }) => (state.data as RecipeCopying | undefined)?.kind === 'gone'
+  }).at(-1) === true;
