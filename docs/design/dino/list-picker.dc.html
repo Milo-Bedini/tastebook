@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>ListPicker, every state</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 40px}
+.cell{display:flex;flex-direction:column;gap:10px}
+.panel{background:var(--color-surface);border-radius:var(--radius-card);padding:16px;box-sizing:border-box}
+.prow{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 8px 6px 12px;box-sizing:border-box;border-radius:var(--radius-row);cursor:pointer;transition:background 120ms ease-out}
+.prow input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.prow .nm{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.prow .nm b{font-size:16px;line-height:24px;font-weight:600;overflow-wrap:break-word}
+.prow .nm span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.box{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-check);display:grid;place-items:center;color:var(--color-on-pastel)}
+.box.on{background:var(--color-mint);border-color:transparent}
+.prow.hv{background:var(--color-line)}
+.prow.hv .box{border-color:var(--color-ink)}
+.prow.hv .box.on{background:var(--color-mint-hover);border-color:transparent}
+.prow.pr{background:var(--color-surface-pressed)}
+.prow.pr .box{transform:scale(0.92)}
+.prow.pr .box.on{background:var(--color-mint-pressed)}
+.prow.fc{outline:3px solid var(--color-ink);outline-offset:0}
+.rerr{margin:0;padding:4px 12px 0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.rerr svg{flex-shrink:0;margin-top:1px}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+code{font-size:14px}
+</style>
+</helmet>
+<div style="width: 1500px; height: 1240px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-195 · new in Dino · <code>src/dino/list-picker.tsx</code> · the approved TAS-125 board, unchanged but for where it lives</span>
+    <h1 class="ttl">ListPicker: one row per list, ticked when it holds the recipe</h1>
+    <span class="cap">The sheet’s body: a fieldset per group (“Just you”, then the household’s name) of native checkboxes. Each row is the list’s name in Body and its count in Small Muted, with Checkbox row’s 28 px box at the end. Drawn on Surface, as in the sheet.</span>
+  </header>
+
+  <div class="grid">
+    <div class="cell"><span class="cap"><b>Off</b> · doesn’t hold it: a 2 px Field box</span>
+      <div class="panel"><label class="prow"><input type="checkbox"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label></div></div>
+    <div class="cell"><span class="cap"><b>is-on</b> · holds it: mint with a check, never colour alone</span>
+      <div class="panel"><label class="prow"><input type="checkbox" checked><span class="nm"><b>Weeknight dinners</b><span>8 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+    <div class="cell"><span class="cap"><b>is-hover</b> · the row fills with Line; the box’s border turns Ink, or mint to its hover</span>
+      <div class="panel" style="display: flex; flex-direction: column; gap: 8px"><label class="prow hv"><input type="checkbox"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label><label class="prow hv"><input type="checkbox" checked><span class="nm"><b>Sunday roasts</b><span>12 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+
+    <div class="cell"><span class="cap"><b>is-pressed</b> · Surface pressed, as a menu item; the box shrinks to 92%</span>
+      <div class="panel"><label class="prow pr"><input type="checkbox"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label></div></div>
+    <div class="cell"><span class="cap"><b>is-focus</b> · the 3 px Ink ring on the row’s own 14 px edge</span>
+      <div class="panel"><label class="prow fc"><input type="checkbox"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label></div></div>
+    <div class="cell"><span class="cap"><b>Saving</b> · shows the new state at once, <code>aria-busy</code>, ignores presses</span>
+      <div class="panel"><label class="prow" aria-busy="true"><input type="checkbox" checked><span class="nm"><b>Weeknight dinners</b><span>8 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+
+    <div class="cell"><span class="cap"><b>Didn’t save</b> · back as it was, with why under it</span>
+      <div class="panel"><label class="prow"><input type="checkbox" aria-describedby="x-err"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label><p id="x-err" class="rerr"><x-import component-from-global-scope="Dino.icons.CircleAlert" size="{{s16}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Couldn’t save it to Weeknight dinners. Check your connection, then tick it again.</p></div></div>
+    <div class="cell"><span class="cap"><b>Long name</b> · 60 characters wrap; the box stays centred</span>
+      <div class="panel"><label class="prow"><input type="checkbox" checked><span class="nm"><b>Things to cook when Nonna visits in the summer holidays</b><span>23 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+    <div class="cell"><span class="cap"><b>Empty list</b> · the index’s words for its count</span>
+      <div class="panel" style="display: flex; flex-direction: column; gap: 2px"><label class="prow"><input type="checkbox"><span class="nm"><b>Favourites</b><span>Nothing saved yet</span></span><span class="box" aria-hidden="true"></span></label><label class="prow"><input type="checkbox"><span class="nm"><b>Christmas</b><span>Nothing here yet</span></span><span class="box" aria-hidden="true"></span></label></div></div>
+  </div>
+
+  <div class="notes">
+    <p><b>Not ListRow:</b> the index’s row is a 112 px link card with a fan of photos, made for going to a list. Here a row is a choice, so it’s a checkbox, 56 px, and four lists fit a phone’s sheet. ListRow keeps its one use.</p>
+    <p><b>The box is Checkbox row’s</b> (design.md, Components): Dino’s <code>Checkbox</code>, 28 px, 10 px corners, mint with a check, without the strike-through, which means “bought”. ListPicker knows no lists: it takes each row’s name, count words, ticked, saving and error from its caller.</p>
+    <p><b>Forced colours:</b> the box’s border is CanvasText, a ticked box Highlight with its check in HighlightText, and the focus ring CanvasText (drawn on the next board). In Dino, recipes can use it on TAS-125’s sheet without a slot.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1500,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, s16: 16, s18: 18, sw: 2.25, s3: 3 };
+  }
+}
+</script>
+</body>
+</html>
