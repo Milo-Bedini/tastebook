@@ -13,11 +13,15 @@ type SwitchProps = {
   children: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
+  // What turning it on does, said before it's turned on. A disabled reason takes its place while shown.
+  description?: string;
 } & DisabledProps;
 
-export const Switch = ({ children, checked, onCheckedChange, disabled, disabledReason }: SwitchProps) => {
+export const Switch = ({ children, checked, onCheckedChange, description, disabled, disabledReason }: SwitchProps) => {
   const id = useId();
   const reasonId = useId();
+  const descriptionId = useId();
+  const describedBy = disabled ? reasonId : description === undefined ? undefined : descriptionId;
 
   // Controlled, so ignoring the change leaves a disabled switch as it was, however it was pressed.
   const handleCheckedChange = (next: boolean) => {
@@ -42,7 +46,7 @@ export const Switch = ({ children, checked, onCheckedChange, disabled, disabledR
           onCheckedChange={handleCheckedChange}
           // aria-disabled rather than disabled, so the switch stays focusable and reads its reason.
           aria-disabled={disabled || undefined}
-          aria-describedby={disabled ? reasonId : undefined}
+          aria-describedby={describedBy}
           className={cn(
             // The row carries the focus ring, so the switch doesn't draw its own.
             'relative h-8 w-13 shrink-0 rounded-pill border-2 transition focus-visible:outline-none',
@@ -70,6 +74,11 @@ export const Switch = ({ children, checked, onCheckedChange, disabled, disabledR
         <p id={reasonId} className="flex items-start gap-2 text-small text-muted">
           <Info aria-hidden="true" className="mt-px size-4 shrink-0" strokeWidth={2.5} />
           {disabledReason}
+        </p>
+      )}
+      {!disabled && description !== undefined && (
+        <p id={descriptionId} className="px-2 text-small text-muted">
+          {description}
         </p>
       )}
     </div>
