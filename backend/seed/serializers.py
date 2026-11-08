@@ -4,6 +4,19 @@ from typing import Any
 from rest_framework import serializers
 
 from households.models import HOUSEHOLD_NAME_MAX_LENGTH, NAME_MAX_LENGTH, UnitSystem
+from recipe_collections.models import LIST_NAME_MAX_LENGTH, Scope
+
+
+class SeedListSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=LIST_NAME_MAX_LENGTH)
+    # Left out rather than given a default, so the generated request type has it optional.
+    scope = serializers.ChoiceField(choices=Scope.choices, required=False, help_text='personal when not given.')
+    recipes = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text='Titles of the recipes in it, oldest first, as saves name them.',
+    )
 
 
 class SeedMemberSerializer(serializers.Serializer):
@@ -28,11 +41,17 @@ class SeedMemberSerializer(serializers.Serializer):
         help_text="Titles of the recipes this member saves to Favourites, oldest first, once every member's recipes "
         'are made: a recipe a member of this seed wrote, or a catalogue recipe. Each must be one the member can see.',
     )
+    lists = SeedListSerializer(
+        many=True,
+        max_length=10,
+        default=list,
+        help_text="Lists this member makes, the member's own or the household's, once every save is made.",
+    )
     copies = serializers.ListField(
         child=serializers.CharField(max_length=200),
         max_length=20,
         default=list,
-        help_text='Titles of the recipes this member makes a copy of, once every save is made, as saves name them. '
+        help_text='Titles of the recipes this member makes a copy of, once every list is made, as saves name them. '
         "Each copy is listed after the member's own recipes.",
     )
 

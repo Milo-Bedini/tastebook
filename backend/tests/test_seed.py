@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 from django.http import HttpResponse
+from django.utils import timezone
 from pytest_django.fixtures import Settings
 from rest_framework.test import APIClient
 
@@ -307,4 +308,41 @@ def test_a_seeded_member_can_t_save_a_recipe_they_can_t_see(test_accounts: Setti
         400,
         ['Jo can\'t save "Sam\'s curry": no recipe they can see has that title.'],
     )
+    assert User.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_makes_lists_of_their_own_and_the_household_s(test_accounts: Settings) -> None:
+    make_recipe(title='Baklava')
+    make_recipe(title='Trifle')
+    lists = [
+        {'name': 'Puddings', 'recipes': ['Baklava', 'Trifle']},
+        {'name': 'Sunday roasts', 'scope': 'household'},
+    ]
+    body = seeded({'members': [{'key': 'jo', 'name': 'Jo', 'lists': lists}, {'key': 'sam', 'name': 'Sam'}]})
+
+    jo = signed_in_as(body, 'jo')
+    seen_by_sam = signed_in_as(body, 'sam').get('/api/lists/').json()['lists']
+    puddings = jo.get('/api/lists/puddings/').json()['saved_recipes']
+
+    assert [entry['recipe']['title'] for entry in puddings] == ['Trifle', 'Baklava']
+    assert [(found['scope'], found['name']) for found in jo.get('/api/lists/').json()['lists']] == [
+        ('personal', 'Favourites'),
+        ('personal', 'Puddings'),
+        ('household', 'Sunday roasts'),
+    ]
+    assert [found['name'] for found in seen_by_sam] == ['Favourites', 'Sunday roasts']
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_can_t_make_a_list_named_like_another(test_accounts: Settings) -> None:
+    lists = [{'name': 'Puddings'}, {'name': 'puddings'}]
+
+    response = seed({'households': [{'members': [{'key': 'jo', 'name': 'Jo', 'lists': lists}]}]})
+
+    assert response.status_code == 400
+    assert response.json() == [
+        f'Jo can\'t make the list "puddings": You already have a list called Puddings. Try another name, like '
+        f'puddings {timezone.localdate().year}.'
+    ]
     assert User.objects.count() == 0

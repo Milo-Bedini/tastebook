@@ -215,31 +215,34 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description The signed-in account's lists: Favourites, even before anything is saved to it. */
+        /** @description The lists the signed-in account sees: Favourites, even before anything is saved to it, its own lists and its household's, with its household's name. */
         get: operations["lists_list"];
         put?: never;
-        post?: never;
+        /** @description Makes an empty list, the account's own or its household's, at an address made from its name. */
+        post: operations["lists_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/lists/favourites/": {
+    "/api/lists/{slug}/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description The signed-in account's Favourites, newest saved first. A recipe its author has since made private or deleted keeps its place with the title it was saved with and no recipe. */
-        get: operations["lists_favourites_retrieve"];
+        /** @description One of the signed-in account's own lists, Favourites among them, newest saved first. A recipe its author has since made private or deleted keeps its place with the title it was saved with and no recipe. */
+        get: operations["lists_retrieve"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** @description Deletes one of the signed-in account's own lists, Favourites among them. Its recipes stay in Tastebook and in any other list. */
+        delete: operations["lists_destroy"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** @description Renames one of the signed-in account's own lists, Favourites among them; its slug follows the new name. */
+        patch: operations["lists_partial_update"];
         trace?: never;
     };
     "/api/lists/favourites/saved/": {
@@ -259,7 +262,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/lists/favourites/saved/{saved_id}/": {
+    "/api/lists/household/{slug}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description One of the signed-in account's household's lists, which every member sees and changes, newest saved first. A recipe its author has since made private or deleted keeps its place with the title it was saved with and no recipe. */
+        get: operations["lists_household_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description Deletes one of the signed-in account's household's lists, which every member sees and changes. Its recipes stay in Tastebook and in any other list. */
+        delete: operations["lists_household_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Renames one of the signed-in account's household's lists, which every member sees and changes; its slug follows the new name. */
+        patch: operations["lists_household_partial_update"];
+        trace?: never;
+    };
+    "/api/lists/saved/{saved_id}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -269,14 +291,14 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** @description Takes a saved recipe out of Favourites, available or not, and answers a token that puts it back. */
-        delete: operations["lists_favourites_saved_destroy"];
+        /** @description Takes a saved recipe out of any list the account sees, its own or its household's, available or not, and answers a token that puts it back. */
+        delete: operations["lists_saved_destroy"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/lists/favourites/saved/restore/": {
+    "/api/lists/saved/restore/": {
         parameters: {
             query?: never;
             header?: never;
@@ -286,7 +308,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Puts a saved recipe back in its old place, with the token taking it out answered. */
-        post: operations["lists_favourites_saved_restore_create"];
+        post: operations["lists_saved_restore_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -569,6 +591,13 @@ export interface components {
         ListSummary: {
             readonly slug: string;
             readonly name: string;
+            /**
+             * @description personal: only its owner sees it. household: everyone in the household sees and changes it.
+             *
+             *     * `personal` - Just you
+             *     * `household` - Household
+             */
+            readonly scope: components["schemas"]["ScopeEnum"];
             /** @description Unavailable recipes count too. */
             readonly recipe_count: number;
             /** @description Up to three of the list's newest available recipes, for its fan. */
@@ -609,6 +638,14 @@ export interface components {
             readonly photo: components["schemas"]["ListedPhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
         };
+        Lists: {
+            /** @description The account's household's name; null before it has one. */
+            readonly household_name: string | null;
+            /** @description How many accounts are in the household, the signed-in one included; 0 before it has one. */
+            readonly household_members: number;
+            /** @description Favourites, then the account's own lists by name, then its household's by name. */
+            readonly lists: components["schemas"]["ListSummary"][];
+        };
         Member: {
             id: number;
             name: string;
@@ -632,6 +669,17 @@ export interface components {
             note: string;
             optional: boolean;
             original_text: string;
+        };
+        NewList: {
+            /** @description Unique among the owner's lists, or the household's, ignoring case; never "Favourites". */
+            name: string;
+            /**
+             * @description personal: only its owner sees it. household: everyone in the household sees and changes it.
+             *
+             *     * `personal` - Just you
+             *     * `household` - Household
+             */
+            scope: components["schemas"]["ScopeEnum"];
         };
         /** @description What the form sends to add a recipe. Only the title is required. */
         NewRecipe: {
@@ -683,6 +731,10 @@ export interface components {
             unit_system?: components["schemas"]["UnitSystem"];
         };
         PatchedHouseholdChanges: {
+            name?: string;
+        };
+        PatchedListName: {
+            /** @description Unique among the owner's lists, or the household's, ignoring case; never "Favourites". */
             name?: string;
         };
         /** @description What the form sends to edit a recipe: the fields it has, each optional. The title can't be blanked. */
@@ -831,6 +883,15 @@ export interface components {
         SavedList: {
             readonly slug: string;
             readonly name: string;
+            /**
+             * @description personal: only its owner sees it. household: everyone in the household sees and changes it.
+             *
+             *     * `personal` - Just you
+             *     * `household` - Household
+             */
+            readonly scope: components["schemas"]["ScopeEnum"];
+            /** @description The household's name for a household list; null for a personal one. */
+            readonly household_name: string | null;
             /** @description Newest saved first. */
             readonly saved_recipes: components["schemas"]["SavedRecipe"][];
         };
@@ -843,12 +904,30 @@ export interface components {
             /** @description null once the recipe is unavailable: its author made it private or deleted it. */
             readonly recipe: components["schemas"]["ListedRecipe"] | null;
         };
+        /**
+         * @description * `personal` - Just you
+         *     * `household` - Household
+         * @enum {string}
+         */
+        ScopeEnum: "personal" | "household";
         Seed: {
             households: components["schemas"]["SeedHousehold"][];
         };
         SeedHousehold: {
             name?: string;
             members: components["schemas"]["SeedMember"][];
+        };
+        SeedList: {
+            name: string;
+            /**
+             * @description personal when not given.
+             *
+             *     * `personal` - Just you
+             *     * `household` - Household
+             */
+            scope?: components["schemas"]["ScopeEnum"];
+            /** @description Titles of the recipes in it, oldest first, as saves name them. */
+            recipes?: string[];
         };
         SeedMember: {
             key: string;
@@ -867,7 +946,9 @@ export interface components {
             }[];
             /** @description Titles of the recipes this member saves to Favourites, oldest first, once every member's recipes are made: a recipe a member of this seed wrote, or a catalogue recipe. Each must be one the member can see. */
             saves?: string[];
-            /** @description Titles of the recipes this member makes a copy of, once every save is made, as saves name them. Each copy is listed after the member's own recipes. */
+            /** @description Lists this member makes, the member's own or the household's, once every save is made. */
+            lists?: components["schemas"]["SeedList"][];
+            /** @description Titles of the recipes this member makes a copy of, once every list is made, as saves name them. Each copy is listed after the member's own recipes. */
             copies?: string[];
         };
         Seeded: {
@@ -1436,7 +1517,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ListSummary"][];
+                    "application/json": components["schemas"]["Lists"];
                 };
             };
             /** @description Signed out. */
@@ -1448,11 +1529,52 @@ export interface operations {
             };
         };
     };
-    lists_favourites_retrieve: {
+    lists_create: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewList"];
+                "application/x-www-form-urlencoded": components["schemas"]["NewList"];
+                "multipart/form-data": components["schemas"]["NewList"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedList"];
+                };
+            };
+            /** @description The name is missing, too long, "Favourites", or the name of another of the owner's lists. Or a household list for an account with no household. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -1467,6 +1589,95 @@ export interface operations {
             };
             /** @description Signed out. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The account has no list with this slug, of its own or its household's: there's none, it's been deleted or renamed, or it's another account's or household's. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description As for GET, and Favourites, which is never renamed or deleted. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedListName"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedListName"];
+                "multipart/form-data": components["schemas"]["PatchedListName"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedList"];
+                };
+            };
+            /** @description The name is missing, too long, "Favourites", or the name of another of the owner's lists. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description As for GET, and Favourites, which is never renamed or deleted. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1528,7 +1739,124 @@ export interface operations {
             };
         };
     };
-    lists_favourites_saved_destroy: {
+    lists_household_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedList"];
+                };
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The account has no list with this slug, of its own or its household's: there's none, it's been deleted or renamed, or it's another account's or household's. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_household_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description As for GET, and Favourites, which is never renamed or deleted. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_household_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedListName"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedListName"];
+                "multipart/form-data": components["schemas"]["PatchedListName"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedList"];
+                };
+            };
+            /** @description The name is missing, too long, "Favourites", or the name of another of the owner's lists. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description As for GET, and Favourites, which is never renamed or deleted. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_saved_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -1554,7 +1882,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description The account has no such saved recipe: it's been taken out already. */
+            /** @description No list the account sees has this saved recipe: it's been taken out already, or its list deleted. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -1563,7 +1891,7 @@ export interface operations {
             };
         };
     };
-    lists_favourites_saved_restore_create: {
+    lists_saved_restore_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -1586,7 +1914,7 @@ export interface operations {
                     "application/json": components["schemas"]["SavedRecipe"];
                 };
             };
-            /** @description The token is missing, over an hour old, forged or another account's. */
+            /** @description The token is missing, over an hour old or forged, or its list is one the account no longer sees. */
             400: {
                 headers: {
                     [name: string]: unknown;

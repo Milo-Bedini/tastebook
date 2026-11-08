@@ -19,7 +19,8 @@ from tests.test_recipes import make_recipe
 LISTS = '/api/lists/'
 FAVOURITES = '/api/lists/favourites/'
 SAVED = '/api/lists/favourites/saved/'
-RESTORE = '/api/lists/favourites/saved/restore/'
+RESTORE = '/api/lists/saved/restore/'
+UNSAVE = '/api/lists/saved/'
 JO = 'jo@example.com'
 SAM = 'sam@example.com'
 
@@ -29,7 +30,7 @@ def save(browser: BrowserClient, slug: str) -> HttpResponse:
 
 
 def unsave(browser: BrowserClient, saved_id: int) -> HttpResponse:
-    return browser.client.delete(f'{SAVED}{saved_id}/', **browser.csrf_header())
+    return browser.client.delete(f'{UNSAVE}{saved_id}/', **browser.csrf_header())
 
 
 def undo(browser: BrowserClient, token: str) -> HttpResponse:
@@ -94,7 +95,11 @@ def test_favourites_list_recipes_newest_saved_first() -> None:
     response = browser.client.get(FAVOURITES)
 
     assert response.status_code == 200
-    assert (response.json()['slug'], response.json()['name']) == ('favourites', 'Favourites')
+    assert (response.json()['slug'], response.json()['name'], response.json()['scope']) == (
+        'favourites',
+        'Favourites',
+        'personal',
+    )
     assert [title for title, _ in favourites(browser)] == ['Bibimbap', 'Baklava', 'Shakshuka']
 
 
@@ -119,7 +124,11 @@ def test_every_account_has_favourites_before_it_saves_anything() -> None:
     empty = browser.client.get(FAVOURITES)
 
     assert lists.status_code == 200
-    assert lists.json() == [{'slug': 'favourites', 'name': 'Favourites', 'recipe_count': 0, 'covers': []}]
+    assert lists.json() == {
+        'household_name': "Jo's household",
+        'household_members': 1,
+        'lists': [{'slug': 'favourites', 'name': 'Favourites', 'scope': 'personal', 'recipe_count': 0, 'covers': []}],
+    }
     assert (empty.status_code, empty.json()['saved_recipes']) == (200, [])
 
 
@@ -132,7 +141,7 @@ def test_the_lists_page_counts_every_saved_recipe_and_shows_the_newest_three_ava
     # The newest is no longer available, so it's counted but has no cover.
     recipes[-1].delete()
 
-    [favourites_list] = browser.client.get(LISTS).json()
+    [favourites_list] = browser.client.get(LISTS).json()['lists']
 
     assert favourites_list['recipe_count'] == 5
     assert [cover['id'] for cover in favourites_list['covers']] == [recipe.pk for recipe in recipes[3:0:-1]]
@@ -308,7 +317,7 @@ def signed_out_probes() -> list[Any]:
         pytest.param('get', LISTS, None, id='GET lists'),
         pytest.param('get', FAVOURITES, None, id='GET favourites'),
         pytest.param('post', SAVED, {'recipe': 'baklava'}, id='POST saved'),
-        pytest.param('delete', f'{SAVED}1/', None, id='DELETE saved'),
+        pytest.param('delete', f'{UNSAVE}1/', None, id='DELETE saved'),
         pytest.param('post', RESTORE, {'undo': 'a-token'}, id='POST restore'),
     ]
 

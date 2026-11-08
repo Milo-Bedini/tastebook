@@ -8,6 +8,9 @@ import { formatMinutes } from './format-minutes';
 
 type RecipeSummary = components['schemas']['RecipeSummary'];
 
+// A list's name and address, which a recipe opened from it offers as the way back.
+export type OpenedFrom = { name: string; path: string };
+
 const metaOf = (recipe: RecipeSummary) => {
   const cuisineNames = recipe.cuisines.map(({ name }) => name).join(', ');
   const totalTime = recipe.total_minutes === null ? '' : formatMinutes(recipe.total_minutes);
@@ -34,8 +37,8 @@ type RecipeCardProps = {
   recipe: RecipeSummary;
   lean: Lean;
   eager: boolean;
-  // Where the recipe's page says it was opened from, for its back link.
-  openedFrom?: 'favourites';
+  // The list the recipe's page was opened from, for its back link.
+  openedFrom?: OpenedFrom;
   action?: ReactNode;
 };
 

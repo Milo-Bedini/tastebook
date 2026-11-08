@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Lists in two groups</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:24px 20px 104px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.sec{display:flex;flex-direction:column;gap:12px}
+.sh{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.count{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.lists{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.lrow{display:flex;align-items:center;gap:16px;min-height:112px;padding:12px 12px 12px 16px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
+.fan{position:relative;width:96px;height:80px;flex-shrink:0}
+.fan span{position:absolute;top:8px;width:56px;height:62px;box-sizing:border-box;padding:5px 5px 14px;background:var(--color-paper);box-shadow:var(--shadow-lift)}
+.fan span i{display:block;height:100%;background:var(--color-line)}
+.fan.e span{background:transparent;box-shadow:none;border:2px dashed var(--color-field)}
+.fan.e span i{background:transparent}
+.fan .a{left:0;transform:rotate(-8deg)}.fan .b{left:20px;transform:rotate(3deg);top:4px}.fan .c{left:40px;transform:rotate(9deg)}
+.lname{display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0}
+.lname b{font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400;overflow-wrap:break-word}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.note b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1000px; height: 1300px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-124 · phone, 390 px · Milo, signed in, in The Bedinis</span>
+    <h1 class="ttl">Lists in two groups</h1>
+    <span class="cap">The index splits into the lists that are just yours and the household’s, each under its own heading, so who sees a list is where it sits.</span>
+  </header>
+
+  <div style="display: flex; gap: 40px; align-items: flex-start">
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 390px">
+      <span class="cap"><b>Lists</b> · Favourites and one list of Milo’s, two of the household’s</span>
+      <div class="phone">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end">
+            <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+            <button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button>
+          </div>
+        </div></header>
+        <main class="pg">
+          <div class="trow">
+            <h1 class="h1">Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">lists</x-import></h1>
+            <x-import component-from-global-scope="Dino.Button"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="{{sw}}"></x-import>New list</x-import>
+          </div>
+          <section class="sec" aria-labelledby="a-just">
+            <h2 id="a-just" class="sh">Just you</h2>
+            <ul class="lists">
+              <li><a href="#" class="lrow">
+                <span class="fan" aria-hidden="true"><span class="a"><i></i></span><span class="b"><i></i></span><span class="c"><i></i></span></span>
+                <span class="lname"><b>Favourites</b><span class="count">4 recipes</span></span>
+                <x-import component-from-global-scope="Dino.icons.ChevronRight" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>
+              </a></li>
+              <li><a href="#" class="lrow">
+                <span class="fan" aria-hidden="true"><span class="a"><i></i></span><span class="b"><i></i></span><span class="c"><i></i></span></span>
+                <span class="lname"><b>Weeknight dinners</b><span class="count">7 recipes</span></span>
+                <x-import component-from-global-scope="Dino.icons.ChevronRight" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>
+              </a></li>
+            </ul>
+          </section>
+          <section class="sec" aria-labelledby="a-hh">
+            <h2 id="a-hh" class="sh">The Bedinis</h2>
+            <ul class="lists">
+              <li><a href="#" class="lrow">
+                <span class="fan" aria-hidden="true"><span class="a"><i></i></span><span class="b"><i></i></span><span class="c"><i></i></span></span>
+                <span class="lname"><b>Sunday roasts</b><span class="count">12 recipes</span></span>
+                <x-import component-from-global-scope="Dino.icons.ChevronRight" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>
+              </a></li>
+              <li><a href="#" class="lrow">
+                <span class="fan e" aria-hidden="true"><span class="a"><i></i></span><span class="b"><i></i></span><span class="c"><i></i></span></span>
+                <span class="lname"><b>Christmas</b><span class="count">Nothing here yet</span></span>
+                <x-import component-from-global-scope="Dino.icons.ChevronRight" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>
+              </a></li>
+            </ul>
+          </section>
+        </main>
+        <nav aria-label="Main" class="dock"><ul>
+          <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+          <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+        </ul></nav>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px; width: 400px; padding-top: 27px">
+      <p class="note"><b>Two headings, in Title:</b> “Just you” and the household’s name. A row says nothing about who sees it: the heading it sits under does, and a screen reader hears it as the section’s name.</p>
+      <p class="note"><b>Favourites stays first</b> under “Just you”; the other lists follow by name, in each group.</p>
+      <p class="note"><b>New list is the screen’s one peach button</b>, at the end of the title row (it wraps under the title at large text). It opens the New list sheet, where Milo picks who it’s for.</p>
+      <p class="note"><b>A household with no lists</b> still shows its heading, with one line in Small Muted under it: “Lists you make for The Bedinis show here, for everyone in it.” So the place is learnt before it’s used.</p>
+      <p class="note"><b>A household of one</b> (no one else has joined) still has the group: its lists will be shared with whoever joins.</p>
+      <p class="note"><b>Each row links to its list’s page:</b> a personal list at /lists/&lt;name&gt;, a household one at /lists/household/&lt;name&gt;, so Milo’s own Christmas and The Bedinis’ Christmas can both exist without their addresses clashing.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, s20: 20, s22: 22, sw: 2.25 };
+  }
+}
+</script>
+</body>
+</html>

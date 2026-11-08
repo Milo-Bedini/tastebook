@@ -380,8 +380,9 @@ paths:
   /api/lists/:
     get:
       operationId: lists_list
-      description: 'The signed-in account''s lists: Favourites, even before anything
-        is saved to it.'
+      description: 'The lists the signed-in account sees: Favourites, even before
+        anything is saved to it, its own lists and its household''s, with its household''s
+        name.'
       tags:
       - lists
       security:
@@ -392,18 +393,56 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ListSummary'
+                $ref: '#/components/schemas/Lists'
           description: ''
         '403':
           description: Signed out.
-  /api/lists/favourites/:
+    post:
+      operationId: lists_create
+      description: Makes an empty list, the account's own or its household's, at an
+        address made from its name.
+      tags:
+      - lists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NewList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NewList'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedList'
+          description: ''
+        '400':
+          description: The name is missing, too long, "Favourites", or the name of
+            another of the owner's lists. Or a household list for an account with
+            no household.
+        '403':
+          description: Signed out.
+  /api/lists/{slug}/:
     get:
-      operationId: lists_favourites_retrieve
-      description: The signed-in account's Favourites, newest saved first. A recipe
-        its author has since made private or deleted keeps its place with the title
-        it was saved with and no recipe.
+      operationId: lists_retrieve
+      description: One of the signed-in account's own lists, Favourites among them,
+        newest saved first. A recipe its author has since made private or deleted
+        keeps its place with the title it was saved with and no recipe.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
       tags:
       - lists
       security:
@@ -418,6 +457,72 @@ paths:
           description: ''
         '403':
           description: Signed out.
+        '404':
+          description: 'The account has no list with this slug, of its own or its
+            household''s: there''s none, it''s been deleted or renamed, or it''s another
+            account''s or household''s.'
+    patch:
+      operationId: lists_partial_update
+      description: Renames one of the signed-in account's own lists, Favourites among
+        them; its slug follows the new name.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - lists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedListName'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedListName'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedListName'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedList'
+          description: ''
+        '400':
+          description: The name is missing, too long, "Favourites", or the name of
+            another of the owner's lists.
+        '403':
+          description: Signed out.
+        '404':
+          description: As for GET, and Favourites, which is never renamed or deleted.
+    delete:
+      operationId: lists_destroy
+      description: Deletes one of the signed-in account's own lists, Favourites among
+        them. Its recipes stay in Tastebook and in any other list.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - lists
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+        '403':
+          description: Signed out.
+        '404':
+          description: As for GET, and Favourites, which is never renamed or deleted.
   /api/lists/favourites/saved/:
     post:
       operationId: lists_favourites_saved_create
@@ -460,11 +565,104 @@ paths:
         '404':
           description: 'No recipe has this slug that the account can see: there''s
             none, or it''s another household''s private recipe.'
-  /api/lists/favourites/saved/{saved_id}/:
+  /api/lists/household/{slug}/:
+    get:
+      operationId: lists_household_retrieve
+      description: One of the signed-in account's household's lists, which every member
+        sees and changes, newest saved first. A recipe its author has since made private
+        or deleted keeps its place with the title it was saved with and no recipe.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - lists
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedList'
+          description: ''
+        '403':
+          description: Signed out.
+        '404':
+          description: 'The account has no list with this slug, of its own or its
+            household''s: there''s none, it''s been deleted or renamed, or it''s another
+            account''s or household''s.'
+    patch:
+      operationId: lists_household_partial_update
+      description: Renames one of the signed-in account's household's lists, which
+        every member sees and changes; its slug follows the new name.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - lists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedListName'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedListName'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedListName'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedList'
+          description: ''
+        '400':
+          description: The name is missing, too long, "Favourites", or the name of
+            another of the owner's lists.
+        '403':
+          description: Signed out.
+        '404':
+          description: As for GET, and Favourites, which is never renamed or deleted.
     delete:
-      operationId: lists_favourites_saved_destroy
-      description: Takes a saved recipe out of Favourites, available or not, and answers
-        a token that puts it back.
+      operationId: lists_household_destroy
+      description: Deletes one of the signed-in account's household's lists, which
+        every member sees and changes. Its recipes stay in Tastebook and in any other
+        list.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - lists
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+        '403':
+          description: Signed out.
+        '404':
+          description: As for GET, and Favourites, which is never renamed or deleted.
+  /api/lists/saved/{saved_id}/:
+    delete:
+      operationId: lists_saved_destroy
+      description: Takes a saved recipe out of any list the account sees, its own
+        or its household's, available or not, and answers a token that puts it back.
       parameters:
       - in: path
         name: saved_id
@@ -486,11 +684,11 @@ paths:
         '403':
           description: Signed out.
         '404':
-          description: 'The account has no such saved recipe: it''s been taken out
-            already.'
-  /api/lists/favourites/saved/restore/:
+          description: 'No list the account sees has this saved recipe: it''s been
+            taken out already, or its list deleted.'
+  /api/lists/saved/restore/:
     post:
-      operationId: lists_favourites_saved_restore_create
+      operationId: lists_saved_restore_create
       description: Puts a saved recipe back in its old place, with the token taking
         it out answered.
       tags:
@@ -518,7 +716,8 @@ paths:
                 $ref: '#/components/schemas/SavedRecipe'
           description: ''
         '400':
-          description: The token is missing, over an hour old, forged or another account's.
+          description: The token is missing, over an hour old or forged, or its list
+            is one the account no longer sees.
         '403':
           description: Signed out.
   /api/photos/:
@@ -1308,6 +1507,15 @@ components:
         name:
           type: string
           readOnly: true
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          readOnly: true
+          description: |-
+            personal: only its owner sees it. household: everyone in the household sees and changes it.
+
+            * `personal` - Just you
+            * `household` - Household
         recipe_count:
           type: integer
           readOnly: true
@@ -1323,6 +1531,7 @@ components:
       - covers
       - name
       - recipe_count
+      - scope
       - slug
     ListedCuisine:
       type: object
@@ -1449,6 +1658,30 @@ components:
       - title
       - total_minutes
       - visibility
+    Lists:
+      type: object
+      properties:
+        household_name:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The account's household's name; null before it has one.
+        household_members:
+          type: integer
+          readOnly: true
+          description: How many accounts are in the household, the signed-in one included;
+            0 before it has one.
+        lists:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListSummary'
+          readOnly: true
+          description: Favourites, then the account's own lists by name, then its
+            household's by name.
+      required:
+      - household_members
+      - household_name
+      - lists
     Member:
       type: object
       properties:
@@ -1524,6 +1757,25 @@ components:
       - optional
       - original_text
       - unit
+    NewList:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Unique among the owner's lists, or the household's, ignoring
+            case; never "Favourites".
+          maxLength: 60
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          description: |-
+            personal: only its owner sees it. household: everyone in the household sees and changes it.
+
+            * `personal` - Just you
+            * `household` - Household
+      required:
+      - name
+      - scope
     NewRecipe:
       type: object
       description: What the form sends to add a recipe. Only the title is required.
@@ -1657,6 +1909,14 @@ components:
         name:
           type: string
           maxLength: 100
+    PatchedListName:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Unique among the owner's lists, or the household's, ignoring
+            case; never "Favourites".
+          maxLength: 60
     PatchedRecipeChanges:
       type: object
       description: 'What the form sends to edit a recipe: the fields it has, each
@@ -2107,6 +2367,21 @@ components:
         name:
           type: string
           readOnly: true
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          readOnly: true
+          description: |-
+            personal: only its owner sees it. household: everyone in the household sees and changes it.
+
+            * `personal` - Just you
+            * `household` - Household
+        household_name:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The household's name for a household list; null for a personal
+            one.
         saved_recipes:
           type: array
           items:
@@ -2114,8 +2389,10 @@ components:
           readOnly: true
           description: Newest saved first.
       required:
+      - household_name
       - name
       - saved_recipes
+      - scope
       - slug
     SavedRecipe:
       type: object
@@ -2143,6 +2420,14 @@ components:
       - recipe
       - saved_at
       - title
+    ScopeEnum:
+      enum:
+      - personal
+      - household
+      type: string
+      description: |-
+        * `personal` - Just you
+        * `household` - Household
     Seed:
       type: object
       properties:
@@ -2164,6 +2449,29 @@ components:
             $ref: '#/components/schemas/SeedMember'
       required:
       - members
+    SeedList:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 60
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          description: |-
+            personal when not given.
+
+            * `personal` - Just you
+            * `household` - Household
+        recipes:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Titles of the recipes in it, oldest first, as saves name them.
+          maxItems: 20
+      required:
+      - name
     SeedMember:
       type: object
       properties:
@@ -2204,13 +2512,19 @@ components:
             first, once every member''s recipes are made: a recipe a member of this
             seed wrote, or a catalogue recipe. Each must be one the member can see.'
           maxItems: 20
+        lists:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeedList'
+          description: Lists this member makes, the member's own or the household's,
+            once every save is made.
         copies:
           type: array
           items:
             type: string
             maxLength: 200
           description: Titles of the recipes this member makes a copy of, once every
-            save is made, as saves name them. Each copy is listed after the member's
+            list is made, as saves name them. Each copy is listed after the member's
             own recipes.
           maxItems: 20
       required:

@@ -42,7 +42,13 @@ const signedIn = (isSignedIn: () => boolean = () => true) =>
 const answerFavourites = (savedRecipes: SavedRecipe[]) =>
   server.use(
     http.get('/api/lists/favourites/', () =>
-      HttpResponse.json<SavedList>({ slug: 'favourites', name: 'Favourites', saved_recipes: savedRecipes })
+      HttpResponse.json<SavedList>({
+        slug: 'favourites',
+        name: 'Favourites',
+        scope: 'personal',
+        household_name: null,
+        saved_recipes: savedRecipes
+      })
     )
   );
 
@@ -54,7 +60,7 @@ const answerSaving = (answer: () => Response | Promise<Response>) => {
       sent.push(`POST ${((await request.json()) as { recipe: string }).recipe}`);
       return answer();
     }),
-    http.delete('/api/lists/favourites/saved/:id/', ({ params }) => {
+    http.delete('/api/lists/saved/:id/', ({ params }) => {
       sent.push(`DELETE ${params.id}`);
       return HttpResponse.json({ undo: 'a-token' });
     })

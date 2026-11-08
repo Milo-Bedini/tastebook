@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>SegmentedControl: who’s it for</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:24px 20px 104px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.sec{display:flex;flex-direction:column;gap:12px}
+.sh{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.count{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.lists{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.lrow{display:flex;align-items:center;gap:16px;min-height:112px;padding:12px 12px 12px 16px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
+.fan{position:relative;width:96px;height:80px;flex-shrink:0}
+.fan span{position:absolute;top:8px;width:56px;height:62px;box-sizing:border-box;padding:5px 5px 14px;background:var(--color-paper);box-shadow:var(--shadow-lift)}
+.fan span i{display:block;height:100%;background:var(--color-line)}
+.fan.e span{background:transparent;box-shadow:none;border:2px dashed var(--color-field)}
+.fan.e span i{background:transparent}
+.fan .a{left:0;transform:rotate(-8deg)}.fan .b{left:20px;transform:rotate(3deg);top:4px}.fan .c{left:40px;transform:rotate(9deg)}
+.lname{display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0}
+.lname b{font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400;overflow-wrap:break-word}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.note b{font-weight:800}
+.hm{display:inline-flex;align-items:center;gap:4px;align-self:flex-start;min-height:24px;padding:2px 8px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-check);background:var(--color-ground);color:var(--color-ink);font-size:13px;line-height:17px;font-weight:700}
+.hm.on-ground{background:var(--color-surface)}
+.hm svg{width:14px;height:14px}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.lhead{display:flex;flex-direction:column;gap:8px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.cards{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}
+.cards li{position:relative;display:flex;flex-direction:column;min-width:0}
+.meta{margin:0;min-height:44px;display:flex;align-items:center;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.toast{position:absolute;left:20px;right:20px;bottom:94px;height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:0 4px 0 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast .msg{flex-grow:1}
+.toast-act{height:44px;padding:0 16px;border-radius:var(--radius-pill);border:2px solid var(--color-on-dock);background:transparent;color:var(--color-on-dock);font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.scrim{position:absolute;inset:0;background:var(--color-scrim);z-index:2}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:3;box-sizing:border-box;background:var(--color-surface);border:2px solid transparent;border-bottom:0;border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:6px 18px 24px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-lift)}
+.grab{align-self:center;width:40px;height:5px;border-radius:var(--radius-pill);background:var(--color-field)}
+.shd{margin-top:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.st{margin:0;font-family:var(--font-serif);font-style:italic;font-size:34px;line-height:36px;font-weight:400}
+.sbody{display:flex;flex-direction:column;gap:20px}
+.sacts{display:flex;justify-content:flex-end;gap:12px;padding-top:4px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0;border:0;margin:0;padding:0}
+.lbl{font-size:15px;line-height:20px;font-weight:800;padding:0}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.is-focus input{outline:1px solid var(--color-ink);outline-offset:0;border-color:var(--color-ink)}
+.is-err input{border-color:var(--color-danger)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);z-index:3;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.ccg{display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.ccg legend{padding:0;margin-bottom:6px;font-size:15px;line-height:20px;font-weight:800}
+.ccs{display:flex;flex-direction:column;gap:8px;border-radius:var(--radius-card)}
+.ccs.fv{outline:3px solid var(--color-ink);outline-offset:3px}
+.cco{position:relative;display:flex;align-items:center;gap:12px;min-height:72px;padding:12px 14px 12px 16px;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-card);background:transparent;color:var(--color-ink);cursor:pointer}
+.cco input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.cco .ci{width:22px;height:22px;flex-shrink:0}
+.cco .ct{display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0}
+.cco .ct b{font-size:16px;line-height:24px;font-weight:800}
+.cco .ct span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cco .ck{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-pill);display:grid;place-items:center}
+.cco.on{background:var(--color-mint);border-color:transparent;color:var(--color-on-pastel)}
+.cco.on .ct span{color:var(--color-on-pastel)}
+.cco.on .ck{border-color:var(--color-on-pastel);background:var(--color-on-pastel);color:var(--color-mint)}
+.cco.hv{border-color:var(--color-ink);background:var(--color-surface)}
+.cco.on.hv{background:var(--color-mint-hover);border-color:transparent}
+.cco.pr{transform:scale(.97);background:var(--color-surface-pressed)}
+.cco.on.pr{background:var(--color-mint-pressed)}
+.cco.dis{border-style:dashed;background:var(--color-surface);color:var(--color-muted);cursor:default}
+.cco.dis .ct span{color:var(--color-muted)}
+.lrow.hv{background:var(--color-line)}
+.lrow.pr{background:var(--color-surface-pressed);transform:scale(.97)}
+.lrow.fv{outline:3px solid var(--color-ink);outline-offset:0}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:520px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+.empty{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:24px 8px}
+.epol{width:150px;box-sizing:border-box;padding:8px 8px 28px;border:2px dashed var(--color-field);transform:rotate(-3deg)}
+.epol i{display:block;aspect-ratio:4 / 3}
+.empty h2{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-style:italic;font-weight:400}
+.empty p{margin:0;max-width:300px;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.spec{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:22px;font-weight:600}
+.spec b{font-weight:800}
+code{font-family:ui-monospace,monospace;font-size:14px}
+.tile{display:flex;flex-direction:column;gap:10px}
+.screen{position:relative;overflow:hidden;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);border-radius:20px;box-sizing:border-box;flex-shrink:0}
+.lap .in{column-gap:24px;padding:0 32px}
+.lap .start{display:flex;align-items:center;gap:24px}
+.lap .end{column-gap:24px}
+.lap .wmk{font-size:34px;line-height:36px}
+.tabs{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:8px}
+.tt{height:44px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--color-ink);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800;white-space:nowrap}
+.tt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.sf{width:360px;height:48px;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-pill);display:flex;align-items:center;gap:10px;padding:0 18px;color:var(--color-muted);font-size:16px;line-height:24px;font-weight:600}
+.lap .pg{padding:32px 32px 48px;max-width:1264px;margin:0 auto;width:100%}
+.lap .lists{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.seg{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0}
+.seg .lbl{display:block}
+.segring{display:inline-flex;align-self:flex-start;border-radius:var(--radius-pill);outline:3px solid var(--color-ink);outline-offset:0}
+.sheet.ctr{left:50%;right:auto;width:576px;transform:translateX(-50%)}
+.lhead .hm{margin-top:8px}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1180px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-124 · changed Dino component · <code>src/dino/segmented-control.tsx</code></span>
+    <h1 class="ttl">Who’s it for? SegmentedControl, with a help line</h1>
+    <span class="cap">The scope choice is Dino’s SegmentedControl as built, “Just you” or “Household”, plus two small additions: its label shown above the track, and a help line under it that says who sees the list for the option chosen.</span>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 360px); gap: 40px 48px">
+    <div class="tile"><span class="cap"><b>Just you</b> · chosen by default</span>
+      <div class="seg"><span class="lbl" aria-hidden="true">Who’s it for?</span><x-import component-from-global-scope="Dino.SegmentedControl" label="Who’s it for?" options="{{scope}}" value="me" on-value-change="{{noop}}"></x-import><p class="help">Only you see it.</p></div>
+    </div>
+    <div class="tile"><span class="cap"><b>Household</b> · the line names the household</span>
+      <div class="seg"><span class="lbl" aria-hidden="true">Who’s it for?</span><x-import component-from-global-scope="Dino.SegmentedControl" label="Who’s it for?" options="{{scope}}" value="household" on-value-change="{{noop}}"></x-import><p class="help">Everyone in The Bedinis sees it and can change it.</p></div>
+    </div>
+    <div class="tile"><span class="cap"><b>Focus</b> · one ring round the track; arrow keys move the choice</span>
+      <div class="seg"><span class="lbl" aria-hidden="true">Who’s it for?</span><span class="segring"><x-import component-from-global-scope="Dino.SegmentedControl" label="Who’s it for?" options="{{scope}}" value="household" on-value-change="{{noop}}"></x-import></span><p class="help">Everyone in The Bedinis sees it and can change it.</p></div>
+    </div>
+    <div class="tile"><span class="cap"><b>A household of one</b> · still offered: its lists are shared with whoever joins</span>
+      <div class="seg"><span class="lbl" aria-hidden="true">Who’s it for?</span><x-import component-from-global-scope="Dino.SegmentedControl" label="Who’s it for?" options="{{scope}}" value="household" on-value-change="{{noop}}"></x-import><p class="help">Everyone who joins Milo’s household will see it and can change it.</p></div>
+    </div>
+    <div class="tile"><span class="cap"><b>Long household name</b> · the line wraps; the segment stays “Household”</span>
+      <div class="seg"><span class="lbl" aria-hidden="true">Who’s it for?</span><x-import component-from-global-scope="Dino.SegmentedControl" label="Who’s it for?" options="{{scope}}" value="household" on-value-change="{{noop}}"></x-import><p class="help">Everyone in The Okafor-Mensah-Bedini household sees it and can change it.</p></div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <ul class="spec" style="max-width: 640px">
+      <li><b>What changes:</b> two optional props. <code>labelVisible</code> shows the legend above the track in Label (Ink), instead of only to screen readers, as a form field’s label is. <code>description</code> puts a line in Small Muted 6 px under the track, joined to the fieldset by <code>aria-describedby</code>, so it’s read on entering the group.</li>
+      <li><b>Unchanged:</b> the track, the mint chosen segment with its check, hover, pressed, the one tab stop and arrow keys, forced colours. Existing uses pass neither prop and look as they do now.</li>
+    </ul>
+    <ul class="spec" style="max-width: 560px">
+      <li><b>Why not new ChoiceCards:</b> two options with one line of help need no new component; the line says what the chosen option means, so nobody has to remember what “Household” implies.</li>
+      <li><b>The line follows the choice</b>, with no live region: the newly chosen segment’s name is announced as it is, and the line is there on the next read.</li>
+      <li><b>Copy:</b> “Only you see it.” and “Everyone in &lt;household&gt; sees it and can change it.”</li>
+    </ul>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var h = window.React.createElement, D = window.Dino;
+    var fav = function (t) { return h(D.FavouriteButton, { saved: true, onSavedChange: function () {}, label: 'Favourite ' + t }); };
+    return { favShakshuka: fav('Shakshuka'), favBaklava: fav('Baklava'), icons: window.Dino.icons, yes: true, no: false, nothing: null, noop: function () {}, r1: 2, r2: 5, r3: 8, r4: 11, r5: 14, r6: 17, s14: 14, s16: 16, s18: 18, s20: 20, s22: 22, sw: 2.25, t60: 60, scope: [{ value: 'me', label: 'Just you' }, { value: 'household', label: 'Household' }] };
+  }
+}
+</script>
+</body>
+</html>

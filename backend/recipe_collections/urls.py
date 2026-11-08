@@ -1,11 +1,19 @@
 from django.urls import path
 
-from recipe_collections.views import FavouritesSavedView, FavouritesView, ListsView, RestoreSavedView, SavedRecipeView
+from recipe_collections.views import (
+    FavouritesSavedView,
+    HouseholdListView,
+    ListsView,
+    PersonalListView,
+    RestoreSavedView,
+    SavedRecipeView,
+)
 
 urlpatterns = [
     path('', ListsView.as_view(), name='list-list'),
-    path('favourites/', FavouritesView.as_view(), name='favourites'),
     path('favourites/saved/', FavouritesSavedView.as_view(), name='favourites-saved'),
-    path('favourites/saved/restore/', RestoreSavedView.as_view(), name='favourites-saved-restore'),
-    path('favourites/saved/<int:saved_id>/', SavedRecipeView.as_view(), name='favourites-saved-recipe'),
+    path('saved/restore/', RestoreSavedView.as_view(), name='saved-restore'),
+    path('saved/<int:saved_id>/', SavedRecipeView.as_view(), name='saved-recipe'),
+    path('household/<slug:slug>/', HouseholdListView.as_view(), name='household-list'),
+    path('<slug:slug>/', PersonalListView.as_view(), name='personal-list'),
 ]

@@ -11,11 +11,13 @@ from urllib.parse import urlsplit
 
 import pytest
 from allauth.account.models import EmailAddress
+from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, resolve
 
 from households.models import Household, Invite, User
-from recipe_collections.models import SavedRecipe
+from recipe_collections.models import RecipeList, SavedRecipe, Scope
+from recipe_collections.services import save_to_list
 from recipes.models import Recipe
 from tests.test_accounts import BrowserClient
 from tests.test_added_ingredients import line
@@ -28,8 +30,8 @@ HOUSEHOLD_NAME = 'The Quillfeathers'
 
 @dataclass(frozen=True)
 class Probe:
-    """One request an outsider might try. `{member}`, `{dead_token}`, `{zebedee}` and `{recipe}` in its path or body
-    are filled in with the Quillfeathers' own."""
+    """One request an outsider might try. `{member}`, `{dead_token}`, `{zebedee}`, `{recipe}`, `{saved}` and
+    `{household_saved}` in its path or body are filled in with the Quillfeathers' own."""
 
     method: str
     path: str
@@ -143,11 +145,24 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         put('/api/recipes/no-such-recipe/visibility/', {'visibility': 'public'}),
         put('/api/recipes/{recipe}/visibility/', {'visibility': 'public'}),
     ),
-    'api/lists/': (get('/api/lists/'),),
-    'api/lists/favourites/': (get('/api/lists/favourites/'),),
+    'api/lists/': (get('/api/lists/'), post('/api/lists/', {'name': 'Taken', 'scope': 'household'})),
     'api/lists/favourites/saved/': (post('/api/lists/favourites/saved/', {'recipe': '{recipe}'}),),
-    'api/lists/favourites/saved/restore/': (post('/api/lists/favourites/saved/restore/', {'undo': 'a-forged-token'}),),
-    'api/lists/favourites/saved/<int:saved_id>/': (delete('/api/lists/favourites/saved/{saved}/'),),
+    'api/lists/saved/restore/': (post('/api/lists/saved/restore/', {'undo': 'a-forged-token'}),),
+    'api/lists/saved/<int:saved_id>/': (
+        delete('/api/lists/saved/{saved}/'),
+        delete('/api/lists/saved/{household_saved}/'),
+    ),
+    'api/lists/household/<slug:slug>/': (
+        get('/api/lists/household/quillfeather-puddings/'),
+        patch('/api/lists/household/quillfeather-puddings/', {'name': 'Taken'}),
+        delete('/api/lists/household/quillfeather-puddings/'),
+    ),
+    'api/lists/<slug:slug>/': (
+        get('/api/lists/favourites/'),
+        get('/api/lists/zebedees-secrets/'),
+        patch('/api/lists/zebedees-secrets/', {'name': 'Taken'}),
+        delete('/api/lists/zebedees-secrets/'),
+    ),
     'api/cuisines/': (get('/api/cuisines/'),),
     'api/courses/': (get('/api/courses/'),),
     'api/equipment/': (get('/api/equipment/'),),
@@ -180,11 +195,13 @@ class Quillfeathers:
     dead_token: str
     recipe: str
     saved: int
+    household_saved: int
 
 
 def the_quillfeathers() -> Quillfeathers:
-    """Zebedee's household, renamed The Quillfeathers, with Philippa in it, a cancelled link and a live one, and a
-    private recipe using an ingredient Zebedee added."""
+    """Zebedee's household, renamed The Quillfeathers, with Philippa in it, a cancelled link and a live one, a
+    private recipe using an ingredient Zebedee added, and that recipe in Zebedee's Favourites, a list of Zebedee's
+    own and a list of the household's."""
     zebedee = signed_up(ZEBEDEE, 'Zebedee')
     signed_up(PHILIPPA, 'Philippa')
     join(PHILIPPA, ZEBEDEE)
@@ -201,6 +218,13 @@ def the_quillfeathers() -> Quillfeathers:
     saved = zebedee.client.post(
         '/api/lists/favourites/saved/', {'recipe': recipe.json()['slug']}, format='json', **zebedee.csrf_header()
     )
+    # A list of Zebedee's own and one of the household's, each holding the private recipe.
+    for name, scope in [("Zebedee's secrets", 'personal'), ('Quillfeather puddings', 'household')]:
+        zebedee.client.post('/api/lists/', {'name': name, 'scope': scope}, format='json', **zebedee.csrf_header())
+    zebedee_account = User.objects.get(email=ZEBEDEE)
+    crumble = Recipe.objects.get(slug=recipe.json()['slug'])
+    save_to_list(zebedee_account, Scope.PERSONAL, 'zebedees-secrets', crumble)
+    household_saved = save_to_list(zebedee_account, Scope.HOUSEHOLD, 'quillfeather-puddings', crumble)
     return Quillfeathers(
         household=User.objects.get(email=ZEBEDEE).household_id,
         member=User.objects.get(email=PHILIPPA).pk,
@@ -208,6 +232,7 @@ def the_quillfeathers() -> Quillfeathers:
         dead_token=dead_token,
         recipe=recipe.json()['slug'],
         saved=saved.json()['id'],
+        household_saved=household_saved.pk,
     )
 
 
@@ -221,8 +246,15 @@ def what_they_hold(quillfeathers: Quillfeathers) -> dict[str, Any]:
         ),
         'invites': sorted(Invite.objects.filter(household=household).values_list('token', 'cancelled_at')),
         'recipes': sorted(Recipe.objects.filter(household=household).values_list('slug', 'title', 'visibility')),
+        'lists': sorted(
+            RecipeList.objects.filter(Q(owner__household=household) | Q(household=household)).values_list(
+                'pk', 'name', 'slug'
+            )
+        ),
         'saved': sorted(
-            SavedRecipe.objects.filter(recipe_list__owner__household=household).values_list('pk', 'recipe', 'title')
+            SavedRecipe.objects.filter(
+                Q(recipe_list__owner__household=household) | Q(recipe_list__household=household)
+            ).values_list('pk', 'recipe', 'title')
         ),
     }
 
@@ -234,6 +266,7 @@ def call(browser: BrowserClient, probe: Probe, quillfeathers: Quillfeathers) -> 
         'zebedee': ZEBEDEE,
         'recipe': quillfeathers.recipe,
         'saved': quillfeathers.saved,
+        'household_saved': quillfeathers.household_saved,
     }
     body = {key: value.format(**values) for key, value in probe.body.items()}
     # A server error is answered as a browser gets it, so its body is checked like any other.
@@ -251,7 +284,16 @@ def outsider_in_another_household() -> BrowserClient:
 
 
 # What a member sees of their household, and nobody else should: names, addresses, the live link and its recipes.
-SECRETS = (HOUSEHOLD_NAME, 'Zebedee', 'Philippa', ZEBEDEE, PHILIPPA, 'Quillfeather crumble', 'quillfeather jam')
+SECRETS = (
+    HOUSEHOLD_NAME,
+    'Zebedee',
+    'Philippa',
+    ZEBEDEE,
+    PHILIPPA,
+    'Quillfeather crumble',
+    'quillfeather jam',
+    'Quillfeather puddings',
+)
 
 PROBES = [
     pytest.param(probe, id=f'{probe.method.upper()} {probe.path}') for probes in ENDPOINTS.values() for probe in probes
@@ -265,6 +307,7 @@ def resolved_route(probe: Probe) -> str:
         'zebedee': ZEBEDEE,
         'recipe': 'a-private-recipe',
         'saved': 1,
+        'household_saved': 2,
     }
     try:
         return resolve(urlsplit(probe.path.format(**stand_ins)).path).route
@@ -311,6 +354,7 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
     ]
     ingredients = philippa.client.get('/api/ingredients/').content.decode()
     favourites = zebedee.client.get('/api/lists/favourites/').content.decode()
+    household_list = philippa.client.get('/api/lists/household/quillfeather-puddings/').content.decode()
 
     assert [secret for secret in (*SECRETS, quillfeathers.live_token) if secret in seen] == [
         HOUSEHOLD_NAME,
@@ -321,6 +365,7 @@ def test_a_member_sees_what_outsiders_must_not() -> None:
     assert ['Quillfeather crumble' in page for page in recipes] == [True, True]
     assert 'quillfeather jam' in ingredients
     assert 'Quillfeather crumble' in favourites
+    assert ['Quillfeather puddings' in household_list, 'Quillfeather crumble' in household_list] == [True, True]
 
 
 @pytest.mark.django_db

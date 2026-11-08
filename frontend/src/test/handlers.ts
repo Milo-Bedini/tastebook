@@ -8,7 +8,7 @@ type CurrentAccount = components['schemas']['CurrentAccount'];
 type Equipment = components['schemas']['Equipment'];
 type Health = components['schemas']['Health'];
 type IngredientOption = components['schemas']['IngredientOption'];
-type ListSummary = components['schemas']['ListSummary'];
+type Lists = components['schemas']['Lists'];
 type NewIngredient = components['schemas']['NewIngredient'];
 type Recipe = components['schemas']['Recipe'];
 type RecipeSummary = components['schemas']['RecipeSummary'];
@@ -151,12 +151,22 @@ export const handlers = [
       { status: 201 }
     );
   }),
-  // Every account has Favourites, empty until it saves something.
+  // Every account has Favourites, empty until it saves something, and a household of one with no lists yet.
   http.get('/api/lists/', () =>
-    HttpResponse.json<ListSummary[]>([{ slug: 'favourites', name: 'Favourites', recipe_count: 0, covers: [] }])
+    HttpResponse.json<Lists>({
+      household_name: "Milo's household",
+      household_members: 1,
+      lists: [{ slug: 'favourites', name: 'Favourites', scope: 'personal', recipe_count: 0, covers: [] }]
+    })
   ),
   http.get('/api/lists/favourites/', () =>
-    HttpResponse.json<SavedList>({ slug: 'favourites', name: 'Favourites', saved_recipes: [] })
+    HttpResponse.json<SavedList>({
+      slug: 'favourites',
+      name: 'Favourites',
+      scope: 'personal',
+      household_name: null,
+      saved_recipes: []
+    })
   ),
   http.get('/api/recipes/', () => HttpResponse.json<RecipeSummary[]>(recipes.map(toSummary))),
   http.get('/api/recipes/:slug/', ({ params }) => {
