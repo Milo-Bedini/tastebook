@@ -48,23 +48,23 @@ test('a cook publishes their copy as an adaptation, credited until its original 
   const adaptation = `/recipes/${jo.recipes[0]?.slug}`;
 
   await jo.page.goto(adaptation);
-  await expect(jo.page.getByText("Copied from Grandma's curry")).toBeVisible();
+  await expect(jo.page.getByText("Copied from Nana's dal")).toBeVisible();
   await jo.page.getByRole('switch', { name: 'Public' }).click();
   await jo.page.getByRole('alertdialog').getByRole('button', { name: 'Make public' }).click();
-  await expect(jo.page.getByText("Adapted from Grandma's curry by Sam")).toBeVisible();
+  await expect(jo.page.getByText("Adapted from Nana's dal by Sam")).toBeVisible();
 
   await page.goto(adaptation);
   await expect(page.getByText('by Jo', { exact: true })).toBeVisible();
-  await expect(page.getByText("Adapted from Grandma's curry by Sam")).toBeVisible();
+  await expect(page.getByText("Adapted from Nana's dal by Sam")).toBeVisible();
   await accessibility.check(page);
-  await page.getByRole('link', { name: "Grandma's curry" }).click();
+  await page.getByRole('link', { name: "Nana's dal" }).click();
   await expect(page).toHaveURL(new RegExp(`${original}$`));
 
   await sam.page.goto(original);
   await sam.page.getByRole('switch', { name: 'Public' }).click();
-  await expect(sam.page.getByText("Grandma's curry is private again")).toBeVisible();
+  await expect(sam.page.getByText("Nana's dal is private again")).toBeVisible();
 
   await page.goto(adaptation);
   await expect(page.getByText("Adapted from a recipe that's no longer public")).toBeVisible();
-  await expect(page.getByRole('link', { name: "Grandma's curry" })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: "Nana's dal" })).toHaveCount(0);
 });
