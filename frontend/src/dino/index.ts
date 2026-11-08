@@ -13,6 +13,7 @@ export { Field, type FieldControlProps } from './field';
 export { FilterChip } from './filter-chip';
 export { IconButton } from './icon-button';
 export { Input, SearchInput } from './input';
+export { ListPicker, ListPickerRow } from './list-picker';
 export { Loading } from './loading';
 export { matchRange } from './match-range';
 export { Menu, type MenuItem } from './menu';

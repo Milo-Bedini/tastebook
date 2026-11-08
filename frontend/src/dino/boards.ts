@@ -27,6 +27,7 @@ export const boardByTitle: Record<string, `docs/design/${string}.dc.png`> = {
   'Dino/TextArea': 'docs/design/dino/text-area.dc.png',
   'Dino/PhotoField': 'docs/design/dino/photo-field.dc.png',
   'Dino/CheckboxRow': 'docs/design/dino/fields.dc.png',
+  'Dino/ListPicker': 'docs/design/dino/list-picker.dc.png',
   'Dino/PolaroidCard': 'docs/design/dino/polaroids.dc.png',
   'Dino/Polaroid': 'docs/design/dino/polaroids.dc.png',
   'Dino/RecipePhoto': 'docs/design/dino/polaroids.dc.png',

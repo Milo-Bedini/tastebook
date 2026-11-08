@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>ListPicker: groups and forced colours</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 40px;align-items:start}
+.cell{display:flex;flex-direction:column;gap:10px}
+.panel{background:var(--color-surface);border-radius:var(--radius-card);padding:16px;box-sizing:border-box}
+.grp{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:2px}
+.grp legend{padding:0 0 6px;font-size:15px;line-height:20px;font-weight:800}
+.prow{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 8px 6px 12px;box-sizing:border-box;border-radius:var(--radius-row);cursor:pointer}
+.prow input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.prow .nm{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.prow .nm b{font-size:16px;line-height:24px;font-weight:600;overflow-wrap:break-word}
+.prow .nm span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.box{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-check);display:grid;place-items:center;color:var(--color-on-pastel)}
+.box.on{background:var(--color-mint);border-color:transparent}
+.hc{--canvas:#000000;--text:#ffffff;--hl:#1aebff;--hltext:#000000;background:var(--canvas);color:var(--text);border-radius:var(--radius-card);padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.hc .prow .nm span{color:var(--text)}
+.hc .box{border-color:var(--text);color:var(--hltext)}
+.hc .box.on{background:var(--hl);border-color:var(--hl)}
+.hc .prow.fc{outline:3px solid var(--text);outline-offset:0}
+.hc .rerr{color:var(--text)}
+.rerr{margin:0;padding:4px 12px 0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.rerr svg{flex-shrink:0;margin-top:1px}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+code{font-size:14px}
+</style>
+</helmet>
+<div style="width: 1500px; height: 1240px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-195 · new in Dino · <code>src/dino/list-picker.tsx</code></span>
+    <h1 class="ttl">ListPicker: its groups, and under forced colours</h1>
+    <span class="cap">The groups and forced colours the TAS-125 board names in words, drawn so each has a story. Forced colours are simulated in Windows’ High Contrast Black, as on the Dino forced-colours board.</span>
+  </header>
+
+  <div class="grid">
+    <div class="cell"><span class="cap"><b>Groups</b> · a fieldset per group: “Just you” (Favourites first), then the household’s name</span>
+      <div class="panel" style="display: flex; flex-direction: column; gap: 16px">
+        <fieldset class="grp"><legend>Just you</legend>
+          <label class="prow"><input type="checkbox" checked><span class="nm"><b>Favourites</b><span>4 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+          <label class="prow"><input type="checkbox"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label>
+        </fieldset>
+        <fieldset class="grp"><legend>The Bedinis</legend>
+          <label class="prow"><input type="checkbox"><span class="nm"><b>Christmas</b><span>Nothing here yet</span></span><span class="box" aria-hidden="true"></span></label>
+          <label class="prow"><input type="checkbox" checked><span class="nm"><b>Sunday roasts</b><span>12 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+        </fieldset>
+      </div></div>
+
+    <div class="cell"><span class="cap"><b>Forced colours</b> · off and on: the box’s border CanvasText; ticked, Highlight with its check in HighlightText. Hover’s fill drops.</span>
+      <div class="hc">
+        <label class="prow"><input type="checkbox"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label>
+        <label class="prow"><input type="checkbox" checked><span class="nm"><b>Sunday roasts</b><span>12 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+      </div></div>
+
+    <div class="cell"><span class="cap"><b>Forced colours</b> · is-focus: the 3 px ring in CanvasText on the row’s 14 px edge; didn’t save: why, in CanvasText with its icon</span>
+      <div class="hc">
+        <label class="prow fc"><input type="checkbox"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label>
+        <label class="prow"><input type="checkbox" aria-describedby="hc-err"><span class="nm"><b>Christmas</b><span>Nothing here yet</span></span><span class="box" aria-hidden="true"></span></label>
+        <p id="hc-err" class="rerr"><x-import component-from-global-scope="Dino.icons.CircleAlert" size="{{s16}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Couldn’t save it to Christmas. Check your connection, then tick it again.</p>
+      </div></div>
+  </div>
+
+  <div class="notes">
+    <p><b>Props, a suggestion:</b> <code>ListPicker</code> is one group, a fieldset with its <code>legend</code>; its children are <code>ListPickerRow</code>s, each taking <code>name</code>, <code>count</code> (the caller’s words: “7 recipes”, “Nothing here yet”), <code>checked</code>, <code>onCheckedChange</code>, <code>saving</code> and <code>error</code>. The caller stacks the groups 16 px apart and puts them in order.</p>
+    <p><b>What a screen reader hears:</b> each row is a native checkbox named by the list and described by its count, so “Sunday roasts, 12 recipes, checkbox, checked”, inside its group “The Bedinis”. Saving adds <code>aria-busy</code>; didn’t save describes the box by the line under it too.</p>
+    <p><b>Every row is 56 px</b> or taller (the story’s 44 px check measures the row, which is the target), the box shrinking to 92% only while pressed. Nothing here is coloured alone: on is a check, an error has its icon and words.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1500,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, s16: 16, s18: 18, sw: 2.25, s3: 3 };
+  }
+}
+</script>
+</body>
+</html>
