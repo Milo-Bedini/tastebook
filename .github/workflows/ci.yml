@@ -34,7 +34,17 @@ jobs:
       # Usually about 20 s; its apt and browser downloads sometimes hang, and a job's default timeout is 6 hours.
       - run: pnpm --filter frontend exec playwright install --with-deps chromium
         timeout-minutes: 5
-      - run: pnpm test
+      # Vitest only warns when Vite reloads a story test for a dependency it found late, and the reload fails the
+      # story tests intermittently, so the warning fails the step. GitHub's bash shell sets pipefail, so a test failure
+      # still fails it through tee.
+      - name: pnpm test
+        shell: bash
+        run: |
+          pnpm test 2>&1 | tee "$RUNNER_TEMP/test.log"
+          if grep -qF 'Vite unexpectedly reloaded a test' "$RUNNER_TEMP/test.log"; then
+            echo "::error::Vite unexpectedly reloaded a test: add the dependency it optimised to the storybook project's optimizeDeps.include in frontend/vitest.config.ts."
+            exit 1
+          fi
       - run: pnpm build
       - run: pnpm --filter frontend build-storybook
       - run: pnpm --filter frontend test:visual
