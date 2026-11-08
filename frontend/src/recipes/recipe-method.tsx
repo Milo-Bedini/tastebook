@@ -5,9 +5,10 @@ import { Method } from '../dino';
 import { convertTemperatures } from './convert';
 import type { Reading } from './recipe-ingredients';
 
-type Recipe = components['schemas']['Recipe'];
+// What a share link shows too, which every recipe has, so the shared page lists them the same.
+type RecipeContent = components['schemas']['SharedRecipe'];
 
-type RecipeMethodProps = { recipe: Recipe; reading: Reading };
+type RecipeMethodProps = { recipe: RecipeContent; reading: Reading };
 
 export const RecipeMethod = ({ recipe, reading: { system, showOriginal } }: RecipeMethodProps) => {
   const headingId = useId();

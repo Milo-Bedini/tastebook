@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react';
+import { Link as LinkIcon, Pencil } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router';
 
@@ -13,13 +13,17 @@ import { CopyRecipe, MADE_COPY } from './recipe-copy';
 import { DeleteRecipe } from './recipe-delete';
 import { RecipeGaps } from './recipe-gaps';
 import { hasIngredients } from './recipe-ingredients';
+import { RecipeShare } from './recipe-share';
 import { RecipeVisibility } from './recipe-visibility';
-import { useVisibilityGone } from './recipes-api';
+import { useShareLinkGone, useVisibilityGone } from './recipes-api';
 import { SavedIn, SaveToList } from './save-to-list-slot';
 
 type Recipe = components['schemas']['Recipe'];
+// What a share link shows too, which every recipe has.
+type RecipeContent = components['schemas']['SharedRecipe'];
 
 type RecipeProps = { recipe: Recipe };
+type RecipeContentProps = { recipe: RecipeContent };
 
 const namesOf = (names: { name: string }[]) => names.map(({ name }) => name).join(', ');
 
@@ -43,7 +47,7 @@ const RecipeTitle = ({ title, takesFocus }: RecipeTitleProps) => {
 };
 
 // With no ingredients there's no stepper to say how many it serves, so the line says it instead.
-const servingsFact = (recipe: Recipe) => {
+const servingsFact = (recipe: RecipeContent) => {
   if (hasIngredients(recipe)) {
     return '';
   }
@@ -54,7 +58,7 @@ const servingsFact = (recipe: Recipe) => {
 };
 
 // Starts with the total time, the same number the list shows under the polaroid; a part the recipe lacks is left out.
-const factsOf = (recipe: Recipe) =>
+const factsOf = (recipe: RecipeContent) =>
   [
     recipe.total_minutes === null ? '' : formatMinutes(recipe.total_minutes),
     difficultyLabel(recipe.difficulty),
@@ -87,7 +91,7 @@ const SourceLine = ({ source, sourceUrl }: SourceCreditProps) =>
 type Times = ComponentProps<typeof TimeBlobs>['times'];
 
 // Only the times the recipe has, in TimeBlobs' order: prep, cook, then the extra time.
-const timesOf = ({ prep_minutes, cook_minutes, extra_minutes, extra_label }: Recipe): Times | null => {
+const timesOf = ({ prep_minutes, cook_minutes, extra_minutes, extra_label }: RecipeContent): Times | null => {
   const times = [
     prep_minutes === null ? null : { label: 'Prep', value: formatMinutes(prep_minutes) },
     cook_minutes === null ? null : { label: 'Cook', value: formatMinutes(cook_minutes) },
@@ -103,7 +107,7 @@ const timesOf = ({ prep_minutes, cook_minutes, extra_minutes, extra_label }: Rec
   return third === undefined ? [first, second] : [first, second, third];
 };
 
-const RecipeTimes = ({ recipe }: RecipeProps) => {
+const RecipeTimes = ({ recipe }: RecipeContentProps) => {
   const times = timesOf(recipe);
   return times === null ? null : <TimeBlobs times={times} />;
 };
@@ -138,23 +142,11 @@ const AdaptedFrom = ({ recipe }: RecipeProps) => {
 const isMadeCopy = (state: unknown) =>
   typeof state === 'object' && state !== null && MADE_COPY in state && state[MADE_COPY] === true;
 
-export const RecipeIntro = ({ recipe }: RecipeProps) => {
+// The recipe as written, under its title and credit, the same on its own page and a share link's.
+const RecipeFacts = ({ recipe }: RecipeContentProps) => {
   const facts = factsOf(recipe);
-  // The switch held focus; when the answer takes it off the page, focus goes to the title instead.
-  const switchGone = useVisibilityGone(recipe.slug) && !recipe.can_publish;
-  // Make a copy held focus on the original's page, so the copy's title takes it.
-  const madeCopy = isMadeCopy(useLocation().state);
   return (
-    <div className="flex flex-col gap-4">
-      {/* The heart sits at the end of the title's row; the heading names the recipe, so it's just "Favourite". */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
-        <RecipeTitle title={recipe.title} takesFocus={switchGone || madeCopy} />
-        <FavouriteHearts>
-          <Favourite recipe={recipe} label="Favourite" />
-        </FavouriteHearts>
-      </div>
-      <RecipeCredit recipe={recipe} />
-      <AdaptedFrom recipe={recipe} />
+    <>
       {recipe.description !== '' && <p className="text-muted">{recipe.description}</p>}
       {facts !== '' && <p className="text-muted tabular-nums">{facts}</p>}
       {recipe.equipment.length > 0 && <p className="text-muted">{`Equipment: ${namesOf(recipe.equipment)}`}</p>}
@@ -164,9 +156,48 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
         <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
       ))}
       <RecipeTimes recipe={recipe} />
+    </>
+  );
+};
+
+// Read-only, and nothing of the household's: no heart, no author, no copy's original, no controls.
+export const SharedRecipeIntro = ({ recipe }: RecipeContentProps) => (
+  <div className="flex flex-col gap-4">
+    <RecipeTitle title={recipe.title} takesFocus={false} />
+    <p className="inline-flex items-center gap-1.5 text-muted">
+      <LinkIcon aria-hidden="true" className="size-4.5 shrink-0" strokeWidth={2.5} />
+      Shared with you by link
+    </p>
+    <RecipeFacts recipe={recipe} />
+  </div>
+);
+
+export const RecipeIntro = ({ recipe }: RecipeProps) => {
+  // A switch held focus; when the answer takes it off the page, focus goes to the title instead.
+  const visibilityGone = useVisibilityGone(recipe.slug) && !recipe.can_publish;
+  const shareGone = useShareLinkGone(recipe.slug) && !recipe.can_share;
+  // Make a copy held focus on the original's page, so the copy's title takes it.
+  const madeCopy = isMadeCopy(useLocation().state);
+  return (
+    <div className="flex flex-col gap-4">
+      {/* The heart sits at the end of the title's row; the heading names the recipe, so it's just "Favourite". */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
+        <RecipeTitle title={recipe.title} takesFocus={visibilityGone || shareGone || madeCopy} />
+        <FavouriteHearts>
+          <Favourite recipe={recipe} label="Favourite" />
+        </FavouriteHearts>
+      </div>
+      <RecipeCredit recipe={recipe} />
+      <AdaptedFrom recipe={recipe} />
+      <RecipeFacts recipe={recipe} />
       <SavedIn recipe={recipe} />
       <RecipeGaps recipe={recipe} />
-      {recipe.can_publish && <RecipeVisibility recipe={recipe} />}
+      {recipe.can_publish && (
+        <div className="flex flex-col gap-3">
+          <RecipeVisibility recipe={recipe} />
+          {recipe.can_share && <RecipeShare recipe={recipe} />}
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         <SaveToList recipe={recipe} />
         {recipe.can_edit && (

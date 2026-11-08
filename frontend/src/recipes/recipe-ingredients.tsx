@@ -7,7 +7,8 @@ import { convert, type UnitSystem } from './convert';
 import { formatQuantity } from './format-quantity';
 import { isLaptopQuery, useMediaQuery } from './use-media-query';
 
-type Recipe = components['schemas']['Recipe'];
+// What a share link shows too, which every recipe has, so the shared page lists them the same.
+type RecipeContent = components['schemas']['SharedRecipe'];
 type IngredientLine = components['schemas']['IngredientLine'];
 
 export type Reading = { factor: number; system: UnitSystem; showOriginal: boolean; crossesDimensions: boolean };
@@ -46,30 +47,30 @@ const IngredientLines = ({ lines, reading }: LinesProps) => (
 );
 
 // A group saved before its lines were added has nothing to show yet.
-const groupsWithLines = (recipe: Recipe) => recipe.ingredient_groups.filter(({ lines }) => lines.length > 0);
+const groupsWithLines = (recipe: RecipeContent) => recipe.ingredient_groups.filter(({ lines }) => lines.length > 0);
 
-export const hasIngredients = (recipe: Recipe) =>
+export const hasIngredients = (recipe: RecipeContent) =>
   recipe.ingredient_lines.length > 0 || groupsWithLines(recipe).length > 0;
 
-const linesOf = (recipe: Recipe) => [
+const linesOf = (recipe: RecipeContent) => [
   ...recipe.ingredient_lines,
   ...groupsWithLines(recipe).flatMap((group) => group.lines)
 ];
 
 // Stays while pressed, so it can always be turned off again.
-export const canShowOriginal = (recipe: Recipe, reading: Reading) =>
+export const canShowOriginal = (recipe: RecipeContent, reading: Reading) =>
   hasIngredients(recipe) &&
   (reading.showOriginal || linesOf(recipe).some((line) => differsFromOriginal(line, reading)));
 
 // Offered whatever its state, so it shows only while turning it off or on would change an amount.
-export const canCrossDimensions = (recipe: Recipe, reading: Reading) =>
+export const canCrossDimensions = (recipe: RecipeContent, reading: Reading) =>
   linesOf(recipe).some(
     (line) =>
       amountOf(line, { ...reading, crossesDimensions: true }) !==
       amountOf(line, { ...reading, crossesDimensions: false })
   );
 
-type RecipeIngredientsProps = { recipe: Recipe; reading: Reading };
+type RecipeIngredientsProps = { recipe: RecipeContent; reading: Reading };
 
 export const RecipeIngredients = ({ recipe, reading }: RecipeIngredientsProps) => {
   const headingId = useId();

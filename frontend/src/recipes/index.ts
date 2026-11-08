@@ -6,3 +6,4 @@ export { RecipePage } from './recipe-page';
 export { useRecipeSearch } from './recipe-search';
 export { RecipesPage } from './recipes-page';
 export { SaveToListSlot } from './save-to-list-slot';
+export { SharedRecipePage } from './shared-recipe-page';

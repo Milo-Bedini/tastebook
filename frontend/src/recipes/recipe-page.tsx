@@ -1,5 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 
 import type { components } from '../api/schema';
@@ -28,11 +28,11 @@ import {
 import { RecipeIntro } from './recipe-intro';
 import { RecipeMethod } from './recipe-method';
 import { RecipePhotoCredit } from './recipe-photo-credit';
-import { useCopyGone, useRecipe, useVisibilityGone } from './recipes-api';
+import { useCopyGone, useRecipe, useShareLinkGone, useVisibilityGone } from './recipes-api';
 
 type Recipe = components['schemas']['Recipe'];
-
-type RecipeProps = { recipe: Recipe };
+// What a share link shows too, which every recipe has.
+type RecipeContent = components['schemas']['SharedRecipe'];
 
 const unitSystems: { value: UnitSystem; label: string }[] = [
   { value: 'metric', label: 'Metric' },
@@ -45,7 +45,7 @@ const crossingLabels: Record<UnitSystem, string> = { metric: 'Cups to grams', us
 const maxServings = 99;
 
 type RecipeControlsProps = {
-  recipe: Recipe;
+  recipe: RecipeContent;
   original: number;
   reading: Reading;
   scaledTo: number;
@@ -100,10 +100,13 @@ const RecipeControls = ({
   );
 };
 
+// The intro is the recipe's own page's, or a share link's.
+type RecipeBodyProps = { recipe: RecipeContent; intro: ReactNode; preferredSystem: UnitSystem };
+
 // The servings, Cups to grams and Show original aren't remembered, and the unit system opens as the account's, so every
 // recipe opens as written. The DOM keeps the phone's order at every width, so reading and focus order match; a laptop's
 // grid places the photo and ingredients on the left (5 parts) and the rest on the right (7).
-const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
+export const RecipeBody = ({ recipe, intro, preferredSystem }: RecipeBodyProps) => {
   // The database holds exactly one of servings and a yield.
   const original = recipe.servings ?? recipe.yield_amount ?? 1;
   const [scaledTo, setScaledTo] = useState(original);
@@ -141,7 +144,7 @@ const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
         </StickeredPhoto>
       </div>
       <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-1">
-        <RecipeIntro recipe={recipe} />
+        {intro}
         <RecipeControls
           recipe={recipe}
           original={original}
@@ -159,14 +162,19 @@ const RecipeBody = ({ recipe, preferredSystem }: RecipeDetailsProps) => {
   );
 };
 
-type RecipeDetailsProps = RecipeProps & { preferredSystem: UnitSystem };
+type RecipeDetailsProps = { recipe: Recipe; preferredSystem: UnitSystem };
 
 const RecipeDetails = ({ recipe, preferredSystem }: RecipeDetailsProps) => (
   <>
     {/* React 19 needs <title> to have a single string child. */}
     <title>{`${recipe.title} · Tastebook`}</title>
     {/* Keyed so another recipe starts at its own servings, in the account's units. */}
-    <RecipeBody key={recipe.id} recipe={recipe} preferredSystem={preferredSystem} />
+    <RecipeBody
+      key={recipe.id}
+      recipe={recipe}
+      intro={<RecipeIntro recipe={recipe} />}
+      preferredSystem={preferredSystem}
+    />
   </>
 );
 
@@ -183,7 +191,7 @@ export const RecipeNotFound = ({ takesFocus = false }: { takesFocus?: boolean })
   </>
 );
 
-const RecipeLoading = () => (
+export const RecipeLoading = () => (
   <>
     <title>Recipe · Tastebook</title>
     <Loading>Opening the recipe…</Loading>
@@ -194,7 +202,7 @@ type RecipeUnavailableProps = {
   onRetry: () => Promise<unknown>;
 };
 
-const RecipeUnavailable = ({ onRetry }: RecipeUnavailableProps) => (
+export const RecipeUnavailable = ({ onRetry }: RecipeUnavailableProps) => (
   <>
     <title>Recipe · Tastebook</title>
     <ErrorWithRetry title="Couldn't load the recipe" onRetry={onRetry}>
@@ -204,7 +212,7 @@ const RecipeUnavailable = ({ onRetry }: RecipeUnavailableProps) => (
 );
 
 // The account's unit system once the session has answered: metric signed out, or when the session can't be checked.
-const usePreferredSystem = (): UnitSystem | undefined => {
+export const usePreferredSystem = (): UnitSystem | undefined => {
   const { account, errorUpdatedAt } = useSession();
   if (account !== undefined) {
     return account?.unit_system ?? 'metric';
@@ -219,8 +227,9 @@ const RecipeForSlug = ({ slug }: RecipeForSlugProps) => {
   const preferredSystem = usePreferredSystem();
   const visibilityGone = useVisibilityGone(slug);
   const copyGone = useCopyGone(slug);
+  const shareLinkGone = useShareLinkGone(slug);
   if (data === null) {
-    return <RecipeNotFound takesFocus={visibilityGone || copyGone} />;
+    return <RecipeNotFound takesFocus={visibilityGone || copyGone || shareLinkGone} />;
   }
   // A recipe already shown stays up if a background refetch fails. It waits for the session, so a US account never
   // sees metric first.
