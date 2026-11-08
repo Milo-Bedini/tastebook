@@ -272,7 +272,45 @@ def test_a_seeded_member_copies_recipes_listed_after_their_own(test_accounts: Se
     copied = signed_in_as(body, 'jo').get(f'/api/recipes/{recipes[1]["slug"]}/').json()
 
     assert [recipe['title'] for recipe in recipes] == ["Jo's dal", 'Baklava']
-    assert (copied['visibility'], copied['adapted_from']) == ('private', {'slug': 'baklava', 'title': 'Baklava'})
+    assert (copied['visibility'], copied['adapted_from']) == (
+        'private',
+        {'slug': 'baklava', 'title': 'Baklava', 'author': None},
+    )
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_makes_private_a_recipe_another_member_copied(test_accounts: Settings) -> None:
+    sams_curry = {'title': "Sam's curry", 'visibility': 'public'}
+    body = seeded(
+        {'members': [{'key': 'sam', 'name': 'Sam', 'recipes': [sams_curry], 'made_private': ["Sam's curry"]}]},
+        {'members': [{'key': 'jo', 'name': 'Jo', 'copies': ["Sam's curry"]}]},
+    )
+
+    [curry] = body['accounts']['sam']['recipes']
+    [jos_copy] = body['accounts']['jo']['recipes']
+    copied = signed_in_as(body, 'jo').get(f'/api/recipes/{jos_copy["slug"]}/').json()
+
+    assert APIClient().get(f'/api/recipes/{curry["slug"]}/').status_code == 404
+    assert (copied['title'], copied['adapted_from'], copied['is_copy']) == ("Sam's curry", None, True)
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_can_t_make_private_a_recipe_they_didn_t_write(test_accounts: Settings) -> None:
+    sams_curry = {'title': "Sam's curry", 'visibility': 'public'}
+    response = seed(
+        {
+            'households': [
+                {'members': [{'key': 'sam', 'name': 'Sam', 'recipes': [sams_curry]}]},
+                {'members': [{'key': 'jo', 'name': 'Jo', 'made_private': ["Sam's curry"]}]},
+            ]
+        }
+    )
+
+    assert (response.status_code, response.json()) == (
+        400,
+        ['Jo can\'t make "Sam\'s curry" private: they wrote no recipe with that title.'],
+    )
+    assert User.objects.count() == 0
 
 
 @pytest.mark.django_db

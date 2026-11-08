@@ -2004,7 +2004,14 @@ components:
         title:
           type: string
           readOnly: true
+        author:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The name of whoever wrote the original, by the rule the recipe's
+            own "author" follows.
       required:
+      - author
       - slug
       - title
     PatchedAccountChanges:
@@ -2229,9 +2236,16 @@ components:
           - $ref: '#/components/schemas/OriginalRecipe'
           nullable: true
           readOnly: true
-          description: The recipe this is a copy of, shown as "Copied from <title>";
+          description: The recipe this is a copy of, shown as "Copied from <title>"
+            on a private copy and "Adapted from <title> by <author>" on a public one;
             null for a recipe that is no copy, or when its original was deleted or
             the signed-in account can't see it.
+        is_copy:
+          type: boolean
+          readOnly: true
+          description: 'Whether this recipe was made as a copy of another, which it
+            stays once its original is deleted or made private: with adapted_from
+            null, it''s shown as "Adapted from a recipe that''s no longer public".'
         courses:
           type: array
           items:
@@ -2295,6 +2309,15 @@ components:
             maxLength: 500
           - type: string
             maxLength: 0
+        original_source:
+          type: string
+          readOnly: true
+          description: A catalogue original's source credit, with its licence, which
+            a copy of it keeps and can't edit; '' for any other recipe.
+        original_source_url:
+          type: string
+          readOnly: true
+          description: The page original_source links to, or '' when there is none.
         ingredient_lines:
           type: array
           items:
@@ -2355,7 +2378,10 @@ components:
       - id
       - ingredient_groups
       - ingredient_lines
+      - is_copy
       - one_pot
+      - original_source
+      - original_source_url
       - photo
       - prep_minutes
       - save_count
@@ -2674,6 +2700,15 @@ components:
           description: Titles of the recipes this member makes a copy of, once every
             list is made, as saves name them. Each copy is listed after the member's
             own recipes.
+          maxItems: 20
+        made_private:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Titles of this member's own public recipes they make private
+            once every copy is made, so a copy of one is adapted from a recipe that's
+            no longer public.
           maxItems: 20
       required:
       - key

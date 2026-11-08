@@ -54,6 +54,13 @@ class SeedMemberSerializer(serializers.Serializer):
         help_text='Titles of the recipes this member makes a copy of, once every list is made, as saves name them. '
         "Each copy is listed after the member's own recipes.",
     )
+    made_private = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text="Titles of this member's own public recipes they make private once every copy is made, so a copy of "
+        "one is adapted from a recipe that's no longer public.",
+    )
 
 
 class SeedHouseholdSerializer(serializers.Serializer):

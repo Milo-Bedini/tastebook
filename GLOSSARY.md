@@ -46,7 +46,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Catalogue | The public recipes Tastebook seeds itself with, loaded from a file in the repo with the shared ingredient and equipment lists. | `catalogue.json`, `load_catalogue` |
 | Report | A signed-in person flagging a public recipe, which hides it until staff review it. | `Report` _planned_ |
 | Slug | The recipe's address in a URL, set once from its title. | `Recipe.slug` |
-| Copy | A private recipe made from another you can see, to change it: written by you, with the same title, its page saying "Copied from <original>" while you can see the original. Can be published as "Adapted from X by Y". A recipe a member takes along when they move household is copied but isn't a Copy: it doesn't link to the one left behind, though a Copy taken along still links to its original. | `Recipe.adapted_from`, `copy_recipe()`, `CopyRecipe` |
+| Copy | A private recipe made from another you can see, to change it: written by you, with the same title, its page saying "Copied from <original>" while you can see the original. Can be published as "Adapted from X by Y" (just "Adapted from X" for a catalogue original). Once the original is deleted or made private, it says "Adapted from a recipe that's no longer public". A copy of a catalogue recipe keeps the original's source credit, with its licence, where editing can't reach it. A recipe a member takes along when they move household is copied but isn't a Copy: it doesn't link to the one left behind, though a Copy taken along still links to its original. | `Recipe.adapted_from`, `Recipe.is_copy`, `Recipe.original_source`, `copy_recipe()`, `CopyRecipe` |
 
 ## `households`
 

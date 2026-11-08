@@ -230,6 +230,7 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
         'visibility': 'public',
         'author': None,
         'adapted_from': None,
+        'is_copy': False,
         'title': 'Shakshuka',
         'description': 'Eggs in spiced tomatoes.',
         'cuisines': [{'slug': 'spanish', 'name': 'Spanish'}],
@@ -249,6 +250,8 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
         'one_pot': True,
         'source': 'Tastebook',
         'source_url': 'https://en.wikibooks.org/wiki/Cookbook:Shakshouka',
+        'original_source': '',
+        'original_source_url': '',
         'ingredient_lines': [
             {
                 'id': recipe['ingredient_lines'][0]['id'],

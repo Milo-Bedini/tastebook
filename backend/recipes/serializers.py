@@ -280,12 +280,31 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
 class OriginalRecipeSerializer(serializers.Serializer):
     slug = serializers.CharField(read_only=True)
     title = serializers.CharField(read_only=True)
+    author = serializers.CharField(
+        read_only=True,
+        allow_null=True,
+        help_text='The name of whoever wrote the original, by the rule the recipe\'s own "author" follows.',
+    )
 
 
 class RecipeSerializer(RecipeSummarySerializer):
     adapted_from = serializers.SerializerMethodField(
-        help_text='The recipe this is a copy of, shown as "Copied from <title>"; null for a recipe that is no copy, '
-        "or when its original was deleted or the signed-in account can't see it."
+        help_text='The recipe this is a copy of, shown as "Copied from <title>" on a private copy and "Adapted from '
+        '<title> by <author>" on a public one; null for a recipe that is no copy, or when its original was deleted or '
+        "the signed-in account can't see it."
+    )
+    is_copy = serializers.BooleanField(
+        read_only=True,
+        help_text='Whether this recipe was made as a copy of another, which it stays once its original is deleted or '
+        'made private: with adapted_from null, it\'s shown as "Adapted from a recipe that\'s no longer public".',
+    )
+    original_source = serializers.CharField(
+        read_only=True,
+        help_text="A catalogue original's source credit, with its licence, which a copy of it keeps and can't edit; "
+        "'' for any other recipe.",
+    )
+    original_source_url = serializers.CharField(
+        read_only=True, help_text="The page original_source links to, or '' when there is none."
     )
     courses = CourseSerializer(many=True, read_only=True)
     equipment = EquipmentSerializer(many=True, read_only=True)
@@ -316,6 +335,7 @@ class RecipeSerializer(RecipeSummarySerializer):
         fields = [
             *RecipeSummarySerializer.Meta.fields,
             'adapted_from',
+            'is_copy',
             'courses',
             'prep_minutes',
             'cook_minutes',
@@ -328,6 +348,8 @@ class RecipeSerializer(RecipeSummarySerializer):
             'one_pot',
             'source',
             'source_url',
+            'original_source',
+            'original_source_url',
             'ingredient_lines',
             'ingredient_groups',
             'steps',
@@ -368,12 +390,15 @@ class RecipeSerializer(RecipeSummarySerializer):
         return DietTagConflictSerializer(services.diet_tag_conflicts(self._all_lines(recipe)), many=True).data
 
     @extend_schema_field(OriginalRecipeSerializer(allow_null=True))
-    def get_adapted_from(self, recipe: Recipe) -> dict[str, str] | None:
+    def get_adapted_from(self, recipe: Recipe) -> dict[str, str | None] | None:
         if recipe.adapted_from_id is None:
             return None
         # Only an original the account can see is named, so a copy says nothing of another household's private recipe.
         visible = Recipe.objects.visible_to(self.context['request'].user).filter(pk=recipe.adapted_from_id)
-        return visible.values('slug', 'title').first()
+        original = visible.select_related('created_by').first()
+        if original is None:
+            return None
+        return {'slug': original.slug, 'title': original.title, 'author': self.get_author(original)}
 
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_can_delete(self, recipe: Recipe) -> bool:

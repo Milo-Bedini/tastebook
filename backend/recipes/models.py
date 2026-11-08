@@ -182,7 +182,8 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
     def copy_into(self, household_id: int, copier: User | None = None) -> list[Recipe]:
         """Copies each recipe into the household with its ingredients, steps, cuisines, courses and equipment, so
         changing either one leaves the other alone. With a copier, each is a private Copy: written by them and linked to
-        its original. Without one, each keeps its author and visibility and links to nothing new, as a moving member's
+        its original, and a copy of a catalogue recipe keeps the original's source credit as its own read-only one.
+        Without one, each keeps its author and visibility and links to nothing new, as a moving member's
         recipes do."""
         originals = list(
             self.prefetch_related('cuisines', 'courses', 'equipment', 'ingredient_groups', 'ingredient_lines', 'steps')
@@ -191,7 +192,22 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
         def made_by_copier(original: Recipe) -> dict[str, Any]:
             if copier is None:
                 return {}
-            return {'created_by_id': copier.pk, 'visibility': Visibility.PRIVATE, 'adapted_from_id': original.pk}
+            made = {
+                'created_by_id': copier.pk,
+                'visibility': Visibility.PRIVATE,
+                'adapted_from_id': original.pk,
+                'is_copy': True,
+            }
+            if original.household_id is not None:
+                return made
+            # A catalogue recipe's credit carries its licence, so it moves where editing the Copy can't remove it.
+            return {
+                **made,
+                'original_source': original.source,
+                'original_source_url': original.source_url,
+                'source': '',
+                'source_url': '',
+            }
 
         # A few queries however many recipes there are, besides one per recipe to find a free slug.
         copies = Recipe.objects.bulk_create(
@@ -301,6 +317,27 @@ class Recipe(models.Model):
         on_delete=models.SET_NULL,
         related_name='copies',
         help_text='The recipe this is a copy of. Empty for a recipe that is no copy, or whose original was deleted.',
+    )
+    is_copy = models.BooleanField(
+        'copy',
+        default=False,
+        editable=False,
+        help_text='Whether this was made as a Copy, which it stays once its original is deleted.',
+    )
+    original_source = models.CharField(
+        "original's source credit",
+        max_length=300,
+        blank=True,
+        editable=False,
+        help_text="A catalogue original's source credit, which a Copy keeps where editing can't reach it, so the "
+        "original's licence stays credited.",
+    )
+    original_source_url = models.URLField(
+        "original's source address",
+        max_length=500,
+        blank=True,
+        editable=False,
+        help_text="The page the original's source credit links to.",
     )
     cuisines = models.ManyToManyField(Cuisine, related_name='recipes', blank=True)
     courses = models.ManyToManyField(Course, related_name='recipes', blank=True)

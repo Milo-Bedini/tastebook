@@ -140,6 +140,7 @@ describe('the Favourites page', () => {
         HttpResponse.json<components['schemas']['Recipe']>({
           ...(bibimbap.recipe as ListedRecipe),
           adapted_from: null,
+          is_copy: false,
           courses: [],
           prep_minutes: 15,
           cook_minutes: 20,
@@ -152,6 +153,8 @@ describe('the Favourites page', () => {
           one_pot: false,
           source: '',
           source_url: '',
+          original_source: '',
+          original_source_url: '',
           ingredient_lines: [],
           ingredient_groups: [],
           steps: [],
