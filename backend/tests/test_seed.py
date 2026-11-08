@@ -384,3 +384,43 @@ def test_a_seeded_member_can_t_make_a_list_named_like_another(test_accounts: Set
         f'puddings {timezone.localdate().year}.'
     ]
     assert User.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_shares_a_private_recipe_by_link(test_accounts: Settings) -> None:
+    body = seeded(
+        {
+            'members': [
+                {
+                    'key': 'sam',
+                    'name': 'Sam',
+                    'recipes': [{'title': "Sam's curry"}, {'title': 'Flatbreads'}],
+                    'shared': ["Sam's curry"],
+                }
+            ]
+        },
+    )
+
+    curry, flatbreads = body['accounts']['sam']['recipes']
+    opened = APIClient().get(f'/api/shared/{curry["share_token"]}/')
+
+    assert (opened.status_code, opened.json()['title']) == (200, "Sam's curry")
+    assert flatbreads['share_token'] is None
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_can_t_share_a_public_recipe(test_accounts: Settings) -> None:
+    sams_curry = {'title': "Sam's curry", 'visibility': 'public'}
+    response = seed(
+        {
+            'households': [
+                {'members': [{'key': 'sam', 'name': 'Sam', 'recipes': [sams_curry], 'shared': ["Sam's curry"]}]}
+            ]
+        }
+    )
+
+    assert (response.status_code, response.json()) == (
+        400,
+        ['"Sam\'s curry" is public, so it can\'t be shared by link.'],
+    )
+    assert User.objects.count() == 0

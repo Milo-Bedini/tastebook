@@ -25,6 +25,7 @@ from recipes.models import (
     IngredientStatus,
     IngredientSynonym,
     Recipe,
+    ShareLink,
     Step,
     Visibility,
 )
@@ -209,9 +210,39 @@ def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
         gaps = publishing_gaps(recipe)
         if gaps:
             raise ValidationError({'visibility': [f'Add {_together(gaps)} before making it public.']})
-    recipe.visibility = visibility
-    recipe.save(update_fields=['visibility'])
+    with transaction.atomic():
+        recipe.visibility = visibility
+        recipe.save(update_fields=['visibility'])
+        # A public recipe is open to anyone, so its link stops, and making it private again doesn't bring it back.
+        if visibility == Visibility.PUBLIC:
+            ShareLink.objects.filter(recipe=recipe).delete()
     return recipe
+
+
+def turn_on_share_link(recipe: Recipe) -> ShareLink:
+    """Gives the private recipe a share link, or the one it has. Raises ValidationError({'share_link': [...]}) for a
+    public recipe, which anyone can open already."""
+    if recipe.visibility != Visibility.PRIVATE:
+        raise ValidationError({'share_link': ['A public recipe is open to anyone already, so it has no share link.']})
+    link, _ = ShareLink.objects.get_or_create(recipe=recipe)
+    return link
+
+
+def turn_off_share_link(recipe: Recipe) -> None:
+    """Deletes the recipe's share link, if it has one, so its address shows "Recipe not found"."""
+    ShareLink.objects.filter(recipe=recipe).delete()
+
+
+def shared_recipe(token: str) -> Recipe | None:
+    """The private recipe a live share link opens, with its ingredients and method, or None for a link that's off or
+    never was."""
+    return (
+        Recipe.objects.private()
+        .filter(share_link__token=token)
+        .prefetch_related('cuisines', 'courses', 'equipment')
+        .with_ingredients_and_method()
+        .first()
+    )
 
 
 def _together(parts: list[str]) -> str:

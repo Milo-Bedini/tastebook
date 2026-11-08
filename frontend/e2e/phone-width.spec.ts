@@ -106,7 +106,9 @@ const recipe: Recipe = {
   can_delete: false,
   can_edit: false,
   can_publish: false,
-  save_count: null
+  save_count: null,
+  can_share: false,
+  share_token: null
 };
 
 const summary: RecipeSummary = {

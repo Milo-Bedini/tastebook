@@ -402,6 +402,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recipes/{slug}/share-link/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Turns on a share link to a private recipe of the signed-in account's household, which anyone with its address can open without signing in. Only its author may. A link already on stays as it is; one turned on again after being turned off has a new address. */
+        put: operations["recipes_share_link_update"];
+        post?: never;
+        /** @description Turns off a recipe's share link, so its address shows nothing. Only its author may. A recipe with no link stays as it is. */
+        delete: operations["recipes_share_link_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recipes/{slug}/visibility/": {
         parameters: {
             query?: never;
@@ -412,6 +430,23 @@ export interface paths {
         get?: never;
         /** @description Makes a recipe of the signed-in account's household public or private. Only its author may. Asking for the visibility it already has changes nothing. */
         put: operations["recipes_visibility_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/{token}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The recipe a share link opens, for anyone with its token, signed in or not: the recipe and none of its household's details. Both answers ask search engines not to index them. */
+        get: operations["shared_recipes_retrieve"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -889,6 +924,10 @@ export interface components {
             readonly can_publish: boolean;
             /** @description How many other accounts have saved this recipe, which its delete dialog warns of; null unless the signed-in account may delete it. */
             readonly save_count: number | null;
+            /** @description Whether the signed-in account may turn a share link to this recipe on or off: its author, while it is private and in their household. */
+            readonly can_share: boolean;
+            /** @description The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in account may share it and the link is on. */
+            readonly share_token: string | null;
         };
         RecipeLists: {
             /** @description The account's household's name; null before it has one. */
@@ -1010,6 +1049,8 @@ export interface components {
             copies?: string[];
             /** @description Titles of this member's own public recipes they make private once every copy is made, so a copy of one is adapted from a recipe that's no longer public. */
             made_private?: string[];
+            /** @description Titles of this member's own private recipes they share by link once every recipe is made private. */
+            shared?: string[];
         };
         Seeded: {
             session_cookie: string;
@@ -1027,6 +1068,55 @@ export interface components {
         SeededRecipe: {
             title: string;
             slug: string;
+            /** @description The token of its share link, which /shared/<token> opens; null when it's off. */
+            share_token: string | null;
+        };
+        /**
+         * @description A recipe as its share link shows it to anyone: the recipe itself, and nothing of the household's (no author,
+         *     no copy's original, nothing only a member may do).
+         */
+        SharedRecipe: {
+            readonly id: number;
+            title: string;
+            description: string;
+            readonly cuisines: components["schemas"]["Cuisine"][];
+            readonly courses: components["schemas"]["Course"][];
+            difficulty: components["schemas"]["DifficultyEnum"] | components["schemas"]["BlankEnum"];
+            readonly total_minutes: number | null;
+            prep_minutes: number | null;
+            cook_minutes: number | null;
+            /** @description Waiting time, such as marinating or proving. */
+            extra_minutes: number;
+            /** @description What the extra time is for, such as marinating, resting or proving. */
+            extra_label: string;
+            /** @description Leave empty when giving a yield. */
+            servings: number | null;
+            /** @description "12" in "makes 12 cookies". */
+            yield_amount: number | null;
+            /** @description "cookies" in "makes 12 cookies". */
+            yield_unit: string;
+            readonly equipment: components["schemas"]["Equipment"][];
+            one_pot: boolean;
+            /**
+             * Source credit
+             * @description Where the recipe came from: an author, a website or a book.
+             */
+            source: string;
+            /**
+             * Source address
+             * @description The original recipe's page, which the source credit links to. Leave empty when there is none.
+             */
+            source_url: string;
+            /** @description A catalogue original's source credit, with its licence, which a copy of it keeps and can't edit; '' for any other recipe. */
+            readonly original_source: string;
+            /** @description The page original_source links to, or '' when there is none. */
+            readonly original_source_url: string;
+            readonly photo: components["schemas"]["RecipePhoto"] | null;
+            readonly diet_tags: components["schemas"]["DietTag"][];
+            readonly ingredient_lines: components["schemas"]["IngredientLine"][];
+            readonly ingredient_groups: components["schemas"]["IngredientGroup"][];
+            readonly steps: components["schemas"]["Step"][];
+            readonly diet_tag_conflicts: components["schemas"]["DietTagConflict"][];
         };
         SignInCode: {
             code: string;
@@ -2365,6 +2455,83 @@ export interface operations {
             };
         };
     };
+    recipes_share_link_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+            /** @description The recipe is public, so anyone can open it already. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account may share: there's none, it's another household's or a catalogue recipe, or another member wrote it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recipes_share_link_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account may share: there's none, it's another household's or a catalogue recipe, or another member wrote it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     recipes_visibility_update: {
         parameters: {
             query?: never;
@@ -2405,6 +2572,34 @@ export interface operations {
                 content?: never;
             };
             /** @description No recipe has this slug that the account may publish: there's none, it's another household's or a catalogue recipe, or another member wrote it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    shared_recipes_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedRecipe"];
+                };
+            };
+            /** @description No share link has this token: it was turned off, or never was. */
             404: {
                 headers: {
                     [name: string]: unknown;

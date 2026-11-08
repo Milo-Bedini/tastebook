@@ -16,6 +16,7 @@ from recipes.models import (
     IngredientGroup,
     IngredientLine,
     Recipe,
+    ShareLink,
     Step,
     Unit,
     Visibility,
@@ -330,6 +331,14 @@ class RecipeSerializer(RecipeSummarySerializer):
         help_text='How many other accounts have saved this recipe, which its delete dialog warns of; '
         'null unless the signed-in account may delete it.'
     )
+    can_share = serializers.SerializerMethodField(
+        help_text='Whether the signed-in account may turn a share link to this recipe on or off: its author, while it '
+        'is private and in their household.'
+    )
+    share_token = serializers.SerializerMethodField(
+        help_text="The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in "
+        'account may share it and the link is on.'
+    )
 
     class Meta(RecipeSummarySerializer.Meta):
         fields = [
@@ -358,6 +367,8 @@ class RecipeSerializer(RecipeSummarySerializer):
             'can_edit',
             'can_publish',
             'save_count',
+            'can_share',
+            'share_token',
         ]
         # The API always sends these, even when they're '', null or their default, so the schema marks them required.
         extra_kwargs = {
@@ -418,6 +429,51 @@ class RecipeSerializer(RecipeSummarySerializer):
         if not self.get_can_delete(recipe):
             return None
         return services.save_count(recipe, excluding=user)
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_can_share(self, recipe: Recipe) -> bool:
+        return recipe.visibility == Visibility.PRIVATE and self.get_can_publish(recipe)
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_share_token(self, recipe: Recipe) -> str | None:
+        if not self.get_can_share(recipe):
+            return None
+        return ShareLink.objects.filter(recipe=recipe).values_list('token', flat=True).first()
+
+
+class SharedRecipeSerializer(RecipeSerializer):
+    """A recipe as its share link shows it to anyone: the recipe itself, and nothing of the household's (no author,
+    no copy's original, nothing only a member may do)."""
+
+    class Meta(RecipeSerializer.Meta):
+        fields = [
+            'id',
+            'title',
+            'description',
+            'cuisines',
+            'courses',
+            'difficulty',
+            'total_minutes',
+            'prep_minutes',
+            'cook_minutes',
+            'extra_minutes',
+            'extra_label',
+            'servings',
+            'yield_amount',
+            'yield_unit',
+            'equipment',
+            'one_pot',
+            'source',
+            'source_url',
+            'original_source',
+            'original_source_url',
+            'photo',
+            'diet_tags',
+            'ingredient_lines',
+            'ingredient_groups',
+            'steps',
+            'diet_tag_conflicts',
+        ]
 
 
 NOT_A_VISIBILITY = 'Say whether the recipe is public or private.'

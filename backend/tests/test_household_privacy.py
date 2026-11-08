@@ -18,7 +18,7 @@ from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, reso
 from households.models import Household, Invite, User
 from recipe_collections.models import RecipeList, SavedRecipe, Scope
 from recipe_collections.services import save_to_list
-from recipes.models import Recipe
+from recipes.models import Recipe, ShareLink
 from tests.test_accounts import BrowserClient
 from tests.test_added_ingredients import line
 from tests.test_household import HOUSEHOLD, cancel_link, join, make_link, signed_up
@@ -30,8 +30,8 @@ HOUSEHOLD_NAME = 'The Quillfeathers'
 
 @dataclass(frozen=True)
 class Probe:
-    """One request an outsider might try. `{member}`, `{dead_token}`, `{zebedee}`, `{recipe}`, `{saved}` and
-    `{household_saved}` in its path or body are filled in with the Quillfeathers' own."""
+    """One request an outsider might try. `{member}`, `{dead_token}`, `{dead_share_token}`, `{zebedee}`, `{recipe}`,
+    `{saved}` and `{household_saved}` in its path or body are filled in with the Quillfeathers' own."""
 
     method: str
     path: str
@@ -141,10 +141,17 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         post('/api/recipes/no-such-recipe/copy/'),
         post('/api/recipes/{recipe}/copy/'),
     ),
+    'api/recipes/<slug:slug>/share-link/': (
+        put('/api/recipes/no-such-recipe/share-link/', {}),
+        put('/api/recipes/{recipe}/share-link/', {}),
+        delete('/api/recipes/{recipe}/share-link/'),
+    ),
     'api/recipes/<slug:slug>/visibility/': (
         put('/api/recipes/no-such-recipe/visibility/', {'visibility': 'public'}),
         put('/api/recipes/{recipe}/visibility/', {'visibility': 'public'}),
     ),
+    # A live share link shows its recipe to whoever holds it (TAS-128), as an invite link shows its household.
+    'api/shared/<str:token>/': (get('/api/shared/{dead_share_token}/'), get('/api/shared/never-a-share-link/')),
     'api/lists/': (get('/api/lists/'), post('/api/lists/', {'name': 'Taken', 'scope': 'household'})),
     'api/lists/favourites/saved/': (post('/api/lists/favourites/saved/', {'recipe': '{recipe}'}),),
     'api/lists/saved/restore/': (post('/api/lists/saved/restore/', {'undo': 'a-forged-token'}),),
@@ -198,6 +205,8 @@ class Quillfeathers:
     member: int
     live_token: str
     dead_token: str
+    live_share_token: str
+    dead_share_token: str
     recipe: str
     saved: int
     household_saved: int
@@ -205,8 +214,8 @@ class Quillfeathers:
 
 def the_quillfeathers() -> Quillfeathers:
     """Zebedee's household, renamed The Quillfeathers, with Philippa in it, a cancelled link and a live one, a
-    private recipe using an ingredient Zebedee added, and that recipe in Zebedee's Favourites, a list of Zebedee's
-    own and a list of the household's."""
+    private recipe using an ingredient Zebedee added, with a share link turned off and a live one, and that recipe in
+    Zebedee's Favourites, a list of Zebedee's own and a list of the household's."""
     zebedee = signed_up(ZEBEDEE, 'Zebedee')
     signed_up(PHILIPPA, 'Philippa')
     join(PHILIPPA, ZEBEDEE)
@@ -220,6 +229,10 @@ def the_quillfeathers() -> Quillfeathers:
         format='json',
         **zebedee.csrf_header(),
     )
+    share_link = f'/api/recipes/{recipe.json()["slug"]}/share-link/'
+    dead_share_token = zebedee.client.put(share_link, **zebedee.csrf_header()).json()['share_token']
+    zebedee.client.delete(share_link, **zebedee.csrf_header())
+    live_share_token = zebedee.client.put(share_link, **zebedee.csrf_header()).json()['share_token']
     saved = zebedee.client.post(
         '/api/lists/favourites/saved/', {'recipe': recipe.json()['slug']}, format='json', **zebedee.csrf_header()
     )
@@ -235,6 +248,8 @@ def the_quillfeathers() -> Quillfeathers:
         member=User.objects.get(email=PHILIPPA).pk,
         live_token=make_link(zebedee).json()['invite']['token'],
         dead_token=dead_token,
+        live_share_token=live_share_token,
+        dead_share_token=dead_share_token,
         recipe=recipe.json()['slug'],
         saved=saved.json()['id'],
         household_saved=household_saved.pk,
@@ -250,6 +265,7 @@ def what_they_hold(quillfeathers: Quillfeathers) -> dict[str, Any]:
             EmailAddress.objects.filter(user__household=household).values_list('user__email', 'email', 'verified')
         ),
         'invites': sorted(Invite.objects.filter(household=household).values_list('token', 'cancelled_at')),
+        'share_links': sorted(ShareLink.objects.filter(recipe__household=household).values_list('token', flat=True)),
         'recipes': sorted(Recipe.objects.filter(household=household).values_list('slug', 'title', 'visibility')),
         'lists': sorted(
             RecipeList.objects.filter(Q(owner__household=household) | Q(household=household)).values_list(
@@ -268,6 +284,7 @@ def call(browser: BrowserClient, probe: Probe, quillfeathers: Quillfeathers) -> 
     values = {
         'member': quillfeathers.member,
         'dead_token': quillfeathers.dead_token,
+        'dead_share_token': quillfeathers.dead_share_token,
         'zebedee': ZEBEDEE,
         'recipe': quillfeathers.recipe,
         'saved': quillfeathers.saved,
@@ -309,6 +326,7 @@ def resolved_route(probe: Probe) -> str:
     stand_ins = {
         'member': 1,
         'dead_token': 'a-dead-token',
+        'dead_share_token': 'a-dead-share-token',
         'zebedee': ZEBEDEE,
         'recipe': 'a-private-recipe',
         'saved': 1,
@@ -392,5 +410,7 @@ def test_no_endpoint_shows_or_changes_a_household_for_an_outsider(
     response = call(browser, probe, quillfeathers)
     seen = response.content.decode()
 
-    assert [secret for secret in (*SECRETS, quillfeathers.live_token) if secret in seen] == []
+    assert [
+        secret for secret in (*SECRETS, quillfeathers.live_token, quillfeathers.live_share_token) if secret in seen
+    ] == []
     assert what_they_hold(quillfeathers) == before

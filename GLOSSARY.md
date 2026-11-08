@@ -11,6 +11,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Recipe | A dish with its ingredients, method and details. Public or private. | `Recipe` |
 | Public recipe | A recipe anyone can find and open, signed in or not: a catalogue recipe, or a household recipe its author has published, shown "by <name>". | `Recipe.visibility`, `RecipeQuerySet.public` |
 | Private recipe | A recipe only its household can see. Imported recipes are always private. | `Recipe.visibility`, `RecipeQuerySet.private` |
+| Share link | A read-only link to a private recipe you wrote, for anyone you send it to, signed in or not. It shows the recipe and nothing else of the household's, and stops when you turn it off, make the recipe public or delete it, or move household; turning it on again makes a new one. | `ShareLink`, `turn_on_share_link()`, `turn_off_share_link()`, `RecipeShare`, `/shared/<token>` |
 | Household recipe | A recipe a household owns, private until its author publishes it; any member can edit it while it's private, only its author once it's public; only its author can delete it (or any member once the author has left the household), and the catalogue load leaves it alone. | `Recipe.household`, `RecipeQuerySet.editable_by`, `RecipeQuerySet.deletable_by` |
 | Publish | Making a household recipe public, which only its author can, once it has ingredients, a method, prep and cook times and servings or a yield. Making it private again undoes it. | `set_visibility()`, `publishing_gaps()`, `RecipeQuerySet.publishable_by` |
 | Author | The account that wrote a recipe. | `Recipe.created_by` |
@@ -71,7 +72,6 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | List | A named collection of saved and own recipes, newest added first. Personal (only its owner sees it) or household (every member sees and changes it, and it stays with the household when someone leaves). Its name is unique among its owner's lists, or the household's, and its address is made from it: `/lists/<slug>` or `/lists/household/<slug>`. Removing takes a recipe out; the recipe itself stays. | `RecipeList`, `RecipeList.scope` (`Scope`), `make_list()`, `rename_list()`, `delete_list()` |
 | Favourites | The list every account has, which can't be renamed or deleted; the heart saves to it. Newest saved first. | `RecipeList.favourites`, `FavouriteButton` (Dino) |
 | Unavailable recipe | A saved recipe its author has since made private or deleted. It keeps its place in the list, shown by the title it was saved with, and can only be unsaved. | `UnavailableRecipe` (Dino) |
-| Share link | A read-only link to a private recipe you wrote, for someone outside the household. | `ShareLink` _planned_ |
 
 ## `kitchen`
 

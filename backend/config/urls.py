@@ -16,7 +16,14 @@ from households.views import (
     SignUpView,
     VerifyEmailCodeView,
 )
-from recipes.views import CourseListView, CuisineListView, EquipmentListView, IngredientListView, PhotoUploadView
+from recipes.views import (
+    CourseListView,
+    CuisineListView,
+    EquipmentListView,
+    IngredientListView,
+    PhotoUploadView,
+    SharedRecipeView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,6 +46,7 @@ urlpatterns = [
     # Under HEADLESS_ONLY this is only the providers' own URLs: Google's client redirects to its callback here.
     path('api/accounts/', include('allauth.urls')),
     path('api/recipes/', include('recipes.urls')),
+    path('api/shared/<str:token>/', SharedRecipeView.as_view(), name='shared-recipe'),
     path('api/lists/', include('recipe_collections.urls')),
     path('api/cuisines/', CuisineListView.as_view(), name='cuisine-list'),
     path('api/courses/', CourseListView.as_view(), name='course-list'),

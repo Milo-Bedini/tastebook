@@ -1122,6 +1122,67 @@ paths:
         '404':
           description: No recipe has this slug, or it's another household's private
             recipe.
+  /api/recipes/{slug}/share-link/:
+    put:
+      operationId: recipes_share_link_update
+      description: Turns on a share link to a private recipe of the signed-in account's
+        household, which anyone with its address can open without signing in. Only
+        its author may. A link already on stays as it is; one turned on again after
+        being turned off has a new address.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - recipes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+        '400':
+          description: The recipe is public, so anyone can open it already.
+        '403':
+          description: Signed out, or the account has no household yet.
+        '404':
+          description: 'No recipe has this slug that the account may share: there''s
+            none, it''s another household''s or a catalogue recipe, or another member
+            wrote it.'
+    delete:
+      operationId: recipes_share_link_destroy
+      description: Turns off a recipe's share link, so its address shows nothing.
+        Only its author may. A recipe with no link stays as it is.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - recipes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+        '403':
+          description: Signed out, or the account has no household yet.
+        '404':
+          description: 'No recipe has this slug that the account may share: there''s
+            none, it''s another household''s or a catalogue recipe, or another member
+            wrote it.'
   /api/recipes/{slug}/visibility/:
     put:
       operationId: recipes_visibility_update
@@ -1167,6 +1228,30 @@ paths:
           description: 'No recipe has this slug that the account may publish: there''s
             none, it''s another household''s or a catalogue recipe, or another member
             wrote it.'
+  /api/shared/{token}/:
+    get:
+      operationId: shared_recipes_retrieve
+      description: 'The recipe a share link opens, for anyone with its token, signed
+        in or not: the recipe and none of its household''s details. Both answers ask
+        search engines not to index them.'
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - shared
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedRecipe'
+          description: ''
+        '404':
+          description: 'No share link has this token: it was turned off, or never
+            was.'
   /api/test-accounts/code/:
     get:
       operationId: test_account_code_retrieve
@@ -2359,12 +2444,25 @@ components:
           readOnly: true
           description: How many other accounts have saved this recipe, which its delete
             dialog warns of; null unless the signed-in account may delete it.
+        can_share:
+          type: boolean
+          readOnly: true
+          description: 'Whether the signed-in account may turn a share link to this
+            recipe on or off: its author, while it is private and in their household.'
+        share_token:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The token of the recipe's share link, which /shared/<token>
+            opens; null unless the signed-in account may share it and the link is
+            on.
       required:
       - adapted_from
       - author
       - can_delete
       - can_edit
       - can_publish
+      - can_share
       - cook_minutes
       - courses
       - cuisines
@@ -2386,6 +2484,7 @@ components:
       - prep_minutes
       - save_count
       - servings
+      - share_token
       - slug
       - source
       - source_url
@@ -2710,6 +2809,14 @@ components:
             once every copy is made, so a copy of one is adapted from a recipe that's
             no longer public.
           maxItems: 20
+        shared:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Titles of this member's own private recipes they share by link
+            once every recipe is made private.
+          maxItems: 20
       required:
       - key
       - name
@@ -2751,9 +2858,172 @@ components:
           type: string
         slug:
           type: string
+        share_token:
+          type: string
+          nullable: true
+          description: The token of its share link, which /shared/<token> opens; null
+            when it's off.
       required:
+      - share_token
       - slug
       - title
+    SharedRecipe:
+      type: object
+      description: |-
+        A recipe as its share link shows it to anyone: the recipe itself, and nothing of the household's (no author,
+        no copy's original, nothing only a member may do).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 300
+        cuisines:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cuisine'
+          readOnly: true
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+          readOnly: true
+        difficulty:
+          oneOf:
+          - $ref: '#/components/schemas/DifficultyEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        total_minutes:
+          type: integer
+          readOnly: true
+          nullable: true
+        prep_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        cook_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        extra_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Waiting time, such as marinating or proving.
+        extra_label:
+          type: string
+          description: What the extra time is for, such as marinating, resting or
+            proving.
+          maxLength: 50
+        servings:
+          type: integer
+          maximum: 32767
+          minimum: 1
+          nullable: true
+          description: Leave empty when giving a yield.
+        yield_amount:
+          type: integer
+          maximum: 32767
+          minimum: 1
+          nullable: true
+          description: '"12" in "makes 12 cookies".'
+        yield_unit:
+          type: string
+          description: '"cookies" in "makes 12 cookies".'
+          maxLength: 50
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/Equipment'
+          readOnly: true
+        one_pot:
+          type: boolean
+        source:
+          type: string
+          title: Source credit
+          description: 'Where the recipe came from: an author, a website or a book.'
+          maxLength: 300
+        source_url:
+          title: Source address
+          description: The original recipe's page, which the source credit links to.
+            Leave empty when there is none.
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+        original_source:
+          type: string
+          readOnly: true
+          description: A catalogue original's source credit, with its licence, which
+            a copy of it keeps and can't edit; '' for any other recipe.
+        original_source_url:
+          type: string
+          readOnly: true
+          description: The page original_source links to, or '' when there is none.
+        photo:
+          allOf:
+          - $ref: '#/components/schemas/RecipePhoto'
+          readOnly: true
+          nullable: true
+        diet_tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/DietTag'
+          readOnly: true
+        ingredient_lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientLine'
+          readOnly: true
+        ingredient_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientGroup'
+          readOnly: true
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+          readOnly: true
+        diet_tag_conflicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DietTagConflict'
+          readOnly: true
+      required:
+      - cook_minutes
+      - courses
+      - cuisines
+      - description
+      - diet_tag_conflicts
+      - diet_tags
+      - difficulty
+      - equipment
+      - extra_label
+      - extra_minutes
+      - id
+      - ingredient_groups
+      - ingredient_lines
+      - one_pot
+      - original_source
+      - original_source_url
+      - photo
+      - prep_minutes
+      - servings
+      - source
+      - source_url
+      - steps
+      - title
+      - total_minutes
+      - yield_amount
+      - yield_unit
     SignInCode:
       type: object
       properties:

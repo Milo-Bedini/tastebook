@@ -1,3 +1,4 @@
+import secrets
 from functools import reduce
 from operator import or_
 from typing import Any
@@ -479,6 +480,22 @@ class Recipe(models.Model):
         return Photo(self.photo_url, self.photo_author, self.photo_licence, self.photo_source_url)
 
 
+def new_share_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+class ShareLink(models.Model):
+    """A read-only link to a private recipe, for anyone its author sends it to. Turning it off deletes it, so turning
+    it on again makes a new token."""
+
+    recipe = models.OneToOneField(Recipe, on_delete=models.CASCADE, related_name='share_link')
+    token = models.CharField(max_length=43, unique=True, default=new_share_token, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f'Share link to {self.recipe_id}'
+
+
 class IngredientStatus(models.TextChoices):
     CATALOGUE = 'catalogue', 'From the catalogue'
     AWAITING_REVIEW = 'awaiting_review', 'Awaiting review'
@@ -724,6 +741,8 @@ def take_recipes_written(sender: type[User], account: User, left: int, **kwargs:
     written = Recipe.objects.written_by_in(account, left)
     # One public recipe, still its author's to edit, rather than a stranded original and a duplicate.
     written.public().update(household_id=account.household_id)
+    # The original stays behind where its author can no longer turn its link off, so the link stops; the copy has none.
+    ShareLink.objects.filter(recipe__in=written.private()).delete()
     written.private().copy_into(account.household_id)
 
 
