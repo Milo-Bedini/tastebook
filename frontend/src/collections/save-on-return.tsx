@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 
 import { useSession } from '../households';
-import { SAVE_PARAM, useHeart } from './use-heart';
+import { SAVE_PARAM } from './still-signed-in';
+import { useHeart } from './use-heart';
 
 // A heart pressed signed out went through sign-in with save=<slug> on its way back; arriving signed in, the save it
 // asked for happens once and the address drops it. An effect, as arriving at an address is no event of the app's.

@@ -1,7 +1,8 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from recipe_collections.models import SavedRecipe
+from recipe_collections.models import LIST_NAME_MAX_LENGTH, SavedRecipe, Scope
+from recipe_collections.services import NAME_MISSING
 from recipes import services as recipe_services
 from recipes.models import Cuisine, DietTag, Recipe, Visibility
 
@@ -92,9 +93,16 @@ class SavedRecipeSerializer(serializers.ModelSerializer):
         extra_kwargs = {'title': {'help_text': 'The title the recipe had when it was saved.'}}
 
 
+SCOPE_HELP = 'personal: only its owner sees it. household: everyone in the household sees and changes it.'
+
+
 class SavedListSerializer(serializers.Serializer):
     slug = serializers.CharField(read_only=True)
     name = serializers.CharField(read_only=True)
+    scope = serializers.ChoiceField(choices=Scope.choices, read_only=True, help_text=SCOPE_HELP)
+    household_name = serializers.CharField(
+        read_only=True, allow_null=True, help_text="The household's name for a household list; null for a personal one."
+    )
     saved_recipes = SavedRecipeSerializer(many=True, read_only=True, help_text='Newest saved first.')
 
 
@@ -106,10 +114,38 @@ class ListCoverSerializer(serializers.Serializer):
 class ListSummarySerializer(serializers.Serializer):
     slug = serializers.CharField(read_only=True)
     name = serializers.CharField(read_only=True)
+    scope = serializers.ChoiceField(choices=Scope.choices, read_only=True, help_text=SCOPE_HELP)
     recipe_count = serializers.IntegerField(read_only=True, help_text='Unavailable recipes count too.')
     covers = ListCoverSerializer(
         many=True, read_only=True, help_text="Up to three of the list's newest available recipes, for its fan."
     )
+
+
+class ListsSerializer(serializers.Serializer):
+    household_name = serializers.CharField(
+        read_only=True, allow_null=True, help_text="The account's household's name; null before it has one."
+    )
+    household_members = serializers.IntegerField(
+        read_only=True,
+        help_text='How many accounts are in the household, the signed-in one included; 0 before it has one.',
+    )
+    lists = ListSummarySerializer(
+        many=True,
+        read_only=True,
+        help_text="Favourites, then the account's own lists by name, then its household's by name.",
+    )
+
+
+class ListNameSerializer(serializers.Serializer):
+    name = serializers.CharField(
+        max_length=LIST_NAME_MAX_LENGTH,
+        error_messages={'blank': NAME_MISSING, 'required': NAME_MISSING},
+        help_text='Unique among the owner\'s lists, or the household\'s, ignoring case; never "Favourites".',
+    )
+
+
+class NewListSerializer(ListNameSerializer):
+    scope = serializers.ChoiceField(choices=Scope.choices, help_text=SCOPE_HELP)
 
 
 class SaveRecipeSerializer(serializers.Serializer):

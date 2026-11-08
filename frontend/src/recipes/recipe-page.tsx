@@ -17,6 +17,7 @@ import {
 import { useSession } from '../households';
 import type { UnitSystem } from './convert';
 import { dietTagLabels, stickerTags } from './diet-tags';
+import type { OpenedFrom } from './recipe-card';
 import {
   canCrossDimensions,
   canShowOriginal,
@@ -246,19 +247,31 @@ const RecipeContent = () => {
   return <RecipeForSlug slug={slug} />;
 };
 
-const isOpenedFromFavourites = (state: unknown) =>
-  typeof state === 'object' && state !== null && 'openedFrom' in state && state.openedFrom === 'favourites';
+const openedFromList = (state: unknown): OpenedFrom | null => {
+  if (typeof state !== 'object' || state === null || !('openedFrom' in state)) {
+    return null;
+  }
+  const { openedFrom } = state;
+  return typeof openedFrom === 'object' &&
+    openedFrom !== null &&
+    'name' in openedFrom &&
+    typeof openedFrom.name === 'string' &&
+    'path' in openedFrom &&
+    typeof openedFrom.path === 'string'
+    ? { name: openedFrom.name, path: openedFrom.path }
+    : null;
+};
 
-// Opened from Favourites, the way back is to Favourites.
+// Opened from a list, the way back is to that list.
 const BackLink = () => {
-  const fromFavourites = isOpenedFromFavourites(useLocation().state);
+  const list = openedFromList(useLocation().state);
   return (
     <Link
-      to={fromFavourites ? '/lists/favourites' : '/recipes'}
+      to={list?.path ?? '/recipes'}
       className="inline-flex min-h-11 items-center gap-1 self-start text-label no-underline hover:underline"
     >
       <ChevronLeft aria-hidden="true" className="size-4.5" strokeWidth={2.5} />
-      {fromFavourites ? 'Favourites' : 'All recipes'}
+      {list?.name ?? 'All recipes'}
     </Link>
   );
 };
