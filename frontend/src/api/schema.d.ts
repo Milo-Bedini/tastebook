@@ -345,6 +345,23 @@ export interface paths {
         patch: operations["recipes_partial_update"];
         trace?: never;
     };
+    "/api/recipes/{slug}/copy/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Makes a private copy of a recipe the signed-in account can see, in its household: written by it, with the original's title, details, ingredients, method and photo, and linked to the original. */
+        post: operations["recipes_copy_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recipes/{slug}/visibility/": {
         parameters: {
             query?: never;
@@ -657,6 +674,10 @@ export interface components {
             /** @description The method, a step each, in order. Sending it replaces every step. */
             steps?: string[];
         };
+        OriginalRecipe: {
+            readonly slug: string;
+            readonly title: string;
+        };
         PatchedAccountChanges: {
             name?: string;
             unit_system?: components["schemas"]["UnitSystem"];
@@ -736,6 +757,8 @@ export interface components {
             readonly total_minutes: number | null;
             readonly photo: components["schemas"]["RecipePhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
+            /** @description The recipe this is a copy of, shown as "Copied from <title>"; null for a recipe that is no copy, or when its original was deleted or the signed-in account can't see it. */
+            readonly adapted_from: components["schemas"]["OriginalRecipe"] | null;
             readonly courses: components["schemas"]["Course"][];
             prep_minutes: number | null;
             cook_minutes: number | null;
@@ -844,6 +867,8 @@ export interface components {
             }[];
             /** @description Titles of the recipes this member saves to Favourites, oldest first, once every member's recipes are made: a recipe a member of this seed wrote, or a catalogue recipe. Each must be one the member can see. */
             saves?: string[];
+            /** @description Titles of the recipes this member makes a copy of, once every save is made, as saves name them. Each copy is listed after the member's own recipes. */
+            copies?: string[];
         };
         Seeded: {
             session_cookie: string;
@@ -1818,6 +1843,41 @@ export interface operations {
                 content?: never;
             };
             /** @description No recipe has this slug in the account's household: there's none, it's another household's, it's a catalogue recipe, or it's public and another member wrote it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recipes_copy_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+            /** @description Signed out, or the account has no household yet. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug, or it's another household's private recipe. */
             404: {
                 headers: {
                     [name: string]: unknown;

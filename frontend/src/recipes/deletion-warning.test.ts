@@ -29,6 +29,7 @@ const chanaMasala: Recipe = {
   title: 'Chana masala',
   description: '',
   cuisines: [],
+  adapted_from: null,
   courses: [],
   difficulty: '',
   prep_minutes: null,

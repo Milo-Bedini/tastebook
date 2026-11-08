@@ -27,6 +27,7 @@ const flatbreads: Recipe = {
   title: 'Flatbreads',
   description: 'Soft and blistered.',
   cuisines: [{ slug: 'italian', name: 'Italian' }],
+  adapted_from: null,
   courses: [{ slug: 'main', name: 'Main' }],
   difficulty: 'medium',
   prep_minutes: 15,

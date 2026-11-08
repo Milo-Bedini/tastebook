@@ -46,6 +46,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Catalogue | The public recipes Tastebook seeds itself with, loaded from a file in the repo with the shared ingredient and equipment lists. | `catalogue.json`, `load_catalogue` |
 | Report | A signed-in person flagging a public recipe, which hides it until staff review it. | `Report` _planned_ |
 | Slug | The recipe's address in a URL, set once from its title. | `Recipe.slug` |
+| Copy | A private recipe made from another you can see, to change it: written by you, with the same title, its page saying "Copied from <original>" while you can see the original. Can be published as "Adapted from X by Y". A recipe a member takes along when they move household is copied but isn't a Copy: it doesn't link to the one left behind, though a Copy taken along still links to its original. | `Recipe.adapted_from`, `copy_recipe()`, `CopyRecipe` |
 
 ## `households`
 
@@ -70,7 +71,6 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | List | A named collection of saved and own recipes. Personal or household. | `RecipeList` |
 | Favourites | The list every account has, which can't be renamed or deleted; the heart saves to it. Newest saved first. | `RecipeList.favourites`, `FavouriteButton` (Dino) |
 | Unavailable recipe | A saved recipe its author has since made private or deleted. It keeps its place in the list, shown by the title it was saved with, and can only be unsaved. | `UnavailableRecipe` (Dino) |
-| Copy | A private recipe made from another, to change it. Can be published as "Adapted from X by Y". A recipe a member takes along when they move household is copied but isn't a Copy: it links to nothing. | `Recipe.adapted_from` _planned_ |
 | Share link | A read-only link to a private recipe you wrote, for someone outside the household. | `ShareLink` _planned_ |
 
 ## `kitchen`

@@ -375,6 +375,23 @@ def test_a_photo_another_recipe_uses_stays_in_the_store_until_the_last_lets_it_g
 
 
 @pytest.mark.django_db
+def test_a_copy_keeps_its_originals_photo_in_the_store_until_both_let_it_go(
+    blob: responses.RequestsMock, django_capture_on_commit_callbacks: DjangoCaptureOnCommitCallbacks
+) -> None:
+    milo, slug = milos_curry(photo_url=uploaded())
+    ben = ben_in_milos_household()
+    copy = ben.client.post(f'/api/recipes/{slug}/copy/', format='json', **ben.csrf_header()).json()['slug']
+
+    with django_capture_on_commit_callbacks(execute=True):
+        assert deletes_recipe(milo, slug).status_code == 204
+    kept = deleted(blob)
+    with django_capture_on_commit_callbacks(execute=True):
+        assert deletes_recipe(ben, copy).status_code == 204
+
+    assert (kept, deleted(blob)) == ([], [every_width(uploaded())])
+
+
+@pytest.mark.django_db
 def test_a_failed_delete_still_saves_the_recipe(
     blob: responses.RequestsMock, django_capture_on_commit_callbacks: DjangoCaptureOnCommitCallbacks
 ) -> None:

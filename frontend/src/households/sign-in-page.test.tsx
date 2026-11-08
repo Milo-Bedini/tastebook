@@ -20,6 +20,7 @@ const baguette: Recipe = {
   title: 'Baguette',
   description: '',
   cuisines: [],
+  adapted_from: null,
   courses: [],
   difficulty: 'hard',
   prep_minutes: 30,

@@ -277,7 +277,16 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
         return recipe.created_by.name
 
 
+class OriginalRecipeSerializer(serializers.Serializer):
+    slug = serializers.CharField(read_only=True)
+    title = serializers.CharField(read_only=True)
+
+
 class RecipeSerializer(RecipeSummarySerializer):
+    adapted_from = serializers.SerializerMethodField(
+        help_text='The recipe this is a copy of, shown as "Copied from <title>"; null for a recipe that is no copy, '
+        "or when its original was deleted or the signed-in account can't see it."
+    )
     courses = CourseSerializer(many=True, read_only=True)
     equipment = EquipmentSerializer(many=True, read_only=True)
     # Lines in no group, shown before the groups; ungrouped_lines exists only on with_ingredients_and_method().
@@ -306,6 +315,7 @@ class RecipeSerializer(RecipeSummarySerializer):
     class Meta(RecipeSummarySerializer.Meta):
         fields = [
             *RecipeSummarySerializer.Meta.fields,
+            'adapted_from',
             'courses',
             'prep_minutes',
             'cook_minutes',
@@ -356,6 +366,14 @@ class RecipeSerializer(RecipeSummarySerializer):
     @extend_schema_field(DietTagConflictSerializer(many=True))
     def get_diet_tag_conflicts(self, recipe: Recipe) -> list[dict[str, object]]:
         return DietTagConflictSerializer(services.diet_tag_conflicts(self._all_lines(recipe)), many=True).data
+
+    @extend_schema_field(OriginalRecipeSerializer(allow_null=True))
+    def get_adapted_from(self, recipe: Recipe) -> dict[str, str] | None:
+        if recipe.adapted_from_id is None:
+            return None
+        # Only an original the account can see is named, so a copy says nothing of another household's private recipe.
+        visible = Recipe.objects.visible_to(self.context['request'].user).filter(pk=recipe.adapted_from_id)
+        return visible.values('slug', 'title').first()
 
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_can_delete(self, recipe: Recipe) -> bool:

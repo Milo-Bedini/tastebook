@@ -19,6 +19,7 @@ const recipe: Recipe = {
     { slug: 'british', name: 'British' },
     { slug: 'french', name: 'French' }
   ],
+  adapted_from: null,
   courses: [
     { slug: 'main', name: 'Main' },
     { slug: 'side', name: 'Side' }

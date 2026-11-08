@@ -23,6 +23,7 @@ const shakshuka: Recipe = {
   title: 'Shakshuka',
   description: 'Eggs in spiced tomatoes.',
   cuisines: [],
+  adapted_from: null,
   courses: [{ slug: 'main', name: 'Main' }],
   difficulty: 'easy',
   prep_minutes: 10,
@@ -1658,5 +1659,133 @@ describe('Making a recipe public', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(publicSwitch()).not.toBeChecked();
     await waitFor(() => expect(publicSwitch()).toHaveFocus());
+  });
+});
+
+const ourCopy: Recipe = {
+  ...shakshuka,
+  id: 8,
+  slug: 'shakshuka-q4w8zn',
+  visibility: 'private',
+  adapted_from: { slug: 'shakshuka', title: 'Shakshuka' },
+  can_edit: true,
+  can_delete: true,
+  can_publish: true
+};
+
+const NOT_COPIED = "Couldn't copy Shakshuka. Check your connection and try again.";
+
+// Signed in as Sam; answers the shakshuka's page with `shown`, the copy's page with the copy, and each copy request
+// with `answer`, recording the path of each sent.
+const answerCopying = (shown: { recipe: Recipe | null }, answer: () => Response | Promise<Response>) => {
+  const copies: string[] = [];
+  answerSession(() => true);
+  server.use(
+    http.get('/api/recipes/:slug/', ({ params }) => {
+      if (params.slug === ourCopy.slug) {
+        return HttpResponse.json<Recipe>(ourCopy);
+      }
+      return shown.recipe === null ? new HttpResponse(null, { status: 404 }) : HttpResponse.json<Recipe>(shown.recipe);
+    }),
+    http.post('/api/recipes/:slug/copy/', ({ request }) => {
+      copies.push(new URL(request.url).pathname);
+      return answer();
+    })
+  );
+  return copies;
+};
+
+const copyButton = () => screen.getByRole('button', { name: 'Make a copy' });
+
+const openShakshuka = async () => {
+  const rendered = renderRoute('/recipes/shakshuka');
+  await screen.findByRole('button', { name: 'Make a copy' });
+  return rendered;
+};
+
+describe('Making a copy', () => {
+  afterEach(() => {
+    toast.dismiss();
+  });
+
+  it('makes a private copy and opens it, saying what it was copied from', async () => {
+    const copies = answerCopying({ recipe: shakshuka }, () => HttpResponse.json<Recipe>(ourCopy, { status: 201 }));
+    const { router } = await openShakshuka();
+    expect(screen.queryByText(/Copied from/)).not.toBeInTheDocument();
+
+    await userEvent.click(copyButton());
+
+    const original = await screen.findByRole('link', { name: 'Shakshuka' });
+    expect(original).toHaveAttribute('href', '/recipes/shakshuka');
+    expect(original.parentElement).toHaveTextContent('Copied from Shakshuka');
+    expect(screen.getByText('Made a copy of Shakshuka')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/recipes/shakshuka-q4w8zn');
+    expect(screen.getByText('Private')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Shakshuka' })).toHaveFocus());
+    expect(copies).toEqual(['/api/recipes/shakshuka/copy/']);
+  });
+
+  it('shows the copy is being made while it is', async () => {
+    const gate = { release: () => {} };
+    const released = new Promise<void>((resolve) => {
+      gate.release = resolve;
+    });
+    answerCopying({ recipe: shakshuka }, async () => {
+      await released;
+      return HttpResponse.json<Recipe>(ourCopy, { status: 201 });
+    });
+    await openShakshuka();
+
+    await userEvent.click(copyButton());
+
+    expect(await screen.findByRole('button', { name: 'Copying…' })).toHaveAttribute('aria-busy', 'true');
+    gate.release();
+    expect(await screen.findByText('Made a copy of Shakshuka')).toBeInTheDocument();
+  });
+
+  it('says the recipe has gone when Tastebook can’t find it, and puts focus on the heading', async () => {
+    const shown: { recipe: Recipe | null } = { recipe: shakshuka };
+    answerCopying(shown, () => {
+      shown.recipe = null;
+      return new HttpResponse(null, { status: 404 });
+    });
+    const { router } = await openShakshuka();
+
+    await userEvent.click(copyButton());
+
+    expect(await screen.findByText("Shakshuka has been deleted, or you can't see it any more.")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Recipe not found' })).toHaveFocus());
+    expect(router.state.location.pathname).toBe('/recipes/shakshuka');
+  });
+
+  it('sends you to sign in, and back to the recipe after, when Tastebook says you are signed out', async () => {
+    const state = { signedOut: false };
+    answerCopying({ recipe: shakshuka }, () => {
+      state.signedOut = true;
+      return new HttpResponse(null, { status: 403 });
+    });
+    answerSession(() => !state.signedOut);
+    const { router } = await openShakshuka();
+
+    await userEvent.click(copyButton());
+
+    await waitFor(() =>
+      expect(router.state.location.pathname + router.state.location.search).toBe('/sign-in?next=%2Frecipes%2Fshakshuka')
+    );
+  });
+
+  it.each<[string, () => Response]>([
+    ['refused while still signed in', () => new HttpResponse(null, { status: 403 })],
+    ['answered with a server error', () => new HttpResponse(null, { status: 500 })],
+    ['not answered', () => HttpResponse.error()]
+  ])('says no copy was made when the request is %s, and stays', async (_, answer) => {
+    answerCopying({ recipe: shakshuka }, answer);
+    const { router } = await openShakshuka();
+
+    await userEvent.click(copyButton());
+
+    expect(await screen.findByText(NOT_COPIED)).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/recipes/shakshuka');
+    expect(copyButton()).toHaveFocus();
   });
 });

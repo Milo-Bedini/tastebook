@@ -28,6 +28,13 @@ class SeedMemberSerializer(serializers.Serializer):
         help_text="Titles of the recipes this member saves to Favourites, oldest first, once every member's recipes "
         'are made: a recipe a member of this seed wrote, or a catalogue recipe. Each must be one the member can see.',
     )
+    copies = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text='Titles of the recipes this member makes a copy of, once every save is made, as saves name them. '
+        "Each copy is listed after the member's own recipes.",
+    )
 
 
 class SeedHouseholdSerializer(serializers.Serializer):

@@ -263,6 +263,36 @@ def test_a_seeded_member_saves_recipes_to_favourites_in_order(test_accounts: Set
 
 
 @pytest.mark.django_db
+def test_a_seeded_member_copies_recipes_listed_after_their_own(test_accounts: Settings) -> None:
+    make_recipe(title='Baklava')
+    body = seeded({'members': [{'key': 'jo', 'name': 'Jo', 'recipes': [{'title': "Jo's dal"}], 'copies': ['Baklava']}]})
+
+    recipes = body['accounts']['jo']['recipes']
+    copied = signed_in_as(body, 'jo').get(f'/api/recipes/{recipes[1]["slug"]}/').json()
+
+    assert [recipe['title'] for recipe in recipes] == ["Jo's dal", 'Baklava']
+    assert (copied['visibility'], copied['adapted_from']) == ('private', {'slug': 'baklava', 'title': 'Baklava'})
+
+
+@pytest.mark.django_db
+def test_a_seeded_member_can_t_copy_a_recipe_they_can_t_see(test_accounts: Settings) -> None:
+    response = seed(
+        {
+            'households': [
+                {'members': [{'key': 'sam', 'name': 'Sam', 'recipes': [{'title': "Sam's curry"}]}]},
+                {'members': [{'key': 'jo', 'name': 'Jo', 'copies': ["Sam's curry"]}]},
+            ]
+        }
+    )
+
+    assert (response.status_code, response.json()) == (
+        400,
+        ['Jo can\'t copy "Sam\'s curry": no recipe they can see has that title.'],
+    )
+    assert User.objects.count() == 0
+
+
+@pytest.mark.django_db
 def test_a_seeded_member_can_t_save_a_recipe_they_can_t_see(test_accounts: Settings) -> None:
     response = seed(
         {
