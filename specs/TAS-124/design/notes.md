@@ -4,13 +4,13 @@ Canvas: https://claude.ai/artifact/MKYTheAVfp3jqywSfbZyaR
 
 ## Boards
 
-- `Main.dc.html`: the Lists index at phone width, split into two groups, "Just you" (Favourites first, then personal lists by name) and the household's name, with New list as the screen's one peach button.
-- `Create.dc.html`: the New list sheet: opened (focus in Name, "Just you" chosen), Household chosen, refused for a duplicate name, and the new list's empty page with its "Made <name>" toast.
-- `List-page.dc.html`: a list's page for any list: a personal list, a household list, a recipe removed with an Undo toast, and Favourites as built in TAS-123 plus its "Just you" mark.
-- `Rename-delete.dc.html`: the Rename list sheet, the renamed page, the delete confirmation for a household list, and the Lists index after deleting.
-- `Wider.dc.html`: laptop (1280 px): the groups' rows two a row and the New list sheet centred at 576 px; notes on tablet and focus order.
-- `Scope-choice.dc.html`: Dino's SegmentedControl for "Who's it for?" with a visible label and a help line, in every state (Just you, Household, focus, a household of one, a long household name).
-- `List-row.dc.html`: the collections area's ListRow holding any list: default, empty, one recipe, long name, hover, pressed and focus.
+- `docs/design/picnic/lists-groups.dc.html`: the Lists index at phone width, split into two groups, "Just you" (Favourites first, then personal lists by name) and the household's name, with New list as the screen's one peach button.
+- `docs/design/picnic/lists-new.dc.html`: the New list sheet: opened (focus in Name, "Just you" chosen), Household chosen, refused for a duplicate name, and the new list's empty page with its "Made <name>" toast.
+- `docs/design/picnic/lists-list-page.dc.html`: a list's page for any list: a personal list, a household list, a recipe removed with an Undo toast, and Favourites as built in TAS-123 plus its "Just you" mark.
+- `docs/design/picnic/lists-rename-delete.dc.html`: the Rename list sheet, the renamed page, the delete confirmation for a household list, and the Lists index after deleting.
+- `docs/design/picnic/lists-groups-laptop.dc.html`: laptop (1280 px): the groups' rows two a row and the New list sheet centred at 576 px; notes on tablet and focus order.
+- `docs/design/dino/segmented-control-help.dc.html`: Dino's SegmentedControl for "Who's it for?" with a visible label and a help line, in every state (Just you, Household, focus, a household of one, a long household name).
+- `docs/design/picnic/lists-row.dc.html`: the collections area's ListRow holding any list: default, empty, one recipe, long name, hover, pressed and focus.
 
 ## Decisions
 
