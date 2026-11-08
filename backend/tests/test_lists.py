@@ -49,8 +49,8 @@ def titles(browser: BrowserClient, address: str) -> list[tuple[str, str | None]]
 
 
 def add(email: str, scope: Scope, slug: str, recipe: Recipe) -> SavedRecipe:
-    # Adding to a list from a recipe's page is TAS-125, so the tests add through the service the seed uses.
-    return save_to_list(User.objects.get(email=email), scope, slug, recipe)
+    # Through the service the seed uses, as these tests are about the lists, not saving to them.
+    return save_to_list(User.objects.get(email=email), scope, slug, recipe)[0]
 
 
 @pytest.mark.parametrize(

@@ -281,6 +281,24 @@ export interface paths {
         patch: operations["lists_household_partial_update"];
         trace?: never;
     };
+    "/api/lists/recipes/{slug}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Every list the signed-in account sees, as the Lists page orders them, with the save that holds this recipe in each. */
+        get: operations["lists_recipes_retrieve"];
+        put?: never;
+        /** @description Saves this recipe as a link, never a copy, to one of the account's lists or its household's, Favourites among them (201), or answers the save it already has there (200). */
+        post: operations["lists_recipes_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lists/saved/{saved_id}/": {
         parameters: {
             query?: never;
@@ -588,6 +606,21 @@ export interface components {
             readonly id: number;
             readonly photo: components["schemas"]["ListedPhoto"] | null;
         };
+        ListPlace: {
+            readonly slug: string;
+            readonly name: string;
+            /**
+             * @description personal: only its owner sees it. household: everyone in the household sees and changes it.
+             *
+             *     * `personal` - Just you
+             *     * `household` - Household
+             */
+            readonly scope: components["schemas"]["ScopeEnum"];
+            /** @description Unavailable recipes count too. */
+            readonly recipe_count: number;
+            /** @description The id of the save that holds the recipe in this list, which unsaving takes; null when it doesn't. */
+            readonly saved_id: number | null;
+        };
         ListSummary: {
             readonly slug: string;
             readonly name: string;
@@ -849,6 +882,12 @@ export interface components {
             /** @description How many other accounts have saved this recipe, which its delete dialog warns of; null unless the signed-in account may delete it. */
             readonly save_count: number | null;
         };
+        RecipeLists: {
+            /** @description The account's household's name; null before it has one. */
+            readonly household_name: string | null;
+            /** @description Favourites, then the account's own lists by name, then its household's by name. */
+            readonly lists: components["schemas"]["ListPlace"][];
+        };
         RecipePhoto: {
             /**
              * Format: uri
@@ -879,6 +918,17 @@ export interface components {
         SaveRecipe: {
             /** @description The slug of a recipe the account can see: a public recipe, or its household's own. */
             recipe: string;
+        };
+        SaveToList: {
+            /**
+             * @description personal: only its owner sees it. household: everyone in the household sees and changes it.
+             *
+             *     * `personal` - Just you
+             *     * `household` - Household
+             */
+            scope: components["schemas"]["ScopeEnum"];
+            /** @description The list's slug among the account's own lists, or its household's. */
+            list: string;
         };
         SavedList: {
             readonly slug: string;
@@ -1848,6 +1898,97 @@ export interface operations {
                 content?: never;
             };
             /** @description As for GET, and Favourites, which is never renamed or deleted. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_recipes_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeLists"];
+                };
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account can see: there's none, or it's another household's private recipe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    lists_recipes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveToList"];
+                "application/x-www-form-urlencoded": components["schemas"]["SaveToList"];
+                "multipart/form-data": components["schemas"]["SaveToList"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedRecipe"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedRecipe"];
+                };
+            };
+            /** @description No scope or list slug was sent. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account can see: there's none, or it's another household's private recipe. Or the account has no list with this scope and slug, of its own or its household's: it's been deleted or renamed, or it's another account's or household's. */
             404: {
                 headers: {
                     [name: string]: unknown;

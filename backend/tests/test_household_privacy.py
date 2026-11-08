@@ -152,6 +152,11 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         delete('/api/lists/saved/{saved}/'),
         delete('/api/lists/saved/{household_saved}/'),
     ),
+    'api/lists/recipes/<slug:slug>/': (
+        get('/api/lists/recipes/{recipe}/'),
+        post('/api/lists/recipes/{recipe}/', {'scope': 'household', 'list': 'quillfeather-puddings'}),
+        post('/api/lists/recipes/{recipe}/', {'scope': 'personal', 'list': 'zebedees-secrets'}),
+    ),
     'api/lists/household/<slug:slug>/': (
         get('/api/lists/household/quillfeather-puddings/'),
         patch('/api/lists/household/quillfeather-puddings/', {'name': 'Taken'}),
@@ -224,7 +229,7 @@ def the_quillfeathers() -> Quillfeathers:
     zebedee_account = User.objects.get(email=ZEBEDEE)
     crumble = Recipe.objects.get(slug=recipe.json()['slug'])
     save_to_list(zebedee_account, Scope.PERSONAL, 'zebedees-secrets', crumble)
-    household_saved = save_to_list(zebedee_account, Scope.HOUSEHOLD, 'quillfeather-puddings', crumble)
+    household_saved, _ = save_to_list(zebedee_account, Scope.HOUSEHOLD, 'quillfeather-puddings', crumble)
     return Quillfeathers(
         household=User.objects.get(email=ZEBEDEE).household_id,
         member=User.objects.get(email=PHILIPPA).pk,

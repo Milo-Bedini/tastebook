@@ -5,7 +5,7 @@ from itertools import chain, count
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count, F, Prefetch, Q, QuerySet, Value, Window
+from django.db.models import Count, F, OuterRef, Prefetch, Q, QuerySet, Subquery, Value, Window
 from django.db.models.functions import Lower, RowNumber
 from django.utils import timezone
 from django.utils.text import slugify
@@ -45,6 +45,22 @@ class Lists:
     household_name: str | None
     household_members: int
     lists: list[ListSummary]
+
+
+@dataclass(frozen=True)
+class ListPlace:
+    slug: str
+    name: str
+    scope: Scope
+    recipe_count: int
+    # The save that holds the recipe in this list, or None when the list doesn't hold it.
+    saved_id: int | None
+
+
+@dataclass(frozen=True)
+class RecipeLists:
+    household_name: str | None
+    lists: list[ListPlace]
 
 
 @dataclass(frozen=True)
@@ -113,19 +129,35 @@ def _household_name(account: User) -> str | None:
     return account.household.name if account.household_id is not None else None
 
 
+def _in_index_order(found: RecipeList) -> tuple[bool, bool, str, int]:
+    # Favourites first, then the account's own lists by name, then its household's by name.
+    return (found.household_id is not None, not found.favourites, found.name.casefold(), found.pk)
+
+
 def lists_of(account: User) -> Lists:
     """Every list the account sees: Favourites first, even before anything is saved to it, then its own lists by name,
     then its household's by name."""
-    lists = sorted(
-        _lists_seen_by(account).annotate(recipe_count=Count('saved_recipes')),
-        key=lambda found: (found.household_id is not None, not found.favourites, found.name.casefold(), found.pk),
-    )
+    lists = sorted(_lists_seen_by(account).annotate(recipe_count=Count('saved_recipes')), key=_in_index_order)
     covers = _covers(account, lists)
     summaries = [_summary(found, found.recipe_count, covers.get(found.pk, [])) for found in lists]
     if not any(found.favourites for found in lists):
         summaries.insert(0, ListSummary(FAVOURITES_SLUG, FAVOURITES_NAME, Scope.PERSONAL, 0, []))
     members = User.objects.filter(household_id=account.household_id).count() if account.household_id else 0
     return Lists(household_name=_household_name(account), household_members=members, lists=summaries)
+
+
+def lists_holding(account: User, recipe: Recipe) -> RecipeLists:
+    """Every list the account sees, in the Lists page's order and Favourites among them, each with the save that holds
+    the recipe there, in one query however many lists there are."""
+    holding = SavedRecipe.objects.filter(recipe_list=OuterRef('pk'), recipe=recipe).values('pk')[:1]
+    lists = sorted(
+        _lists_seen_by(account).annotate(recipe_count=Count('saved_recipes'), saved_id=Subquery(holding)),
+        key=_in_index_order,
+    )
+    places = [ListPlace(found.slug, found.name, found.scope, found.recipe_count, found.saved_id) for found in lists]
+    if not any(found.favourites for found in lists):
+        places.insert(0, ListPlace(FAVOURITES_SLUG, FAVOURITES_NAME, Scope.PERSONAL, 0, None))
+    return RecipeLists(household_name=_household_name(account), lists=places)
 
 
 def _shown_list(account: User, recipe_list: RecipeList) -> SavedList:
@@ -239,18 +271,18 @@ def save_to_favourites(account: User, recipe: Recipe) -> tuple[SavedRecipe, bool
     return _shown(saved, account), added
 
 
-def save_to_list(account: User, scope: Scope, slug: str, recipe: Recipe) -> SavedRecipe:
+def save_to_list(account: User, scope: Scope, slug: str, recipe: Recipe) -> tuple[SavedRecipe, bool]:
     """Saves a recipe the account can see to one of its lists, or its household's; saving it again changes nothing.
-    Raises RecipeList.DoesNotExist when it has no such list."""
+    True when it's newly saved. Raises RecipeList.DoesNotExist when it has no such list."""
     if scope == Scope.PERSONAL and slug == FAVOURITES_SLUG:
-        return save_to_favourites(account, recipe)[0]
+        return save_to_favourites(account, recipe)
     recipe_list = _found(account, scope, slug)
     if recipe_list is None:
         raise RecipeList.DoesNotExist
-    saved, _ = SavedRecipe.objects.get_or_create(
+    saved, added = SavedRecipe.objects.get_or_create(
         recipe_list=recipe_list, recipe=recipe, defaults={'title': recipe.title}
     )
-    return _shown(saved, account)
+    return _shown(saved, account), added
 
 
 def unsave(account: User, saved_id: int) -> str | None:
