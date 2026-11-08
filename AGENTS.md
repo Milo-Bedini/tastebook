@@ -117,7 +117,7 @@ backend/
 tools/openapi/      generates frontend/src/api/schema.d.ts
 tools/backup/       nightly production backup and restore (docs/architecture.md, Backups)
 tools/workflows/    the check that a workflow's secrets are only in its steps' env (run by pnpm lint:workflows)
-tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one; no `data-*` or `aria-*` fill beside an `active:` one unless a stacked `data-…:active:` or `aria-…:active:` fill wins; no `<svg>` with its own text colour unless it adds `forced-colors:text-current`; no `<img>` without `crossOrigin` unless its `src` is a local import; the frontend's area boundaries; no mocking Tastebook's own modules, `fetch` or the API client in tests)
+tools/biome/        Biome lint plugins (no arbitrary radius outside the design system's corner tokens; token-only styling in frontend/src: no literal colour and no arbitrary spacing, font size, line height or font family, outside picnic.css; no `let` in frontend/; no function declarations in frontend/src/; no hand-built button with a hover style and no pressed one; no `data-*` or `aria-*` fill beside an `active:` one unless a stacked `data-…:active:` or `aria-…:active:` fill wins; no `<svg>` with its own text colour unless it adds `forced-colors:text-current`; no `<img>` without `crossOrigin` unless its `src` is a local import; the frontend's area boundaries; no mocking Tastebook's own modules, `fetch` or the API client in tests), and plugins.test.ts: a fixture per plugin that must report its message and one that must report nothing (run by pnpm test:biome and pnpm test)
 specs/              one spec per issue, plus lessons/
 ```
 
@@ -137,6 +137,7 @@ From the repo root unless noted.
 | Lint backend                 | `uv run ruff check . && uv run ruff format --check .` (in `backend/`)                       |
 | Check the workflows          | `pnpm lint:workflows` (needs `uv`): zizmor over `.github/`, then the secrets-in-`env` check in `tools/workflows` |
 | Check backend area boundaries | `uv run lint-imports` (in `backend/`; contracts in `pyproject.toml`'s `[tool.importlinter]`) |
+| Biome plugin tests           | `pnpm test:biome`: lints each plugin's fixtures in `tools/biome/plugins.test.ts` with the root's Biome and `biome.json`; a new plugin needs a fixture that reports and one that doesn't (also run by `pnpm test`) |
 | Frontend tests               | `pnpm test` (runs every story in Chromium too: install it once with `pnpm --filter frontend exec playwright install chromium`) |
 | Storybook                    | `pnpm --filter frontend storybook`                                                          |
 | Story screenshots            | `pnpm --filter frontend test:visual` (after `build-storybook`); new baselines: a factory run makes them on its own runner with `pnpm --filter frontend test:visual:update`; a person runs the **Update screenshots** workflow on their branch, then `pnpm --filter frontend screenshots:commit <PR number>` to commit them as themselves |
