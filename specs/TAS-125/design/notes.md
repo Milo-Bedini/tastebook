@@ -4,10 +4,10 @@ Canvas: https://claude.ai/artifact/5RJM69Q4Po18isiA8Kh4wq
 
 ## Boards
 
-- `Main.dc.html` (Save to list opens a sheet of your lists): phone, 390 px. A secondary "Save to list" button in the recipe intro opens a sheet of every list the person sees, grouped "Just you" (Favourites first) and the household, each a native checkbox ticked when it holds the recipe; a tick saves and an untick removes at once; a "Saved in …" line under the time blobs names each list that holds it, Favourites included, and focus returns to the button on close.
-- `picker-states.dc.html` (The sheet's other states): loading, couldn't load (Error with retry), a save that didn't go through (the row turns back with why under it), only Favourites (no other lists, foot links to the Lists page), a household's private recipe, and signed out (sign-in with `next` back to the recipe).
-- `laptop.dc.html` (Laptop): 1280 px. The button and "Saved in" line in the intro's right-hand column; the same sheet, centred at 576 px, as on tablet.
-- `list-picker.dc.html` (ListPicker, every state): the new collections-local component's row: off, on, hover, pressed, focus, saving, didn't save, long name, empty list.
+- `docs/design/picnic/lists-save-to-list.dc.html` (Save to list opens a sheet of your lists): phone, 390 px. A secondary "Save to list" button in the recipe intro opens a sheet of every list the person sees, grouped "Just you" (Favourites first) and the household, each a native checkbox ticked when it holds the recipe; a tick saves and an untick removes at once; a "Saved in …" line under the time blobs names each list that holds it, Favourites included, and focus returns to the button on close.
+- `docs/design/picnic/lists-save-to-list-states.dc.html` (The sheet's other states): loading, couldn't load (Error with retry), a save that didn't go through (the row turns back with why under it), only Favourites (no other lists, foot links to the Lists page), a household's private recipe, and signed out (sign-in with `next` back to the recipe).
+- `docs/design/picnic/lists-save-to-list-laptop.dc.html` (Laptop): 1280 px. The button and "Saved in" line in the intro's right-hand column; the same sheet, centred at 576 px, as on tablet.
+- `list-picker.dc.html` (ListPicker, every state), built in Dino by TAS-195 from `docs/design/dino/list-picker.dc.html`: the new collections-local component's row: off, on, hover, pressed, focus, saving, didn't save, long name, empty list.
 
 ## Decided at Design Review
 
