@@ -9,23 +9,27 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from recipe_collections.models import Scope
+from recipe_collections.models import RecipeList, Scope
 from recipe_collections.serializers import (
     ListNameSerializer,
     ListsSerializer,
     NewListSerializer,
+    RecipeListsSerializer,
     SavedListSerializer,
     SavedRecipeSerializer,
     SaveRecipeSerializer,
+    SaveToListSerializer,
     UndoSerializer,
 )
 from recipe_collections.services import (
     delete_list,
     list_of,
+    lists_holding,
     lists_of,
     make_list,
     rename_list,
     save_to_favourites,
+    save_to_list,
     undo_unsave,
     unsave,
 )
@@ -181,6 +185,60 @@ class FavouritesSavedView(APIView):
         given.is_valid(raise_exception=True)
         recipe = get_object_or_404(Recipe.objects.visible_to(request.user), slug=given.validated_data['recipe'])
         saved, added = save_to_favourites(request.user, recipe)
+        return Response(
+            SavedRecipeSerializer(saved).data, status=status.HTTP_201_CREATED if added else status.HTTP_200_OK
+        )
+
+
+NO_SUCH_RECIPE = OpenApiResponse(
+    description="No recipe has this slug that the account can see: there's none, or it's another household's private "
+    'recipe.'
+)
+
+
+class RecipeListsView(APIView):
+    """The lists that hold one recipe, and saving it to another: what a recipe's page offers."""
+
+    permission_classes = []
+
+    @extend_schema(
+        operation_id='lists_recipes_retrieve',
+        responses={200: RecipeListsSerializer, 403: SIGNED_OUT, 404: NO_SUCH_RECIPE},
+        description='Every list the signed-in account sees, as the Lists page orders them, with the save that holds '
+        'this recipe in each.',
+    )
+    def get(self, request: Request, slug: str) -> Response:
+        _refuse_signed_out(request)
+        recipe = get_object_or_404(Recipe.objects.visible_to(request.user), slug=slug)
+        return Response(RecipeListsSerializer(lists_holding(request.user, recipe)).data)
+
+    @extend_schema(
+        operation_id='lists_recipes_create',
+        request=SaveToListSerializer,
+        responses={
+            200: SavedRecipeSerializer,
+            201: SavedRecipeSerializer,
+            400: OpenApiResponse(description='No scope or list slug was sent.'),
+            403: SIGNED_OUT,
+            404: OpenApiResponse(
+                description=f'{NO_SUCH_RECIPE.description} Or the account has no list with this scope and slug, of '
+                "its own or its household's: it's been deleted or renamed, or it's another account's or household's."
+            ),
+        },
+        description="Saves this recipe as a link, never a copy, to one of the account's lists or its household's, "
+        'Favourites among them (201), or answers the save it already has there (200).',
+    )
+    def post(self, request: Request, slug: str) -> Response:
+        _refuse_signed_out(request)
+        given = SaveToListSerializer(data=request.data)
+        given.is_valid(raise_exception=True)
+        recipe = get_object_or_404(Recipe.objects.visible_to(request.user), slug=slug)
+        try:
+            saved, added = save_to_list(
+                request.user, given.validated_data['scope'], given.validated_data['list'], recipe
+            )
+        except RecipeList.DoesNotExist as error:
+            raise NotFound from error
         return Response(
             SavedRecipeSerializer(saved).data, status=status.HTTP_201_CREATED if added else status.HTTP_200_OK
         )

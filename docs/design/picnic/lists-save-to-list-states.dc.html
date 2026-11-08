@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The sheet's other states</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{position:absolute;top:0;left:0;right:0;z-index:1;background:var(--color-ground);border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:93px 20px 104px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box}
+.pg.scr{margin-top:-260px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:start}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400;overflow-wrap:break-word}
+.facts{margin:0;color:var(--color-muted);font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.saved{margin:0;color:var(--color-muted);font-size:16px;line-height:24px;font-weight:600}
+.lnk{color:var(--color-ink);text-decoration:underline;text-decoration-color:var(--color-field);text-decoration-thickness:2px;text-underline-offset:3px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center;z-index:1}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.scrim{position:absolute;inset:0;background:var(--color-scrim);z-index:2}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:3;box-sizing:border-box;background:var(--color-surface);border:2px solid transparent;border-bottom:0;border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:6px 18px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lift)}
+.grab{align-self:center;width:40px;height:5px;border-radius:var(--radius-pill);background:var(--color-field)}
+.shd{margin-top:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.shd div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.st{margin:0;font-family:var(--font-serif);font-style:italic;font-size:34px;line-height:36px;font-weight:400}
+.sdesc{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.grp{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:2px}
+.grp legend{padding:0 0 6px;font-size:15px;line-height:20px;font-weight:800}
+.prow{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 8px 6px 12px;box-sizing:border-box;border-radius:var(--radius-row);cursor:pointer}
+.prow input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.prow .nm{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.prow .nm b{font-size:16px;line-height:24px;font-weight:600;overflow-wrap:break-word}
+.prow .nm span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.box{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-check);display:grid;place-items:center;color:var(--color-on-pastel)}
+.box.on{background:var(--color-mint);border-color:transparent}
+.prow.fc{outline:3px solid var(--color-ink);outline-offset:0}
+.rerr{margin:0 0 4px;padding:0 12px;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.rerr svg{flex-shrink:0;margin-top:1px}
+.empty{margin:0;padding:0 12px 4px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.sfoot{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.waiting{display:flex;align-items:center;gap:10px;min-height:120px;justify-content:center;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.waiting svg{width:20px;height:20px}
+.toast{position:absolute;left:20px;right:20px;bottom:20px;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 18px;font-size:15px;line-height:20px;font-weight:800;z-index:1}
+.note{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.note b{font-weight:800}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;max-width:560px;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 2660px; height: 1420px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-125 · phone, 390 px · drawn for variant A</span>
+    <h1 class="ttl">The sheet, waiting, failing and nearly empty</h1>
+    <span class="cap">The lists come from one request when the sheet opens (and for the “Saved in” line); each tick is its own save. Every one has its loading and error state, as design.md’s States and Error with retry say.</span>
+  </header>
+
+  <div class="boards">
+    <div class="col"><span class="cap"><b>Loading</b> · after half a second</span>
+    <div class="phone">
+      <main class="pg scr"><div class="intro"><div class="trow"><h1 class="h1">Chana masala</h1></div></div></main>
+      <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+      <div class="scrim" aria-hidden="true"></div>
+      <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="l-t" aria-busy="true">
+        <span class="grab" aria-hidden="true"></span>
+        <div class="shd"><div><h2 id="l-t" class="st">Save to a list</h2><p class="sdesc">Chana masala</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+        <p class="waiting" role="status"><x-import component-from-global-scope="Dino.Spinner"></x-import>Finding your lists…</p>
+      </section>
+    </div>
+    <p class="note"><b>A spinner and the “-ing” line</b>, only after half a second, at the height of a short list so the sheet doesn’t jump much when they arrive. Not blank polaroids: what’s coming is rows.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Couldn’t load</b> · offline or a server error</span>
+    <div class="phone">
+      <main class="pg scr"><div class="intro"><div class="trow"><h1 class="h1">Chana masala</h1></div></div></main>
+      <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+      <div class="scrim" aria-hidden="true"></div>
+      <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="e-t">
+        <span class="grab" aria-hidden="true"></span>
+        <div class="shd"><div><h2 id="e-t" class="st">Save to a list</h2><p class="sdesc">Chana masala</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+        <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load your lists" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+      </section>
+    </div>
+    <p class="note"><b>Dino’s Error with retry</b> in the sheet. On the page the “Saved in” line is left out while the lists can’t be loaded; the button still opens the sheet, which says why.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Didn’t save</b> · the tick turns back</span>
+    <div class="phone">
+      <main class="pg scr"><div class="intro"><div class="trow"><h1 class="h1">Chana masala</h1></div></div></main>
+      <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+      <div class="scrim" aria-hidden="true"></div>
+      <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="f-t">
+        <span class="grab" aria-hidden="true"></span>
+        <div class="shd"><div><h2 id="f-t" class="st">Save to a list</h2><p class="sdesc">Chana masala</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+        <fieldset class="grp"><legend>Just you</legend>
+          <label class="prow"><input type="checkbox"><span class="nm"><b>Favourites</b><span>4 recipes</span></span><span class="box" aria-hidden="true"></span></label>
+          <label class="prow fc"><input type="checkbox" aria-describedby="f-err"><span class="nm"><b>Weeknight dinners</b><span>7 recipes</span></span><span class="box" aria-hidden="true"></span></label>
+          <p id="f-err" class="rerr" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" size="{{s16}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Couldn’t save it to Weeknight dinners. Check your connection, then tick it again.</p>
+        </fieldset>
+        <fieldset class="grp"><legend>The Bedinis</legend>
+          <label class="prow"><input type="checkbox"><span class="nm"><b>Christmas</b><span>Nothing here yet</span></span><span class="box" aria-hidden="true"></span></label>
+          <label class="prow"><input type="checkbox" checked><span class="nm"><b>Sunday roasts</b><span>12 recipes</span></span><span class="box on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" size="{{s18}}" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+        </fieldset>
+      </section>
+    </div>
+    <p class="note"><b>The row turns back</b> and says why under itself, in Small Danger with its icon, read out once; ticking again is the retry. An untick that fails turns back to ticked with “Couldn’t remove it from …”. The line goes at the next tick.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Only Favourites</b> · Milo has made no lists, nor has The Bedinis</span>
+    <div class="phone">
+      <main class="pg scr"><div class="intro"><div class="trow"><h1 class="h1">Chana masala</h1></div></div></main>
+      <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+      <div class="scrim" aria-hidden="true"></div>
+      <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="o-t">
+        <span class="grab" aria-hidden="true"></span>
+        <div class="shd"><div><h2 id="o-t" class="st">Save to a list</h2><p class="sdesc">Chana masala</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+        <fieldset class="grp"><legend>Just you</legend>
+          <label class="prow"><input type="checkbox"><span class="nm"><b>Favourites</b><span>Nothing saved yet</span></span><span class="box" aria-hidden="true"></span></label>
+        </fieldset>
+        <section class="grp" aria-labelledby="o-h"><span id="o-h" style="padding: 0 0 6px; font-size: 15px; line-height: 20px; font-weight: 800">The Bedinis</span>
+          <p class="empty">Lists you make for The Bedinis show here, for everyone in it.</p>
+        </section>
+        <p class="sfoot">Make another list on the <a href="#" class="lnk">Lists</a> page.</p>
+      </section>
+    </div>
+    <p class="note"><b>As the index does</b>, the household’s group keeps its heading with the index’s line under it, so the place is learnt before it’s used. The foot links to the Lists page, where New list is.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>A household’s private recipe</b> · in a personal and a household list</span>
+    <div class="phone">
+      <main class="pg scr">
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="right" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{r2}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <div class="trow"><h1 class="h1">Nonna’s roast <x-import component-from-global-scope="Dino.Squiggle">potatoes</x-import></h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{yes}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+          <x-import component-from-global-scope="Dino.PrivateMark"></x-import>
+          <p class="facts">1 hr 10 · Easy · Italian · Side</p>
+          <p class="saved">Saved in <a href="#" class="lnk">Favourites</a> and <a href="#" class="lnk">Sunday roasts</a>.</p>
+          <div class="acts">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+          </div>
+        </div>
+      </main>
+      <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+      <nav aria-label="Main" class="dock"><ul>
+        <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+        <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+      </ul></nav>
+    </div>
+    <p class="note"><b>The same button and sheet</b> for The Bedinis’ own recipe, which only its members see, so only they reach it. With Favourites ticked, the heart is filled and the line names it.</p>
+    </div>
+
+    <div class="col"><span class="cap"><b>Signed out</b> · Save to list goes through sign-in</span>
+    <div class="phone">
+      <main class="pg scr">
+        <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{r1}}" alt="" eager="{{yes}}"></x-import></x-import>
+        <div class="intro">
+          <div class="trow"><h1 class="h1">Chana <x-import component-from-global-scope="Dino.Squiggle">masala</x-import></h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{no}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+          <p class="facts">1 hr 45 · Easy · Indian · Main</p>
+          <x-import component-from-global-scope="Dino.TimeBlobs" times="{{times}}"></x-import>
+          <div class="acts">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+          </div>
+        </div>
+      </main>
+      <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import></div></div></header>
+    </div>
+    <p class="note"><b>Pressed signed out, it opens sign-in</b> with <code>next</code> back to this recipe, as the heart does, and the sheet opens on the way back, as nothing is chosen yet. No “Saved in” line: lists are only for someone signed in.</p>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Who can save where:</b> the sheet lists only Milo’s own lists and The Bedinis’. A save to another account’s list or another household’s answers as if the list weren’t there (404), and so does a recipe Milo can’t see; neither shows on screen.</p>
+    <p><b>Saving again changes nothing:</b> a list already holding the recipe shows ticked, so it can’t be saved twice from here; a second save from elsewhere keeps the one link.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2660,"height":1420}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, nothing: null, r1: 2, r2: 7, s16: 16, s18: 18, s20: 20, s22: 22, sw: 2.25, s3: 3,
+      noop: () => {}, retry: () => Promise.resolve(),
+      times: [{ label: 'Prep', value: '15 min' }, { label: 'Cook', value: '30 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

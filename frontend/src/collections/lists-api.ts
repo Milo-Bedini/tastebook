@@ -14,6 +14,8 @@ export type SavedRecipe = components['schemas']['SavedRecipe'];
 export type SavedList = components['schemas']['SavedList'];
 export type ListSummary = components['schemas']['ListSummary'];
 export type Scope = components['schemas']['ScopeEnum'];
+export type RecipeLists = components['schemas']['RecipeLists'];
+export type ListPlace = components['schemas']['ListPlace'];
 
 // Where a list is, and the address its page has: a household list's never clashes with one of your own.
 export type ListAddress = { scope: Scope; slug: string };
@@ -33,6 +35,11 @@ const SAVE_KEY = ['collections', 'save'];
 export const listKey = ({ scope, slug }: ListAddress): QueryKey => ['collections', 'list', scope, slug];
 
 const FAVOURITES_KEY = listKey(FAVOURITES);
+
+const isFavourites = ({ scope, slug }: ListAddress) => scope === FAVOURITES.scope && slug === FAVOURITES.slug;
+
+// Under the Lists page's key, so every change that asks the Lists page again asks this again too.
+const recipeListsKey = (recipeSlug: string): QueryKey => [...LISTS_KEY, 'recipe', recipeSlug];
 
 // Each list's removals are told apart, so a heart is busy only while Favourites is losing its recipe.
 const unsaveKey = (key: QueryKey): QueryKey => ['collections', 'unsave', ...key];
@@ -119,6 +126,122 @@ export const useSaveRecipe = () => {
         queryClient.setQueryData<SavedList | null>(FAVOURITES_KEY, placed(result.saved));
         await listsChanged(queryClient);
       }
+    }
+  });
+};
+
+// Every list you see, with the ones that hold the recipe: for its page's sheet and its "Saved in" line.
+export const useRecipeLists = (recipeSlug: string, { enabled = true }: { enabled?: boolean } = {}) =>
+  useQuery({
+    queryKey: recipeListsKey(recipeSlug),
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/lists/recipes/{slug}/', { params: { path: { slug: recipeSlug } } });
+      if (error || !data) {
+        throw new Error("Getting a recipe's lists failed");
+      }
+      return data;
+    },
+    enabled
+  });
+
+// Says whether one list holds the recipe, by its save, with the count moved by `added` (1, 0 or -1).
+const held =
+  ({ scope, slug }: ListAddress, savedId: number | null, added: number) =>
+  (lists: RecipeLists | undefined) =>
+    lists === undefined
+      ? lists
+      : {
+          ...lists,
+          lists: lists.lists.map((place) =>
+            place.scope === scope && place.slug === slug
+              ? { ...place, saved_id: savedId, recipe_count: Math.max(0, place.recipe_count + added) }
+              : place
+          )
+        };
+
+// The heart and the list's page follow a change made from a recipe's sheet; the Lists page is asked again.
+const listChanged = async (queryClient: QueryClient, address: ListAddress) => {
+  await queryClient.invalidateQueries({ queryKey: listKey(address), exact: true });
+  await listsChanged(queryClient);
+};
+
+export type SavingTo =
+  | { kind: 'saved'; saved: SavedRecipe; added: boolean }
+  | { kind: 'signed-out' }
+  | { kind: 'gone' };
+
+// Saves the recipe to any of your lists or your household's, Favourites among them.
+export const useSaveTo = (recipeSlug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (address: ListAddress): Promise<SavingTo> => {
+      const { data, response } = await api.POST('/api/lists/recipes/{slug}/', {
+        params: { path: { slug: recipeSlug } },
+        body: { scope: address.scope, list: address.slug }
+      });
+      if (data !== undefined) {
+        return { kind: 'saved', saved: data, added: response.status === 201 };
+      }
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // The list was deleted or renamed meanwhile, or the recipe deleted or made private.
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Saving to a list failed with ${response.status}`);
+    },
+    onSuccess: async (result, address) => {
+      if (result.kind === 'saved') {
+        queryClient.setQueryData<RecipeLists>(
+          recipeListsKey(recipeSlug),
+          held(address, result.saved.id, result.added ? 1 : 0)
+        );
+        if (isFavourites(address)) {
+          queryClient.setQueryData<SavedList | null>(FAVOURITES_KEY, placed(result.saved));
+        }
+      }
+      if (result.kind !== 'signed-out') {
+        await listChanged(queryClient, address);
+      }
+    }
+  });
+};
+
+export type UnsavingFrom = { kind: 'unsaved' } | { kind: 'signed-out' } | { kind: 'gone' };
+
+// Takes the recipe out of one list, by the save that holds it there. No Undo: ticking the list again puts it back.
+export const useUnsaveFrom = (recipeSlug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ savedId }: { address: ListAddress; savedId: number }): Promise<UnsavingFrom> => {
+      const { data, response } = await api.DELETE('/api/lists/saved/{saved_id}/', {
+        params: { path: { saved_id: savedId } }
+      });
+      if (data !== undefined) {
+        return { kind: 'unsaved' };
+      }
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // Taken out already, on another page or device, or by someone else in the household.
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Unsaving a recipe failed with ${response.status}`);
+    },
+    onSuccess: async (result, { address, savedId }) => {
+      if (result.kind === 'signed-out') {
+        return;
+      }
+      queryClient.setQueryData<RecipeLists>(
+        recipeListsKey(recipeSlug),
+        held(address, null, result.kind === 'unsaved' ? -1 : 0)
+      );
+      if (isFavourites(address)) {
+        queryClient.setQueryData<SavedList | null>(FAVOURITES_KEY, without(savedId));
+      }
+      await listChanged(queryClient, address);
     }
   });
 };

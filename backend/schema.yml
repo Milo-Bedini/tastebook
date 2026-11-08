@@ -658,6 +658,84 @@ paths:
           description: Signed out.
         '404':
           description: As for GET, and Favourites, which is never renamed or deleted.
+  /api/lists/recipes/{slug}/:
+    get:
+      operationId: lists_recipes_retrieve
+      description: Every list the signed-in account sees, as the Lists page orders
+        them, with the save that holds this recipe in each.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - lists
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeLists'
+          description: ''
+        '403':
+          description: Signed out.
+        '404':
+          description: 'No recipe has this slug that the account can see: there''s
+            none, or it''s another household''s private recipe.'
+    post:
+      operationId: lists_recipes_create
+      description: Saves this recipe as a link, never a copy, to one of the account's
+        lists or its household's, Favourites among them (201), or answers the save
+        it already has there (200).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - lists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveToList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaveToList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaveToList'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedRecipe'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedRecipe'
+          description: ''
+        '400':
+          description: No scope or list slug was sent.
+        '403':
+          description: Signed out.
+        '404':
+          description: 'No recipe has this slug that the account can see: there''s
+            none, or it''s another household''s private recipe. Or the account has
+            no list with this scope and slug, of its own or its household''s: it''s
+            been deleted or renamed, or it''s another account''s or household''s.'
   /api/lists/saved/{saved_id}/:
     delete:
       operationId: lists_saved_destroy
@@ -1498,6 +1576,40 @@ components:
       required:
       - id
       - photo
+    ListPlace:
+      type: object
+      properties:
+        slug:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          readOnly: true
+          description: |-
+            personal: only its owner sees it. household: everyone in the household sees and changes it.
+
+            * `personal` - Just you
+            * `household` - Household
+        recipe_count:
+          type: integer
+          readOnly: true
+          description: Unavailable recipes count too.
+        saved_id:
+          type: integer
+          readOnly: true
+          nullable: true
+          description: The id of the save that holds the recipe in this list, which
+            unsaving takes; null when it doesn't.
+      required:
+      - name
+      - recipe_count
+      - saved_id
+      - scope
+      - slug
     ListSummary:
       type: object
       properties:
@@ -2257,6 +2369,24 @@ components:
       - visibility
       - yield_amount
       - yield_unit
+    RecipeLists:
+      type: object
+      properties:
+        household_name:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The account's household's name; null before it has one.
+        lists:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListPlace'
+          readOnly: true
+          description: Favourites, then the account's own lists by name, then its
+            household's by name.
+      required:
+      - household_name
+      - lists
     RecipePhoto:
       type: object
       properties:
@@ -2358,6 +2488,24 @@ components:
           pattern: ^[-a-zA-Z0-9_]+$
       required:
       - recipe
+    SaveToList:
+      type: object
+      properties:
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          description: |-
+            personal: only its owner sees it. household: everyone in the household sees and changes it.
+
+            * `personal` - Just you
+            * `household` - Household
+        list:
+          type: string
+          description: The list's slug among the account's own lists, or its household's.
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - list
+      - scope
     SavedList:
       type: object
       properties:

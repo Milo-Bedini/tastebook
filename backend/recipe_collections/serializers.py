@@ -136,6 +136,29 @@ class ListsSerializer(serializers.Serializer):
     )
 
 
+class ListPlaceSerializer(serializers.Serializer):
+    slug = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    scope = serializers.ChoiceField(choices=Scope.choices, read_only=True, help_text=SCOPE_HELP)
+    recipe_count = serializers.IntegerField(read_only=True, help_text='Unavailable recipes count too.')
+    saved_id = serializers.IntegerField(
+        read_only=True,
+        allow_null=True,
+        help_text="The id of the save that holds the recipe in this list, which unsaving takes; null when it doesn't.",
+    )
+
+
+class RecipeListsSerializer(serializers.Serializer):
+    household_name = serializers.CharField(
+        read_only=True, allow_null=True, help_text="The account's household's name; null before it has one."
+    )
+    lists = ListPlaceSerializer(
+        many=True,
+        read_only=True,
+        help_text="Favourites, then the account's own lists by name, then its household's by name.",
+    )
+
+
 class ListNameSerializer(serializers.Serializer):
     name = serializers.CharField(
         max_length=LIST_NAME_MAX_LENGTH,
@@ -156,3 +179,8 @@ class SaveRecipeSerializer(serializers.Serializer):
 
 class UndoSerializer(serializers.Serializer):
     undo = serializers.CharField(help_text='Puts the recipe back where it was, for an hour.')
+
+
+class SaveToListSerializer(serializers.Serializer):
+    scope = serializers.ChoiceField(choices=Scope.choices, help_text=SCOPE_HELP)
+    list = serializers.SlugField(help_text="The list's slug among the account's own lists, or its household's.")

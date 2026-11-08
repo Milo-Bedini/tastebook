@@ -15,6 +15,7 @@ import { RecipeGaps } from './recipe-gaps';
 import { hasIngredients } from './recipe-ingredients';
 import { RecipeVisibility } from './recipe-visibility';
 import { useVisibilityGone } from './recipes-api';
+import { SavedIn, SaveToList } from './save-to-list-slot';
 
 type Recipe = components['schemas']['Recipe'];
 
@@ -143,9 +144,11 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
         <p key={conflict.ingredient.slug}>{describeDietTagConflict(conflict)}</p>
       ))}
       <RecipeTimes recipe={recipe} />
+      <SavedIn recipe={recipe} />
       <RecipeGaps recipe={recipe} />
       {recipe.can_publish && <RecipeVisibility recipe={recipe} />}
       <div className="flex flex-wrap gap-2">
+        <SaveToList recipe={recipe} />
         {recipe.can_edit && (
           <Button asChild variant="secondary">
             <Link to={`/recipes/${recipe.slug}/edit`}>
