@@ -58,12 +58,12 @@ Each build runs Django's migrations against its own database (`backend/build.py`
 - **Personal data, where and for how long** (UK GDPR's storage limitation; add a row with any feature that stores more or sends it to another service, and say the same on the privacy page, `frontend/src/app/privacy-page.tsx`):
   - Accounts (`households.User`): the email address and name, for as long as the account exists.
   - Google sign-ins (`socialaccount_socialaccount`): the Google account's id, its email address, whether Google verified it and its first name, for as long as the account exists. The rest of the profile (photo, full name) and Google's tokens aren't stored.
-  - Sessions (`django_session`): which account a browser is signed in as, 30 days from its last request; nothing deletes expired sessions yet.
+  - Sessions (`django_session`): which account a browser is signed in as, 30 days from its last request; deleting an account deletes its sessions, but nothing deletes expired sessions yet.
   - Authenticators (`mfa_authenticator`): a staff account's authenticator key and recovery codes, until it's reset or the account is deleted. They're stored unencrypted: anyone who can read the database can already change it.
   - Sign-in limits (`django_cache`): the client's IP address, a SHA-256 hash of the email address or the account's id, while a limit counts them (at most 10 minutes), then until the next night's clear.
   - Backups: a copy of the database, so of the rows above, kept 30 days (Backups).
   - Sentry: error reports, sent without request bodies, cookies, IP addresses or local variables (`backend/config/sentry.py`).
-- **Deleting an account** (UK GDPR's right to erasure): the account's private recipes are deleted; its public recipes stay, credited to "a former member", so saved links keep working. _planned_
+- **Deleting an account** (UK GDPR's right to erasure): an account deletes itself with a 6-digit code emailed to it, which works for 10 minutes in the browser that asked for it and counts towards sign-in's limit of 3 codes in 10 minutes; staff can't (`households.services.delete_account`). It deletes the account's email address, name, sessions on every browser, Google sign-in, Favourites and personal lists, and the private recipes it wrote, with their uploaded photos once no other recipe uses them. Its public recipes stay, credited to "a former member", so saved links keep working. A household with others in it carries on with its name, lists and their recipes. A last member's household keeps only its public recipes, renamed "A former household", with no lists or invite; with none, it's deleted, as leaving deletes one. Backups keep a copy for up to 30 days (Backups).
 
 ## Photos
 
