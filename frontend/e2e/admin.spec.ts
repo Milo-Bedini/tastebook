@@ -66,3 +66,44 @@ test('a staff member sets up two-factor sign-in and then signs in with it', asyn
   await expect(page).toHaveURL(/\/admin\/$/);
   await expect(page.getByText('Site administration')).toBeVisible();
 });
+
+test('staff remove a reported recipe, which its author then finds private', async ({ seed, accessibility }) => {
+  test.skip(Boolean(process.env.PREVIEW_URL), 'make_staff needs the database');
+  // The title is its own: the report hides it from every other spec that searches the database.
+  const title = "Sam's reported traybake";
+  const { sam, cy } = await seed([
+    { members: [{ key: 'sam', name: 'Sam', recipes: [{ title, visibility: 'public', description: 'Sheet-pan.' }] }] },
+    { members: [{ key: 'jo', name: 'Jo', reports: [title] }] },
+    { members: [{ key: 'cy', name: 'Cy' }] }
+  ]);
+  execFileSync('uv', ['run', 'python', 'manage.py', 'make_staff', cy.email], {
+    cwd: BACKEND,
+    env: { ...process.env, DJANGO_DEBUG: 'true' }
+  });
+  const { page } = cy;
+  await page.goto('/admin/');
+  const key = (await page.locator('#content-main code').textContent()) ?? '';
+  await page.getByRole('textbox', { name: 'Code from the app' }).fill(totpCode(key));
+  await page.getByRole('button', { name: 'Turn on two-factor sign-in' }).click();
+  await page.getByRole('link', { name: 'Open the admin' }).click();
+
+  await page.getByRole('link', { name: 'Reported recipes' }).click();
+  // Searched by its address, as earlier runs left recipes with its title in the database.
+  const [recipe] = sam.recipes;
+  await page.locator('#searchbar').fill(recipe?.slug ?? '');
+  await page.getByRole('button', { name: 'Search' }).click();
+  await accessibility.check(page);
+  await page.getByRole('link', { name: title }).click();
+  await expect(page.getByRole('cell', { name: 'Spam', exact: true })).toBeVisible();
+  await accessibility.check(page);
+  await page.goBack();
+  await page.getByRole('checkbox', { name: `Select this object for an action - ${title}` }).check();
+  await page
+    .getByRole('combobox', { name: 'Action:' })
+    .selectOption({ label: 'Remove: make private for good, and tell the author' });
+  await page.getByRole('button', { name: 'Run' }).click();
+
+  await expect(page.getByText(`Removed ${title}.`)).toBeVisible();
+  await sam.page.goto(`/recipes/${recipe?.slug ?? ''}`);
+  await expect(sam.page.getByRole('switch', { name: 'Public' })).not.toBeChecked();
+});

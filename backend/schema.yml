@@ -2936,6 +2936,15 @@ components:
             restored, as if after an earlier report, once every share is made and
             before anyone's reports, so a report leaves them up.
           maxItems: 20
+        removed:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: 'Titles of this member''s own recipes that staff have removed
+            from public view, as if after an earlier report, once every restore is
+            made: each is private, and its author can''t make it public again.'
+          maxItems: 20
         reports:
           type: array
           items:

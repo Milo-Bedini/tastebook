@@ -1,16 +1,21 @@
 import json
+import logging
+import smtplib
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import partial
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.mail import send_mail
 from django.db import IntegrityError, models, transaction
+from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.text import slugify
 
 from households.models import User
@@ -37,6 +42,8 @@ from recipes.photo_store import delete_photo
 from recipes.signals import counting_saves
 
 CATALOGUE_PATH = settings.BASE_DIR / 'recipes' / 'catalogue.json'
+
+logger = logging.getLogger(__name__)
 
 Record = dict[str, Any]
 
@@ -206,16 +213,19 @@ def publishing_gaps(recipe: Recipe) -> list[str]:
 
 
 HELD_FOR_REVIEW = 'You can change this once staff have reviewed the report.'
+REMOVED_BY_STAFF = 'Staff removed this recipe from public view after a report, so it stays private.'
 
 
 def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
     """Makes the recipe public or private. Raises ValidationError({'visibility': [...]}) when it's made public
-    while publishing_gaps() names something, or made private while a report hides it."""
+    while publishing_gaps() names something or staff have removed it, or made private while a report hides it."""
     if recipe.visibility == visibility:
         return recipe
     # Going private would take the recipe out of review, and public again would bring it back unreviewed.
     if recipe.moderation == Moderation.HIDDEN:
         raise ValidationError({'visibility': [HELD_FOR_REVIEW]})
+    if recipe.moderation == Moderation.REMOVED:
+        raise ValidationError({'visibility': [REMOVED_BY_STAFF]})
     if visibility == Visibility.PUBLIC:
         gaps = publishing_gaps(recipe)
         if gaps:
@@ -264,6 +274,52 @@ def restore_recipe(recipe: Recipe) -> Recipe:
     recipe.moderation = Moderation.RESTORED
     recipe.save(update_fields=['moderation'])
     return recipe
+
+
+def remove_recipe(recipe: Recipe) -> Recipe:
+    """Makes the recipe private for good: its household keeps it, but it can't be made public again."""
+    recipe.visibility = Visibility.PRIVATE
+    recipe.moderation = Moderation.REMOVED
+    recipe.save(update_fields=['visibility', 'moderation'])
+    return recipe
+
+
+StaffDecision = Literal[Moderation.RESTORED, Moderation.REMOVED]
+
+
+def review_reports(recipe: Recipe, decision: StaffDecision) -> bool:
+    """Staff's decision on the recipe's reports awaiting review: Moderation.RESTORED restores it and
+    Moderation.REMOVED removes it. Marks those reports reviewed and, once that's saved, emails the author the outcome
+    and the reasons. False, changing nothing, when no report awaits review."""
+    with transaction.atomic():
+        # Locked, so two staff deciding at once can't both act on the same reports.
+        locked = Recipe.objects.select_for_update(of=('self',)).select_related('created_by').get(pk=recipe.pk)
+        waiting = list(Report.objects.filter(recipe=locked, reviewed_at__isnull=True))
+        if not waiting:
+            return False
+        Report.objects.filter(pk__in=[report.pk for report in waiting]).update(reviewed_at=timezone.now())
+        decided = restore_recipe(locked) if decision == Moderation.RESTORED else remove_recipe(locked)
+        reasons = [reason.label for reason in ReportReason if reason in {report.reason for report in waiting}]
+        # An author who has deleted their account has no one to tell.
+        if decided.created_by is not None:
+            transaction.on_commit(partial(tell_author_of_review, decided, reasons))
+    return True
+
+
+def tell_author_of_review(recipe: Recipe, reasons: list[str]) -> None:
+    """Emails the recipe's author whether staff restored or removed it, and what it was reported as. Never who
+    reported it, or their notes."""
+    author = recipe.created_by
+    context = {'name': author.name, 'title': recipe.title, 'reasons': _together([reason.lower() for reason in reasons])}
+    template = f'recipes/email/recipe_{recipe.moderation}'
+    # As allauth does, so a recipe's title can't break the header.
+    subject = ' '.join(render_to_string(f'{template}_subject.txt', context).splitlines()).strip()
+    message = render_to_string(f'{template}_message.txt', context)
+    try:
+        send_mail(subject, message, None, [author.email])
+    except smtplib.SMTPException, OSError:
+        # The exception carries the address, so it stays out of the log; the decision stands either way.
+        logger.error("Couldn't send the report review email")
 
 
 def turn_on_share_link(recipe: Recipe) -> ShareLink:

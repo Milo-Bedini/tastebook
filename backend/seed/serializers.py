@@ -74,6 +74,13 @@ class SeedMemberSerializer(serializers.Serializer):
         help_text="Titles of this member's own public recipes that staff have restored, as if after an earlier report, "
         "once every share is made and before anyone's reports, so a report leaves them up.",
     )
+    removed = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text="Titles of this member's own recipes that staff have removed from public view, as if after an "
+        "earlier report, once every restore is made: each is private, and its author can't make it public again.",
+    )
     reports = serializers.ListField(
         child=serializers.CharField(max_length=200),
         max_length=20,

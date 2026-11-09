@@ -1,0 +1,6 @@
+{% autoescape off %}Hi {{ name }},
+
+Your recipe "{{ title }}" was reported as {{ reasons }}. Staff have reviewed it and removed it from public view.
+
+It's private now: your household can still find, cook and change it, but it can't be made public again.
+{% endautoescape %}
