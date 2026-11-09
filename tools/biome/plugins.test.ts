@@ -340,9 +340,13 @@ describe('the Biome plugins', () => {
         diagnostics.filter((d) => d.category.startsWith('parse')).map((d) => d.message),
         []
       );
+      // Biome doesn't report a file's plugin diagnostics in source order, so only how many of each message counts.
       assert.deepEqual(
-        diagnostics.filter((d) => d.category === 'plugin').map((d) => d.message),
-        reports
+        diagnostics
+          .filter((d) => d.category === 'plugin')
+          .map((d) => d.message)
+          .sort(),
+        [...reports].sort()
       );
     });
   }
