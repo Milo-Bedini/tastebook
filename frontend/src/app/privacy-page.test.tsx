@@ -40,7 +40,13 @@ describe('PrivacyPage', () => {
           : false
       )
     ).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) =>
+        element?.tagName === 'LI' ? element.textContent === 'Delete your account on your account page.' : false
+      )
+    ).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'account page' }).map((link) => link.getAttribute('href'))).toEqual([
+      '/account',
       '/account',
       '/account'
     ]);
