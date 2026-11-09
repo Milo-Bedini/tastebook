@@ -21,7 +21,8 @@ from tests import test_google_sign_in, test_recipe_photos
 from tests.test_accounts import CODE_SUBJECT, BrowserClient
 from tests.test_editing_recipes import BEN, MILO, ben_in_milos_household
 from tests.test_google_sign_in import google_profile, sign_in_with_google
-from tests.test_household import make_link, member, remove, signed_up
+from tests.test_household import leave, make_link, member, remove, signed_up
+from tests.test_join import join_through
 from tests.test_recipe_photos import deleted, every_width, uploaded
 from tests.test_recipes import make_recipe
 from tests.test_saving_recipes import FAVOURITES, JO, save
@@ -350,6 +351,42 @@ def test_a_last_members_household_stays_for_its_public_recipes_renamed_and_empti
         'Soda bread',
     ]
     assert BrowserClient().client.get(f'/api/recipes/{shakshuka}/').json()['author'] == 'a former member'
+
+
+def ben_leaves(ben: BrowserClient) -> None:
+    leave(ben)
+
+
+def ben_joins_jo(ben: BrowserClient) -> None:
+    jo = signed_up(JO, 'Jo')
+    join_through(ben, make_link(jo).json()['invite']['token'])
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('move', [ben_leaves, ben_joins_jo], ids=['leaving', 'joining another household'])
+def test_a_household_its_last_member_moves_out_of_stays_for_a_former_members_public_recipes(
+    move: Callable[[BrowserClient], None],
+) -> None:
+    milo = milo_with_ben()
+    household = milos_household()
+    ben = signed_in_as(BEN)
+    ben.client.post('/api/lists/', {'name': 'Bakes', 'scope': 'household'}, format='json', **ben.csrf_header())
+    deleted_with_the_right_code(milo)
+    make_link(ben)
+
+    move(ben)
+
+    household.refresh_from_db()
+    shakshuka = Recipe.objects.get(title='Shakshuka').slug
+    assert household.name == 'A former household'
+    assert (
+        household.members.exists(),
+        RecipeList.objects.filter(household=household).exists(),
+        Invite.objects.filter(household=household, cancelled_at__isnull=True).exists(),
+    ) == (False, False, False)
+    assert list(Recipe.objects.filter(household=household).values_list('title', flat=True)) == ['Shakshuka']
+    assert BrowserClient().client.get(f'/api/recipes/{shakshuka}/').json()['author'] == 'a former member'
+    assert list(Recipe.objects.filter(created_by__email=BEN).values_list('title', flat=True)) == ["Ben's crumble"]
 
 
 @pytest.mark.django_db

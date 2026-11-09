@@ -14,9 +14,11 @@ from django.utils.text import slugify
 from households.models import Household, User
 from households.signals import (
     account_deleting,
+    counting_public_recipes_in,
     counting_recipes_to_copy,
     counting_recipes_to_delete,
     counting_recipes_to_keep,
+    household_emptied,
     member_moved,
 )
 from recipes.photo_store import delete_photo
@@ -895,12 +897,27 @@ def count_recipes_to_keep(sender: type[User], account: User, last: bool, **kwarg
 
 
 @receiver(account_deleting, dispatch_uid='recipes-delete-private-recipes')
-def delete_private_recipes(sender: type[User], account: User, last: bool, **kwargs: Any) -> None:
-    """Deletes the private recipes that go with the account, with their uploaded photos once nothing else uses
-    them. Its public ones stay; deleting the account empties their author."""
-    going = _going_with(account, last).private()
-    photos = set(going.exclude(photo_url='').values_list('photo_url', flat=True))
-    going.delete()
+def delete_private_recipes(sender: type[User], account: User, **kwargs: Any) -> None:
+    """Deletes the private recipes the account wrote. Its public ones stay; deleting the account empties their
+    author."""
+    _delete_with_photos(_going_with(account, last=False).private())
+
+
+@receiver(household_emptied, dispatch_uid='recipes-delete-emptied-households-private-recipes')
+def delete_emptied_households_private_recipes(sender: type[Household], household_id: int, **kwargs: Any) -> None:
+    """Deletes the private recipes nobody is left to see: those others wrote before they moved out with a copy."""
+    _delete_with_photos(Recipe.objects.filter(household_id=household_id).private())
+
+
+@receiver(counting_public_recipes_in, dispatch_uid='recipes-count-public-recipes-in')
+def count_public_recipes_in(sender: type[Household], household_id: int, **kwargs: Any) -> int:
+    return Recipe.objects.filter(household_id=household_id).public().count()
+
+
+def _delete_with_photos(recipes: RecipeQuerySet) -> None:
+    """Deletes the recipes, and their uploaded photos once nothing else uses them."""
+    photos = set(recipes.exclude(photo_url='').values_list('photo_url', flat=True))
+    recipes.delete()
     for url in photos:
         transaction.on_commit(partial(_delete_photo_unless_used, url))
 

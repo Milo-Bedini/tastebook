@@ -18,7 +18,15 @@ counting_recipes_to_delete = Signal()
 # once it's deleted; answered with a count.
 counting_recipes_to_keep = Signal()
 
-# Sent with `account`, which has a household, and `last`, inside the deletion's transaction holding the household's and
-# the account's locks, before the account is deleted. Receivers delete what goes with it that deleting the account
-# doesn't cascade to.
+# Sent with `account`, which has a household, inside the deletion's transaction holding the household's and the
+# account's locks, before the account is deleted. Receivers delete what goes with it that deleting the account doesn't
+# cascade to.
 account_deleting = Signal()
+
+# Sent with `household_id`, a household nobody is left in once its last member moved out or was deleted, inside that
+# transaction holding the household's lock. Receivers delete what nobody is left to see: its private recipes and lists.
+household_emptied = Signal()
+
+# Sent with `household_id` after household_emptied, to learn how many public recipes the household still holds;
+# answered with a count.
+counting_public_recipes_in = Signal()

@@ -46,9 +46,11 @@ from households.models import (
 )
 from households.signals import (
     account_deleting,
+    counting_public_recipes_in,
     counting_recipes_to_copy,
     counting_recipes_to_delete,
     counting_recipes_to_keep,
+    household_emptied,
     member_moved,
 )
 
@@ -167,7 +169,7 @@ def rename_household(account: User, name: str) -> Household:
 
 def leave_household(account: User) -> User:
     """Moves the account into a new household of one, named after it, taking a copy of the private recipes it wrote;
-    deletes the household it left if that's now empty. Returns the account as saved."""
+    settles the household it left if that's now empty (settle_emptied_household). Returns the account as saved."""
     with transaction.atomic():
         # Every move locks the household before any account, so moves in one household run in turn and can't deadlock.
         household = Household.objects.select_for_update().filter(pk=account.household_id).first()
@@ -179,7 +181,7 @@ def leave_household(account: User) -> User:
         account.save(update_fields=['household'])
         member_moved.send(sender=User, account=account, left=household.pk)
         if not household.members.exists():
-            household.delete()
+            settle_emptied_household(household.pk)
     return account
 
 
@@ -311,8 +313,8 @@ def invite_seen_by(token: str, viewer: User | None) -> InviteSeen:
 
 
 def join_household(account: User, token: str) -> User:
-    """Moves the account into the invite's household, taking a copy of the private recipes it wrote, and deletes the
-    household it left if that's now empty.
+    """Moves the account into the invite's household, taking a copy of the private recipes it wrote, and settles the
+    household it left if that's now empty (settle_emptied_household).
     Returns the account as saved. Raises Invite.DoesNotExist for an unknown token, InviteNotLiveError for a dead one."""
     with transaction.atomic():
         invite = Invite.objects.get(token=token)
@@ -336,8 +338,8 @@ def join_household(account: User, token: str) -> User:
         account.household_id = invite.household_id
         account.save(update_fields=['household'])
         member_moved.send(sender=User, account=account, left=left)
-        if not User.objects.filter(household_id=left).exists():
-            Household.objects.filter(pk=left).delete()
+        if left is not None and not User.objects.filter(household_id=left).exists():
+            settle_emptied_household(left)
     return account
 
 
@@ -350,6 +352,18 @@ def name_from_google(profile: dict[str, Any]) -> str:
 FORMER_HOUSEHOLD = 'A former household'
 # The session key holding a deletion code: {'account': pk, 'code': str, 'sent_at': time.time(), 'attempts': int}.
 DELETION_CODE = 'account_deletion_code'
+
+
+def settle_emptied_household(household_id: int) -> None:
+    """Empties a household its last member has just moved out of or deleted: deletes its private recipes and lists.
+    Keeps it as FORMER_HOUSEHOLD, with no invite, while it holds public recipes (a former member's), so their links
+    keep working; deletes it otherwise. Callers hold its lock."""
+    household_emptied.send(sender=Household, household_id=household_id)
+    if sum(count for _, count in counting_public_recipes_in.send(sender=Household, household_id=household_id)) == 0:
+        Household.objects.filter(pk=household_id).delete()
+        return
+    Household.objects.filter(pk=household_id).update(name=FORMER_HOUSEHOLD)
+    cancel_current_invite(household_id)
 
 
 @dataclass(frozen=True)
@@ -432,7 +446,7 @@ def _spend_deletion_code(request: HttpRequest, code: str) -> None:
 def delete_account(request: HttpRequest, code: str) -> None:
     """Deletes the signed-in account once `code` is this session's deletion code: its name, address, sessions and
     personal lists, and the private recipes it wrote. Its public recipes stay. A household it was the last member of
-    stays as FORMER_HOUSEHOLD, with no lists or invite, while it holds public recipes, and is deleted otherwise.
+    is settled as settle_emptied_household says.
     Signs this browser out. Raises WrongDeletionCodeError or DeletionCodeStoppedError, and then deletes nothing."""
     _spend_deletion_code(request, code)
     _delete_account(request.user)
@@ -452,17 +466,13 @@ def _delete_account(user: User) -> None:
         # Removed while this waited: then it's alone in a new household that nobody can join, so it goes on with that.
         household_id = account.household_id
         last = household_id is not None and others_in_household(account) == 0
-        kept = counted(counting_recipes_to_keep, account, last)
         if household_id is not None:
-            account_deleting.send(sender=User, account=account, last=last)
+            account_deleting.send(sender=User, account=account)
         end_sessions_of(account)
         StoredSignInCode.objects.filter(email=account.email.lower()).delete()
         account.delete()
-        if last and kept == 0:
-            Household.objects.filter(pk=household_id).delete()
-        elif last:
-            Household.objects.filter(pk=household_id).update(name=FORMER_HOUSEHOLD)
-            cancel_current_invite(household_id)
+        if last:
+            settle_emptied_household(household_id)
 
 
 def end_sessions_of(account: User) -> None:
