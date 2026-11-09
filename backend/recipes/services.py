@@ -222,11 +222,13 @@ PUBLIC_A_DAY = 3
 
 def waits_for_review(recipe: Recipe) -> bool:
     """Whether making the recipe public now would leave it waiting for review: its author has made PUBLIC_A_DAY
-    others public today, counting those waiting for review."""
+    others public today, counting those waiting for review. One made public earlier today keeps its place in the day,
+    counting only those made public before it."""
     # Today in TIME_ZONE (London), so a day runs from midnight there.
-    others = Recipe.objects.filter(created_by_id=recipe.created_by_id, published_at__date=timezone.localdate()).exclude(
-        pk=recipe.pk
-    )
+    today = timezone.localdate()
+    others = Recipe.objects.filter(created_by_id=recipe.created_by_id, published_at__date=today).exclude(pk=recipe.pk)
+    if recipe.published_at is not None and timezone.localdate(recipe.published_at) == today:
+        others = others.filter(published_at__lt=recipe.published_at)
     return recipe.created_by_id is not None and others.count() >= PUBLIC_A_DAY
 
 

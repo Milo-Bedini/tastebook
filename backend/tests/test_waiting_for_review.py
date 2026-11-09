@@ -102,6 +102,19 @@ def test_making_one_recipe_public_again_the_same_day_counts_it_once() -> None:
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize('withdrawn', [False, True], ids=['4th waiting', '4th withdrawn'])
+def test_a_days_first_recipes_stay_public_when_made_public_again_after_a_4th(withdrawn: bool) -> None:
+    milo, slugs = waiting_by_four()
+    if withdrawn:
+        publish(milo, slugs[3], 'private')
+
+    made_private = publish(milo, slugs[0], 'private').json()['will_wait_for_review']
+
+    assert (made_private, answered(publish(milo, slugs[0]))) == (False, (200, 'public', False))
+    assert answered(publish(milo, slugs[3])) == (200, 'private', True)
+
+
+@pytest.mark.django_db
 def test_recipes_made_public_on_an_earlier_day_dont_count(clock: Clock) -> None:
     milo, slugs = milos_recipes(4)
     for slug in slugs[:3]:
