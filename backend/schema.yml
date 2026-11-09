@@ -2174,8 +2174,9 @@ components:
           type: string
           nullable: true
           readOnly: true
-          description: The name of whoever wrote a public household recipe; null for
-            a private or catalogue recipe.
+          description: The name of whoever wrote a public household recipe; "a former
+            member" once its author has deleted their account; null for a private
+            or catalogue recipe.
         title:
           type: string
           maxLength: 200
@@ -2672,7 +2673,8 @@ components:
           nullable: true
           readOnly: true
           description: The name of whoever wrote a public household recipe, shown
-            as "by <name>"; null for a private or catalogue recipe.
+            as "by <name>"; "a former member" once its author has deleted their account;
+            null for a private or catalogue recipe.
         title:
           type: string
           maxLength: 200
@@ -2972,7 +2974,8 @@ components:
           nullable: true
           readOnly: true
           description: The name of whoever wrote a public household recipe, shown
-            as "by <name>"; null for a private or catalogue recipe.
+            as "by <name>"; "a former member" once its author has deleted their account;
+            null for a private or catalogue recipe.
         title:
           type: string
           maxLength: 200

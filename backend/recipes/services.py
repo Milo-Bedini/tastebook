@@ -222,6 +222,8 @@ REMOVED_BY_STAFF = 'Staff removed this recipe from public view after a report, s
 
 # An account's recipes made public in one day, past which each one more waits for staff to approve it.
 PUBLIC_A_DAY = 3
+# How a public recipe credits an author who has deleted their account.
+FORMER_MEMBER = 'a former member'
 
 
 def waits_for_review(recipe: Recipe) -> bool:

@@ -42,7 +42,9 @@ class ListedDietTagsField(serializers.ListField):
 class ListedRecipeSerializer(serializers.ModelSerializer):
     visibility = serializers.ChoiceField(choices=Visibility.choices, read_only=True)
     author = serializers.SerializerMethodField(
-        help_text='The name of whoever wrote a public household recipe; null for a private or catalogue recipe.'
+        help_text='The name of whoever wrote a public household recipe; '
+        f'"{recipe_services.FORMER_MEMBER}" once its author has deleted their account; '
+        'null for a private or catalogue recipe.'
     )
     cuisines = ListedCuisineSerializer(many=True, read_only=True)
     total_minutes = serializers.IntegerField(read_only=True, allow_null=True)
@@ -94,8 +96,10 @@ class ListedRecipeSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_author(self, recipe: Recipe) -> str | None:
         # Only publishing puts the name on show, as on the recipe list.
-        if recipe.visibility != Visibility.PUBLIC or recipe.household_id is None or recipe.created_by is None:
+        if recipe.visibility != Visibility.PUBLIC or recipe.household_id is None:
             return None
+        if recipe.created_by_id is None:
+            return recipe_services.FORMER_MEMBER
         return recipe.created_by.name
 
 

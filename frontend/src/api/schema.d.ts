@@ -824,7 +824,7 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
-            /** @description The name of whoever wrote a public household recipe; null for a private or catalogue recipe. */
+            /** @description The name of whoever wrote a public household recipe; "a former member" once its author has deleted their account; null for a private or catalogue recipe. */
             readonly author: string | null;
             title: string;
             description: string;
@@ -1007,7 +1007,7 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
-            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; null for a private or catalogue recipe. */
+            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; "a former member" once its author has deleted their account; null for a private or catalogue recipe. */
             readonly author: string | null;
             title: string;
             description: string;
@@ -1096,7 +1096,7 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
-            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; null for a private or catalogue recipe. */
+            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; "a former member" once its author has deleted their account; null for a private or catalogue recipe. */
             readonly author: string | null;
             title: string;
             description: string;

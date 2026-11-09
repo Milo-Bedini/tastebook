@@ -1,18 +1,25 @@
 import secrets
-from functools import reduce
+from functools import partial, reduce
 from operator import or_
 from typing import Any
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.validators import MinValueValidator, RegexValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Case, F, Q, Value, When
 from django.db.models.functions import Lower
 from django.dispatch import receiver
 from django.utils.text import slugify
 
 from households.models import Household, User
-from households.signals import counting_recipes_to_copy, member_moved
+from households.signals import (
+    account_deleting,
+    counting_recipes_to_copy,
+    counting_recipes_to_delete,
+    counting_recipes_to_keep,
+    member_moved,
+)
+from recipes.photo_store import delete_photo
 from recipes.photos import COMMONS_FILE_PAGE, COMMONS_HOST, Photo, validate_photo_address
 from recipes.slugs import base_slug, first_free_slug, random_suffix
 
@@ -868,3 +875,37 @@ def take_recipes_written(sender: type[User], account: User, left: int, **kwargs:
 @receiver(counting_recipes_to_copy, dispatch_uid='recipes-count-written-recipes')
 def count_recipes_written(sender: type[User], account: User, **kwargs: Any) -> int:
     return Recipe.objects.written_by_in(account, account.household_id).private().count()
+
+
+def _going_with(account: User, last: bool) -> RecipeQuerySet:
+    """The recipes of the account's household that its deletion decides on: those it wrote, or all of them when
+    nobody else is left in it."""
+    recipes = Recipe.objects.filter(household_id=account.household_id)
+    return recipes if last else recipes.filter(created_by=account)
+
+
+@receiver(counting_recipes_to_delete, dispatch_uid='recipes-count-recipes-to-delete')
+def count_recipes_to_delete(sender: type[User], account: User, last: bool, **kwargs: Any) -> int:
+    return _going_with(account, last).private().count()
+
+
+@receiver(counting_recipes_to_keep, dispatch_uid='recipes-count-recipes-to-keep')
+def count_recipes_to_keep(sender: type[User], account: User, last: bool, **kwargs: Any) -> int:
+    return _going_with(account, last).public().count()
+
+
+@receiver(account_deleting, dispatch_uid='recipes-delete-private-recipes')
+def delete_private_recipes(sender: type[User], account: User, last: bool, **kwargs: Any) -> None:
+    """Deletes the private recipes that go with the account, with their uploaded photos once nothing else uses
+    them. Its public ones stay; deleting the account empties their author."""
+    going = _going_with(account, last).private()
+    photos = set(going.exclude(photo_url='').values_list('photo_url', flat=True))
+    going.delete()
+    for url in photos:
+        transaction.on_commit(partial(_delete_photo_unless_used, url))
+
+
+def _delete_photo_unless_used(url: str) -> None:
+    # A moving member's copies keep the original's address, and a recipe may be given any uploaded photo's address.
+    if not Recipe.objects.filter(photo_url=url).exists():
+        delete_photo(url)
