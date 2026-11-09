@@ -5,7 +5,7 @@ requires-python = ">=3.14"
 dependencies = [
     "dj-database-url>=3.1.2",
     "django>=6.1.2",
-    "django-allauth[headless,mfa,socialaccount]>=65.21.0",
+    "django-allauth[headless,mfa,socialaccount]>=65.21.1",
     "djangorestframework>=3.18.3",
     "drf-spectacular>=0.30.0",
     "pillow>=13.0.0",
