@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The Delete your account section</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.frame.narrow{width:320px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column}
+.page h1,.page h2{margin:0}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:400px}
+.sec{display:flex;flex-direction:column;gap:16px}
+.sec p{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.form{display:flex;flex-direction:column;gap:20px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.focus button{outline:3px solid var(--color-ink);outline-offset:0}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:384px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg .body{display:flex;flex-direction:column;gap:8px}
+.dlg .body p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.lap .in{grid-template-columns:auto minmax(0,1fr) 360px auto;column-gap:24px;padding:0 32px}
+.tabs{display:flex;gap:8px}
+.tab{height:44px;padding:0 18px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:inline-flex;align-items:center;font-size:15px;line-height:20px;font-weight:800;color:var(--color-ink)}
+.lap .page{padding:32px}
+.row{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2600px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-134 part 2 · /account · phone, 390 px · signed in as Sam Jones, with Jo in the household</span>
+    <h1 class="ttl">The Delete your account section</h1>
+    <span class="cap">A fourth section at the foot of the account page, after Your data, in the same 400 px column. Its one button opens the dialog (next boards); nothing is fetched until it opens.</span>
+  </header>
+
+  <div class="row">
+    <div class="col">
+      <span class="cap"><b>As it opens</b> · scrolled to the foot</span>
+      <div class="frame" style="height: 1130px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam Jones" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">account</x-import></h1>
+          <section class="sec" aria-labelledby="m-h-name">
+            <h2 id="m-h-name">Name</h2>
+            <form class="form" novalidate>
+              <div class="fld">
+                <label for="m-name" class="text-label">Your name</label>
+                <x-import component-from-global-scope="Dino.Input" id="m-name" type="text" default-value="Sam Jones" aria-describedby="m-help"></x-import>
+                <p id="m-help" class="help">It shows on recipes you write, like “by Milo”.</p>
+              </div>
+              <div class="acts"><x-import component-from-global-scope="Dino.Button" type="submit">Save name</x-import></div>
+            </form>
+          </section>
+          <section class="sec" aria-labelledby="m-h-units">
+            <h2 id="m-h-units">Units</h2>
+            <p>Recipes open in these units. You can still switch on any recipe.</p>
+            <div><x-import component-from-global-scope="Dino.SegmentedControl" label="Units" options="{{units}}" value="metric" on-value-change="{{noop}}"></x-import></div>
+          </section>
+          <section class="sec" aria-labelledby="m-h-data">
+            <h2 id="m-h-data">Your data</h2>
+            <p>Download everything you have in Tastebook as one file: your account details, the recipes you wrote, your household’s private recipes and your lists.</p>
+            <div><x-import component-from-global-scope="Dino.Button" variant="secondary">Download everything</x-import></div>
+          </section>
+          <section class="sec" aria-labelledby="m-h-delete">
+            <h2 id="m-h-delete">Delete your account</h2>
+            <p>Delete your account and everything only you can see. Public recipes you wrote stay, credited to “a former member”.</p>
+            <div><x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import></div>
+          </section>
+        </div></main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>At 320 px</b> · keyboard focus on the button; the text wraps, nothing scrolls sideways</span>
+      <div class="frame narrow" style="height: 430px">
+        <header class="bar"><div class="in" style="padding: 0 20px">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam Jones" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page"><div class="stack">
+          <section class="sec" aria-labelledby="n-h-delete">
+            <h2 id="n-h-delete">Delete your account</h2>
+            <p>Delete your account and everything only you can see. Public recipes you wrote stay, credited to “a former member”.</p>
+            <div class="focus"><x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import></div>
+          </section>
+        </div></main>
+      </div>
+      <span class="cap" style="max-width: 320px">Scrolled to the section. Its button is the one danger button on the page; Save name stays the screen’s one peach button.</span>
+    </div>
+
+    <div class="col" style="max-width: 460px; gap: 14px; padding-top: 27px">
+      <div class="notes">
+        <p><b>Last, after Your data</b>, so “Download everything” comes first on the way down: someone about to delete has just passed the way to keep a copy.</p>
+        <p><b>A Title heading and one paragraph</b>, as every section on the page has. The paragraph says what goes and what stays in one sentence; the dialog gives the numbers.</p>
+        <p><b>A danger Button, not a link</b>, named for the action as docs/design.md’s Dialog row says: “Delete account”. It opens the dialog and sends nothing, so it never shows loading itself; the dialog’s own buttons do.</p>
+        <p><b>Staff see the same section.</b> The button is left enabled and the dialog explains on press, as States › Disabled says to when the reason is too long for a line under the button.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <span class="cap"><b>Laptop, 1288 px</b> · the dialog open over the page; it is 384 px wide at every width from 424 px up, and the column stays 400 px, so nothing else changes between tablet and laptop</span>
+    <div class="frame lap" style="width: 1288px; height: 860px">
+      <header class="bar"><div class="in">
+        <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+        <nav aria-label="Main"><div class="tabs"><span class="tab">Recipes</span><span class="tab">Lists</span></div></nav>
+        <x-import component-from-global-scope="Dino.SearchInput" placeholder="Search recipes" value="" on-value-change="{{noop}}" aria-label="Search recipes"></x-import>
+        <button type="button" class="av" aria-label="Account for Sam Jones" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button>
+      </div></header>
+      <main class="page"><div class="stack">
+        <h1>Your <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">account</x-import></h1>
+        <section class="sec">
+          <h2>Your data</h2>
+          <p>Download everything you have in Tastebook as one file: your account details, the recipes you wrote, your household’s private recipes and your lists.</p>
+          <div><x-import component-from-global-scope="Dino.Button" variant="secondary">Download everything</x-import></div>
+        </section>
+        <section class="sec">
+          <h2>Delete your account</h2>
+          <p>Delete your account and everything only you can see. Public recipes you wrote stay, credited to “a former member”.</p>
+          <div><x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import></div>
+        </section>
+      </div></main>
+      <div class="scrim"></div>
+      <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="l-dt" aria-describedby="l-dd">
+        <h2 id="l-dt">Delete your account?</h2>
+        <div class="body" id="l-dd">
+          <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+          <p>The 12 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.</p>
+          <p>The 3 public recipes you wrote stay, credited to “a former member”, so links to them keep working.</p>
+          <p>Nightly backups keep a copy for up to 30 days.</p>
+        </div>
+        <div class="btns">
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="primary">Send code</x-import>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Where it goes from here.</b> The dialog asks twice in effect: it lists what goes, then sends a code and asks for it. The next board draws the first step in each of its answers, the one after it the code.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, noop: function () {},
+      units: [{ value: 'metric', label: 'Metric' }, { value: 'us', label: 'US customary' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

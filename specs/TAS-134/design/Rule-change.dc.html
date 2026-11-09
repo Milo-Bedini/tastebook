@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Proposed rule change</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.cols{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:40px;align-items:start}
+.card{border:1px solid var(--color-line);border-radius:var(--radius-note);padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-size:15px;line-height:20px;font-weight:800}
+.card p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.card del{color:var(--color-muted)}
+.card ins{text-decoration:none;background:var(--color-surface);color:var(--color-ink);border-radius:4px;padding:0 3px}
+.why{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.why p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.why b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 760px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">docs/design.md · Components › Dialog · proposed in TAS-134</span>
+    <h1 class="ttl">Proposed rule change</h1>
+    <span class="cap">The boards follow the rule as it stands wherever it speaks; this says what to add where it’s silent.</span>
+  </header>
+  <div class="cols">
+    <div class="card">
+      <h2>Dialog, as it is</h2>
+      <p>For anything that can’t be undone: says exactly what happens; the danger button names the action (“Delete account”), the other is “Cancel”, or names what it keeps when the action itself is a cancel (“Keep link”). A change that can be undone but reaches beyond the household (making a recipe public) may ask first, with a primary button that names it (“Make public”); undoing it acts at once, without asking.</p>
+    </div>
+    <div class="card">
+      <h2>Dialog, with the addition</h2>
+      <p>… undoing it acts at once, without asking. <ins>A dialog that needs something first (a code from an email) asks for it in a step before the action, under the same title: that step’s button is primary and names what it does (“Send code”), and only the action itself is danger. A dialog that can only explain (a staff account can’t be deleted) has no action, and its way out is “Close”.</ins></p>
+    </div>
+  </div>
+  <div class="why">
+    <p><b>Why.</b> Today a dialog has one button that acts, so “danger for what can’t be undone” covers it. A step that only sends an email isn’t the deletion: painting it danger would make the harmless press look like the final one, and leave the real one looking the same (NN/g 4, one look means one thing; NN/g 5, error prevention). Primary is still the one main action on screen while the page sits under the scrim.</p>
+    <p><b>“Close”, not “Cancel”</b>, when nothing is being cancelled (Voice: a control says exactly what it does).</p>
+    <p><b>If it’s turned down:</b> Send code becomes a secondary button, beside Cancel, and the dialog then has no main action until the code step.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>ConfirmDialog: a body, a step and a notice</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.box{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:640px}
+.box.narrow{width:320px;height:760px}
+.ghostpage{position:absolute;inset:0;padding:40px 20px;display:flex;flex-direction:column;gap:16px}
+.ghostpage span{display:block;height:14px;border-radius:var(--radius-pill);background:var(--color-line)}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg .body{display:flex;flex-direction:column;gap:8px}
+.dlg .body p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .body b{color:var(--color-ink);font-weight:800;overflow-wrap:anywhere}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.hc{--canvas:#000000;--text:#ffffff;--hl:#1aebff;background:var(--canvas);border-color:var(--text)}
+.hc .ghostpage span{background:transparent;border:1px solid var(--text)}
+.hc .scrim{background:transparent}
+.hc .dlg{background:var(--canvas);border-color:var(--text);color:var(--text)}
+.hc .dlg .body p,.hc .dlg .body b{color:var(--text)}
+.hcl{font:800 15px/20px var(--font-sans)}
+.hci{height:48px;border-radius:999px;border:3px solid var(--hl);box-sizing:border-box;display:flex;align-items:center;padding:0 18px;font:600 16px/24px var(--font-sans)}
+.hcb{height:44px;padding:0 20px;border-radius:999px;border:2px solid var(--text);box-sizing:border-box;display:inline-flex;align-items:center;background:transparent;color:var(--text);font:800 15px/20px var(--font-sans);white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.api{display:flex;flex-direction:column;gap:12px}
+.api p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.api p b{font-weight:800}
+.api code{font-family:ui-monospace,monospace;font-size:13px;line-height:20px;background:var(--color-surface);border-radius:6px;padding:1px 6px}
+.api pre{margin:0;font-family:ui-monospace,monospace;font-size:12px;line-height:18px;background:var(--color-surface);border-radius:var(--radius-note);padding:14px 16px;white-space:pre-wrap}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2600px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">Dino · ConfirmDialog · changed in TAS-134 part 2</span>
+    <h1 class="ttl">ConfirmDialog: a body, a step and a notice</h1>
+    <span class="cap">Four optional additions, so a dialog can ask for something before its action: several lines of description, content between them and the buttons (a field), what the content is waiting on, and a notice form with only a way out. Left out, every dialog today is unchanged.</span>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <span class="cap"><b>Several lines</b> · description as a list: one Body Muted line each, 8 px apart</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <div class="body">
+            <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+            <p>The 12 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.</p>
+            <p>Nightly backups keep a copy for up to 30 days.</p>
+          </div>
+          <div class="btns">
+            <div class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></div>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Send code</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>With content</b> · children between the description and the buttons; the confirm is danger</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld">
+            <label for="w-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="w-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="12345" aria-invalid="true" aria-describedby="w-err"></x-import>
+            <p id="w-err" class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>Enter the 6-digit code from the email, like 123456.</span></p>
+          </div>
+          <div style="display: flex"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger" loading="{{yes}}" loading-label="Deleting…">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>An error with no field</b> · <code style="font-size: 12px">error</code>: a Small Danger line over the buttons, announced</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <div class="body">
+            <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+            <p>Nightly backups keep a copy for up to 30 days.</p>
+          </div>
+          <p class="err" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>You’ve asked for too many codes. Try again in 7 minutes.</span></p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Send code</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Loading</b> · <code style="font-size: 12px">status="loading"</code>: Loading in the body, no confirm</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <x-import component-from-global-scope="Dino.Loading">Checking what deleting removes…</x-import>
+          <div class="btns"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Failed</b> · <code style="font-size: 12px">status="error"</code>: ErrorWithRetry in the body, no confirm</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t reach Tastebook" on-retry="{{retry}}">Check your connection and try again.</x-import>
+          <div class="btns"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>A notice</b> · <code style="font-size: 12px">notice</code>: only the way out, “Close”, focused</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <div class="body"><p>Staff accounts can’t be deleted here. Ask another staff member to take your staff access away first.</p></div>
+          <div class="btns fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Close</x-import></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>At 320 px</b> · the buttons wrap, the action last; the field fills the width</span>
+      <div class="box narrow">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>samantha.jones-whitfield@example.co.uk</b>. It works for 10 minutes.</p></div>
+          <div class="fld">
+            <label for="n-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="n-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="123456"></x-import>
+          </div>
+          <div style="display: flex"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Forced colours</b> · simulated; the danger button’s fill goes, its border is drawn</span>
+      <div class="box hc">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg">
+          <h2>Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld">
+            <span class="hcl">Code</span>
+            <span class="hci">123456</span>
+          </div>
+          <div style="display: flex"><span class="hcb">Send a new code</span></div>
+          <div class="btns">
+            <span class="hcb">Cancel</span>
+            <span class="hcb">Delete account</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="api">
+      <p><b>The change</b></p>
+      <pre>type Base = {
+  title: string;
+  // A string, or lines: one &lt;p&gt; each, 8 px apart.
+  description: string | string[];
+  // New: between the description and the buttons.
+  children?: ReactNode;
+  // New: why the action can’t go ahead, when no
+  // field holds it. Small Danger, role="alert".
+  error?: string;
+  cancelLabel?: string;   // “Close” in a notice
+} &amp; (
+  | { status?: 'ready' }
+  | { status: 'loading'; loadingLabel: string }
+  | { status: 'error'; errorTitle: string;
+      errorText: string;
+      onRetry: () =&gt; Promise&lt;unknown&gt; }
+);
+type Confirm =
+  | { notice?: never; confirmLabel: string;
+      pending: boolean; pendingLabel: string;
+      tone?: 'danger' | 'primary';
+      onConfirm: () =&gt; void }
+  | { notice: true; confirmLabel?: never; … };
+type ConfirmDialogProps = Base &amp; Confirm &amp; OpenProps;</pre>
+      <p><b>A step is a re-render.</b> The caller swaps <code>description</code>, <code>children</code>, <code>confirmLabel</code> and <code>tone</code>; the title stays. Controlled (<code>open</code>), the confirm shows <code>pending</code> and the caller closes it, as today.</p>
+      <p><b>While loading or failed</b> there’s no confirm, and focus stays on Cancel. A <b>notice</b> has only the way out, “Close” unless <code>cancelLabel</code> says otherwise.</p>
+      <p><b>Stories:</b> <code>Lines</code>, <code>WithContent</code>, <code>Error</code>, <code>Loading</code>, <code>Failed</code>, <code>Notice</code>, each open, with both baselines; <code>boards.ts</code> names this board.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, six: 6, retry: function () { return Promise.resolve(); } };
+  }
+}
+</script>
+</body>
+</html>
