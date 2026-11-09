@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from './fixtures.ts';
-import { soleCook } from './setups.ts';
+import { busyDay, soleCook } from './setups.ts';
 import { readSignInCode } from './test-accounts.ts';
 import { totpCode } from './totp.ts';
 
@@ -106,4 +106,57 @@ test('staff remove a reported recipe, which its author then finds private', asyn
   await expect(page.getByText(`Removed ${title}.`)).toBeVisible();
   await sam.page.goto(`/recipes/${recipe?.slug ?? ''}`);
   await expect(sam.page.getByRole('switch', { name: 'Public' })).not.toBeChecked();
+});
+
+test("an author's 4th recipe made public in a day waits until staff approve it", async ({
+  page,
+  seed,
+  accessibility
+}) => {
+  test.skip(Boolean(process.env.PREVIEW_URL), 'make_staff needs the database');
+  const { sam, cy } = await seed(busyDay);
+  const traybake = sam.recipes[3];
+  const address = `/recipes/${traybake?.slug ?? ''}`;
+
+  await sam.page.goto(address);
+  const publicSwitch = sam.page.getByRole('switch', { name: 'Public' });
+  await publicSwitch.click();
+  const dialog = sam.page.getByRole('alertdialog', { name: 'Make this recipe public?' });
+  await expect(dialog).toContainText(
+    "You've made several recipes public today, so staff will check Sam's busy-day traybake before anyone else can see it."
+  );
+  await dialog.getByRole('button', { name: 'Make public' }).click();
+
+  await expect(sam.page.getByText("Sam's busy-day traybake is waiting for review")).toBeVisible();
+  await expect(sam.page.getByText('Waiting for review', { exact: true })).toBeVisible();
+  await expect(publicSwitch).toBeChecked();
+  await accessibility.check(sam.page);
+  await page.goto(address);
+  await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
+
+  execFileSync('uv', ['run', 'python', 'manage.py', 'make_staff', cy.email], {
+    cwd: BACKEND,
+    env: { ...process.env, DJANGO_DEBUG: 'true' }
+  });
+  const staff = cy.page;
+  await staff.goto('/admin/');
+  const key = (await staff.locator('#content-main code').textContent()) ?? '';
+  await staff.getByRole('textbox', { name: 'Code from the app' }).fill(totpCode(key));
+  await staff.getByRole('button', { name: 'Turn on two-factor sign-in' }).click();
+  await staff.getByRole('link', { name: 'Open the admin' }).click();
+  await staff.getByRole('link', { name: 'Recipes waiting for review' }).click();
+  // Searched by its address, as earlier runs left recipes with its title in the database.
+  await staff.locator('#searchbar').fill(traybake?.slug ?? '');
+  await staff.getByRole('button', { name: 'Search' }).click();
+  await accessibility.check(staff);
+  await staff.getByRole('checkbox', { name: "Select this object for an action - Sam's busy-day traybake" }).check();
+  await staff
+    .getByRole('combobox', { name: 'Action:' })
+    .selectOption({ label: 'Approve: make public, as its author asked' });
+  await staff.getByRole('button', { name: 'Run' }).click();
+
+  await expect(staff.getByText("Approved Sam's busy-day traybake.")).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: /traybake/ })).toBeVisible();
+  await expect(page.getByText('by Sam')).toBeVisible();
 });
