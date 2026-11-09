@@ -568,7 +568,7 @@ def _add_described_recipe(author: User, record: Record, names: _Names) -> Recipe
         _save(group, f'{where}, group')
     for line in _lines(recipe, record, groups, names, where):
         _save(line, f'{where}, ingredient line')
-    for position, text in enumerate(record.get('steps', [])):
+    for position, text in enumerate(_steps(record, where)):
         _save(Step(recipe=recipe, position=position, text=text), f'{where}, step')
     return recipe
 
@@ -580,9 +580,13 @@ def _read(path: Path) -> Record:
     except (OSError, json.JSONDecodeError) as error:
         raise CatalogueError(f'Could not read {path}: {error}') from error
     keys = {'ingredients', 'equipment', 'recipes'}
-    if not isinstance(catalogue, dict) or catalogue.keys() != keys:
+    if (
+        not isinstance(catalogue, dict)
+        or catalogue.keys() != keys
+        or not all(isinstance(catalogue[key], list) for key in keys)
+    ):
         raise CatalogueError(f'{path} must hold exactly these lists: {", ".join(sorted(keys))}')
-    slugs = [record.get('slug', '') for record in catalogue['recipes']]
+    slugs = [record.get('slug', '') for record in _objects(catalogue['recipes'], str(path), 'recipe')]
     if '' in slugs:
         raise CatalogueError('Every recipe needs a slug: it keeps the recipe the same recipe from one load to the next')
     _refuse_repeats(slugs, 'Recipe slugs')
@@ -683,10 +687,7 @@ def _load_recipes(records: list[Record], names: _Names) -> list[Recipe]:
     steps = [
         (
             recipe,
-            [
-                Step(recipe=recipe, position=position, text=text)
-                for position, text in enumerate(record.get('steps', []))
-            ],
+            [Step(recipe=recipe, position=position, text=text) for position, text in enumerate(_steps(record, where))],
             where,
         )
         for recipe, record, where in loaded
@@ -715,7 +716,9 @@ def _lines(
     ]
 
 
-def _objects(records: list[Any], where: str, kind: str) -> list[Record]:
+def _objects(records: object, where: str, kind: str) -> list[Record]:
+    if not isinstance(records, list):
+        raise CatalogueError(f'{where}: give the {kind}s as a list, not {records}')
     unshaped = [str(record) for record in records if not isinstance(record, dict)]
     if unshaped:
         raise CatalogueError(f'{where}: each {kind} must be an object, but these are not: {", ".join(unshaped)}')
@@ -738,8 +741,18 @@ def _plain_fields(model: type[models.Model], record: Record, where: str, referen
     return {name: value for name, value in record.items() if name in allowed}
 
 
-def _look_up[M: models.Model](rows: dict[str, M], names: list[str], where: str, kind: str) -> list[M]:
-    missing = [f'"{name}"' for name in names if name not in rows]
+def _steps(record: Record, where: str) -> list[str]:
+    steps = record.get('steps', [])
+    if not isinstance(steps, list) or not all(isinstance(step, str) for step in steps):
+        raise CatalogueError(f'{where} must give its steps as a list of text')
+    return steps
+
+
+def _look_up[M: models.Model](rows: dict[str, M], names: object, where: str, kind: str) -> list[M]:
+    if not isinstance(names, list):
+        raise CatalogueError(f'{where} must give a list of {kind} names, not {names}')
+    # A name that isn't text can't be a row's, and can't be looked up either: a list or object isn't hashable.
+    missing = [f'"{name}"' for name in names if not isinstance(name, str) or name not in rows]
     if missing:
         raise CatalogueError(f'{where} names no known {kind}: {", ".join(missing)}')
     return [rows[name] for name in names]
