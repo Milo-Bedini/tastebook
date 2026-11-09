@@ -43,7 +43,7 @@ const message = {
     "Don't mock fetch or the API client: mock HTTP with MSW (defaults in src/test/handlers.ts, server.use(...) per test) (AGENTS.md › Frontend).",
   image:
     "Give an <img> crossOrigin='anonymous', as RecipePhoto does, so its host can't set a cookie; only an image imported from a local file goes without (specs/lessons/wikimedia-photos-load-anonymously.md).",
-  svg: "Set an SVG's colour on an HTML wrapper it inherits from, as the empty state's Doodle does, or add forced-colors:text-current, so forced colours can redraw it (specs/lessons/forced-colours-keeps-an-svgs-own-colour.md).",
+  svg: "Set an SVG's or Lucide icon's colour on an HTML wrapper it inherits from, as the empty state's Doodle does, or add forced-colors:text-current, so forced colours can redraw it (specs/lessons/forced-colours-keeps-an-svgs-own-colour.md).",
   pressedFill:
     "Stack the state's variant on the pressed fill (data-highlighted:active:bg-surface-pressed, aria-expanded:active:*:bg-surface-pressed), as icon-button.tsx does with aria-pressed:active, so the pressed fill wins (specs/lessons/pressed-styles-lose-to-state-variants.md)."
 };
@@ -366,6 +366,51 @@ const fixtures: Fixture[] = [
       `    <svg aria-hidden="true" />`,
       `  </span>`,
       `);`,
+      ''
+    ].join('\n'),
+    reports: []
+  },
+  {
+    plugin: 'svg-forced-colours',
+    what: 'a Lucide icon with its own text colour',
+    path: 'frontend/src/recipes/lucide-bad.tsx',
+    source: [
+      `import { CircleAlert, TriangleAlert as Warning } from 'lucide-react';`,
+      ``,
+      `export const Alert = () => <CircleAlert className="size-5 text-danger" aria-hidden="true" />;`,
+      `export const Caution = () => <Warning className="text-warning" aria-hidden="true" />;`,
+      ''
+    ].join('\n'),
+    reports: [message.svg, message.svg]
+  },
+  {
+    plugin: 'svg-forced-colours',
+    what: 'Lucide icons redrawn, uncoloured or coloured through a wrapper, and a coloured component beside them',
+    path: 'frontend/src/recipes/lucide-good.tsx',
+    source: [
+      `import { ChevronRight, CircleAlert } from 'lucide-react';`,
+      `import { Banner } from './banner';`,
+      ``,
+      `export const Alert = () => <CircleAlert className="text-danger forced-colors:text-current" aria-hidden="true" />;`,
+      `export const Next = () => <ChevronRight className="size-5" aria-hidden="true" />;`,
+      `export const Wrapped = () => (`,
+      `  <span className="text-danger">`,
+      `    <CircleAlert aria-hidden="true" />`,
+      `  </span>`,
+      `);`,
+      `export const Notice = () => <Banner className="text-warning" />;`,
+      ''
+    ].join('\n'),
+    reports: []
+  },
+  {
+    plugin: 'svg-forced-colours',
+    what: "a coloured component named like a Lucide icon that isn't one",
+    path: 'frontend/src/recipes/lucide-namesake-good.tsx',
+    source: [
+      `import { CircleAlert } from './circle-alert';`,
+      ``,
+      `export const Alert = () => <CircleAlert className="text-danger" />;`,
       ''
     ].join('\n'),
     reports: []

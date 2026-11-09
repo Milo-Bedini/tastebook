@@ -30,7 +30,7 @@ export const ErrorWithRetry = ({ title, children, onRetry }: ErrorWithRetryProps
       role="alert"
       className="flex w-full flex-col items-center gap-2.5 rounded-card border border-line p-6 text-center"
     >
-      <CircleAlert aria-hidden="true" strokeWidth={2.25} className="size-8 text-danger" />
+      <CircleAlert aria-hidden="true" strokeWidth={2.25} className="size-8 text-danger forced-colors:text-current" />
       <p id={titleId} className="font-serif text-title italic">
         {title}
       </p>

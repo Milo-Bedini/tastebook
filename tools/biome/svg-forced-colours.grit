@@ -1,7 +1,8 @@
 language js
 
 // Chromium keeps an <svg>'s own colour under forced colours (forced-color-adjust: preserve-parent-color), so a
-// currentColor stroke stays the brand colour there. The colours are Picnic's tokens in picnic.css.
+// currentColor stroke stays the brand colour there. A Lucide icon renders an <svg>, so it's held to the same rule.
+// The colours are Picnic's tokens in picnic.css.
 JsxAttribute() as $attribute where {
   $filename <: r".*frontend/src/.*",
   $attribute <: r"className=[\s\S]*(?:^|[\s\x22\x27`:])text-(?:ground|surface|ink|muted|pop|field|line|peach|mint|butter|pink|on-pastel|paper|tape|dock|on-dock|success|warning|danger|on-danger|scrim|\[)[\s\S]*",
@@ -9,6 +10,16 @@ JsxAttribute() as $attribute where {
   $attribute <: within or {
     JsxOpeningElement(name=$name),
     JsxSelfClosingElement(name=$name)
-  } where { $name <: r"svg" },
-  register_diagnostic(span=$attribute, message="Set an SVG's colour on an HTML wrapper it inherits from, as the empty state's Doodle does, or add forced-colors:text-current, so forced colours can redraw it (specs/lessons/forced-colours-keeps-an-svgs-own-colour.md).")
+  } as $element where {
+    or {
+      $name <: r"svg",
+      and {
+        $element <: within JsModule(items=$items),
+        $items <: contains JsImport() as $import,
+        $import <: r"[\s\S]*from\s*[\x27\x22]lucide-react[\x27\x22][\s\S]*",
+        $import <: contains JsIdentifierBinding() as $local where { $local <: $name }
+      }
+    }
+  },
+  register_diagnostic(span=$attribute, message="Set an SVG's or Lucide icon's colour on an HTML wrapper it inherits from, as the empty state's Doodle does, or add forced-colors:text-current, so forced colours can redraw it (specs/lessons/forced-colours-keeps-an-svgs-own-colour.md).")
 }

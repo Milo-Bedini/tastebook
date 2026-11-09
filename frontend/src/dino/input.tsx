@@ -42,7 +42,7 @@ export const SearchInput = ({ className, value, onValueChange, ...props }: Searc
       <Search
         aria-hidden="true"
         strokeWidth={2.5}
-        className="pointer-events-none absolute top-3.5 left-4 size-5 text-muted group-focus-within:text-ink"
+        className="pointer-events-none absolute top-3.5 left-4 size-5 text-muted group-focus-within:text-ink forced-colors:text-current"
       />
       <Input
         ref={input}
