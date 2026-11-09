@@ -3,10 +3,19 @@ import { readFile } from 'node:fs/promises';
 import type { TestProject } from 'vitest/node';
 import { parse } from 'yaml';
 
-import { describeMissing, missingAnswers, type Paths } from './src/test/documented-answers.ts';
+import {
+  describeMissing,
+  describeStale,
+  describeUnhandled,
+  missingAnswers,
+  type Paths,
+  staleUnbranched,
+  unhandledAnswers
+} from './src/test/documented-answers.ts';
 
 // The unit project's global setup: once every page test has run, fails the run if a documented error answer of a
-// mutation the app calls was answered by none of them (src/test/setup.ts records what each test's handlers sent).
+// mutation the app calls was answered by none of them (src/test/setup.ts records what each test's handlers sent), or
+// its hook neither branches on it nor lists it in UNBRANCHED with a reason.
 export const setup = (project: TestProject) => async () => {
   const { vitest } = project;
   const { testFiles } = await project.globTestFiles();
@@ -23,12 +32,16 @@ export const setup = (project: TestProject) => async () => {
   const answered = modules.flatMap((module) =>
     [...module.children.allTests()].flatMap((test) => test.meta().answered ?? [])
   );
-  const missing = missingAnswers(schema.paths, sources, answered);
-  if (missing.length > 0) {
+  const problems = [
+    ...missingAnswers(schema.paths, sources, answered).map(describeMissing),
+    ...unhandledAnswers(schema.paths, sources).map(describeUnhandled),
+    ...staleUnbranched(schema.paths, sources).map(describeStale)
+  ];
+  if (problems.length > 0) {
     throw new Error(
-      `Each documented error answer of a mutation needs a page test that answers it with server.use(...):\n${missing
-        .map(describeMissing)
-        .join('\n')}`
+      'Each documented error answer of a mutation needs a page test that answers it with server.use(...), and a ' +
+        '`response.status === N` branch in its hook or an UNBRANCHED entry in src/test/documented-answers.ts saying ' +
+        `why the failure message is right:\n${problems.join('\n')}`
     );
   }
 };
