@@ -1,0 +1,4 @@
+{% autoescape off %}Hi {{ name }},
+
+Your recipe "{{ title }}" was reported as {{ reasons }}. Staff have reviewed it and found nothing wrong, so they've restored it: everyone can find it on Tastebook again.
+{% endautoescape %}

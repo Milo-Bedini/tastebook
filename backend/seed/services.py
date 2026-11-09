@@ -14,6 +14,7 @@ from recipes.services import (
     add_described_recipes,
     add_ingredient,
     copy_recipe,
+    remove_recipe,
     report_recipe,
     restore_recipe,
     set_visibility,
@@ -31,7 +32,7 @@ class SeededAccount:
 
 def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
     """Makes the described households, members, recipes, saves, lists and copies, then makes private the recipes
-    named, shares by link the ones named, restores the ones named and reports the ones named, in one transaction, and
+    named, shares by link the ones named, restores, removes and reports the ones named, in one transaction, and
     signs each member in. Keyed by each member's key. Raises CatalogueError for a recipe the database can't hold, or a
     save, list, copy, change or report it can't make."""
     with transaction.atomic():
@@ -64,6 +65,9 @@ def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
         for member, account in made:
             for title in member['restored']:
                 restore_recipe(_recipe_they_wrote(title, recipes[member['key']], account, 'have "{}" restored'))
+        for member, account in made:
+            for title in member['removed']:
+                remove_recipe(_recipe_they_wrote(title, recipes[member['key']], account, 'have "{}" removed'))
         for member, account in made:
             for title in member['reports']:
                 _report(account, _recipe_they_can_see(title, seeded, account, 'report'))

@@ -1097,6 +1097,8 @@ export interface components {
             shared?: string[];
             /** @description Titles of this member's own public recipes that staff have restored, as if after an earlier report, once every share is made and before anyone's reports, so a report leaves them up. */
             restored?: string[];
+            /** @description Titles of this member's own recipes that staff have removed from public view, as if after an earlier report, once every restore is made: each is private, and its author can't make it public again. */
+            removed?: string[];
             /** @description Titles of other households' public recipes this member reports as spam, last of all, as saves name them. The first report of a recipe that is not restored hides it from everyone but its author. */
             reports?: string[];
         };

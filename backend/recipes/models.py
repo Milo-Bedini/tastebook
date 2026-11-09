@@ -67,6 +67,7 @@ class Moderation(models.TextChoices):
     UNREPORTED = 'unreported', 'Not reported'
     HIDDEN = 'hidden', 'Hidden while a report is reviewed'
     RESTORED = 'restored', 'Restored by staff'
+    REMOVED = 'removed', 'Removed by staff'
 
 
 class RecipeQuerySet(models.QuerySet['Recipe']):
@@ -337,7 +338,7 @@ class Recipe(models.Model):
         default=Moderation.UNREPORTED,
         editable=False,
         help_text="A recipe's first report hides it from everyone but its author until staff review it. Once staff "
-        'restore it, later reports reach staff without hiding it.',
+        'restore it, later reports reach staff without hiding it; once they remove it, it stays private.',
     )
     adapted_from = models.ForeignKey(
         'self',
@@ -549,6 +550,9 @@ class Report(models.Model):
     reason = models.CharField(max_length=10, choices=ReportReason.choices)
     note = models.CharField(max_length=REPORT_NOTE_MAX_LENGTH, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(
+        null=True, blank=True, editable=False, help_text='When staff restored or removed the recipe after this report.'
+    )
 
     class Meta:
         ordering = ['created_at', 'id']
@@ -558,6 +562,13 @@ class Report(models.Model):
 
     def __str__(self) -> str:
         return f'Report of {self.recipe_id}: {self.get_reason_display()}'
+
+
+class ReportedRecipe(Recipe):
+    """A household's recipe someone has reported, as staff review it in the admin."""
+
+    class Meta:
+        proxy = True
 
 
 class IngredientStatus(models.TextChoices):
