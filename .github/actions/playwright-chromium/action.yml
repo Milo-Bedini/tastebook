@@ -1,0 +1,108 @@
+name: Install Playwright's Chromium
+description: >-
+  Installs the Chromium that frontend's Playwright runs, and the system packages it needs, from the Actions cache when
+  it can. A slow apt mirror once stalled the uncached install past its timeout and failed an unrelated PR (TAS-175).
+  Run it after pnpm install.
+
+inputs:
+  save-cache:
+    description: >-
+      Whether to save what it downloads to the Actions cache. Leave it off in a workflow that runs code from a fork with
+      no branch of its own to scope the cache to, such as one triggered by deployment_status.
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Find what to install
+      id: plan
+      shell: bash
+      run: |
+        version=$(pnpm --filter frontend exec playwright --version | awk '{ print $2 }')
+        if [[ -z "$version" ]]; then
+          echo "::error::Couldn't read frontend's Playwright version."
+          exit 1
+        fi
+        # The dry run lists the packages apt would install (dependencies included) and exits non-zero when there are
+        # any, so read its output rather than its exit code.
+        report=$(pnpm --filter frontend exec playwright install-deps --dry-run chromium 2>&1 || true)
+        if grep -q '^All system dependencies are installed' <<< "$report"; then
+          missing=""
+        elif grep -q '^Missing system dependencies' <<< "$report"; then
+          missing=$(sed -n 's/^  \([a-z0-9][a-z0-9.+-]*\)$/\1/p' <<< "$report" | tr '\n' ' ')
+        else
+          echo "$report"
+          echo "::error::Couldn't tell which system packages Chromium is missing."
+          exit 1
+        fi
+        echo "Playwright $version; missing system packages: ${missing:-none}"
+        {
+          echo "version=$version"
+          echo "missing=$missing"
+          # The runner image fixes which packages are missing and which versions apt would fetch.
+          echo "image=${ImageOS:-$RUNNER_OS}-${ImageVersion:-unknown}"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Restore the browser
+      id: browser
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-chromium-${{ runner.os }}-${{ runner.arch }}-${{ steps.plan.outputs.version }}
+
+    - name: Download the browser
+      if: steps.browser.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        for attempt in 1 2 3; do
+          timeout 120 pnpm --filter frontend exec playwright install chromium && exit 0
+          echo "::warning::Downloading Chromium failed or took over 2 minutes (attempt $attempt of 3)."
+        done
+        exit 1
+
+    - name: Save the browser
+      if: steps.browser.outputs.cache-hit != 'true' && inputs.save-cache == 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ steps.browser.outputs.cache-primary-key }}
+
+    - name: Restore the system packages
+      id: packages
+      if: steps.plan.outputs.missing != ''
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/playwright-apt
+        key: playwright-apt-${{ steps.plan.outputs.image }}-${{ steps.plan.outputs.version }}
+
+    - name: Download the system packages
+      if: steps.plan.outputs.missing != '' && steps.packages.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        MISSING: ${{ steps.plan.outputs.missing }}
+      run: |
+        mkdir -p ~/.cache/playwright-apt
+        cd ~/.cache/playwright-apt || exit 1
+        apt_options=(-o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+        # Word splitting is wanted: MISSING is a space-separated list of package names.
+        # shellcheck disable=SC2086
+        for attempt in 1 2; do
+          timeout 240 sudo apt-get "${apt_options[@]}" update -qq &&
+            timeout 240 apt-get "${apt_options[@]}" download $MISSING && exit 0
+          echo "::warning::Downloading Chromium's system packages failed or took over 4 minutes (attempt $attempt of 2)."
+          rm -f ./*.deb
+        done
+        exit 1
+
+    - name: Save the system packages
+      if: >-
+        steps.plan.outputs.missing != '' && steps.packages.outputs.cache-hit != 'true' && inputs.save-cache == 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/playwright-apt
+        key: ${{ steps.packages.outputs.cache-primary-key }}
+
+    - name: Install the system packages
+      if: steps.plan.outputs.missing != ''
+      shell: bash
+      run: sudo dpkg -i ~/.cache/playwright-apt/*.deb
