@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Radio list</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 40px}
+.tile{display:flex;flex-direction:column;gap:10px}
+.panel{background:var(--color-surface);border-radius:var(--radius-card);padding:16px;display:flex;flex-direction:column;gap:2px}
+.rrow{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 8px 6px 12px;box-sizing:border-box;border-radius:var(--radius-row);cursor:pointer}
+.rrow input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.rrow .nm{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.rrow .nm b{font-size:16px;line-height:24px;font-weight:600}
+.rrow .nm span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.dot{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-pill);display:grid;place-items:center;color:var(--color-on-pastel)}
+.dot.on{background:var(--color-mint);border-color:transparent}
+.dot svg{width:18px;height:18px}
+.rrow.hv{background:var(--color-line)}
+.rrow.hv .dot{border-color:var(--color-ink)}
+.rrow.hv .dot.on{background:var(--color-mint-hover);border-color:transparent}
+.rrow.pr{background:var(--color-surface-pressed)}
+.rrow.pr .dot{transform:scale(.92);background:var(--color-mint-pressed);border-color:transparent}
+.rrow.fc{outline:3px solid var(--color-ink);outline-offset:0}
+.rrow.bad .dot{border-color:var(--color-danger)}
+.rrow.off{cursor:default}
+.rrow.off .nm b,.rrow.off .nm span{color:var(--color-muted)}
+.rrow.off .dot{border-style:dashed;background:var(--color-surface)}
+.err{margin:0;padding:4px 12px 0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.why{margin:0;padding:4px 12px 0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.fcm{background:Canvas;color:CanvasText;border:1px solid CanvasText}
+.fcm .rrow .nm span{color:CanvasText}
+.fcm .dot{border-color:CanvasText;color:HighlightText}
+.fcm .dot.on{background:Highlight;border-color:Highlight}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 980px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 36px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">Dino · new · first use: the report sheet’s reasons (TAS-129)</span>
+    <h1 class="ttl">Radio list</h1>
+    <span class="cap">One choice from a few options that each need a line to explain them: a fieldset of native radios, one row each, with List picker’s row and a round box. It grows from the list picker, so a ticked list and a chosen reason look like one family.</span>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><span class="cap"><b>Off</b> · <code>is-off</code></span>
+      <div class="panel"><label class="rrow"><input type="radio" name="t1"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label></div></div>
+    <div class="tile"><span class="cap"><b>Chosen</b> · <code>is-on</code> · mint with a check, never colour alone</span>
+      <div class="panel"><label class="rrow"><input type="radio" name="t2" checked><span class="nm"><b>Copied without credit</b><span>Someone else’s recipe, passed off as theirs</span></span><span class="dot on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+    <div class="tile"><span class="cap"><b>Hover</b> · <code>is-hover</code> · Line fill, off’s ring Ink, on’s mint to its hover</span>
+      <div class="panel"><label class="rrow hv"><input type="radio" name="t3"><span class="nm"><b>Offensive</b><span>Hateful, violent or explicit</span></span><span class="dot" aria-hidden="true"></span></label><label class="rrow hv"><input type="radio" name="t3" checked><span class="nm"><b>Something else</b><span>Say what in the note</span></span><span class="dot on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+    <div class="tile"><span class="cap"><b>Pressed</b> · <code>is-pressed</code> · Surface pressed, the box at 92%</span>
+      <div class="panel"><label class="rrow pr"><input type="radio" name="t4" checked><span class="nm"><b>Offensive</b><span>Hateful, violent or explicit</span></span><span class="dot on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+    <div class="tile"><span class="cap"><b>Focus</b> · <code>is-focus</code> · the ring on the row’s own edge, 14 px corners</span>
+      <div class="panel"><label class="rrow fc"><input type="radio" name="t5"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label></div></div>
+    <div class="tile"><span class="cap"><b>No hint</b> · a name alone keeps the row at 56 px</span>
+      <div class="panel"><label class="rrow"><input type="radio" name="t6"><span class="nm"><b>Spam</b></span><span class="dot" aria-hidden="true"></span></label></div></div>
+    <div class="tile"><span class="cap"><b>Error</b> · rings Danger, why under the list · <code>aria-invalid</code></span>
+      <div class="panel"><label class="rrow bad"><input type="radio" name="t7" aria-invalid="true"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label><p class="err"><x-import component-from-global-scope="Dino.icons.CircleAlert" stroke-width="{{sw}}" aria-hidden="true"></x-import>Choose what’s wrong with it, like Spam.</p></div></div>
+    <div class="tile"><span class="cap"><b>Disabled</b> · <code>is-disabled</code> · dashed ring, Muted, reason under it</span>
+      <div class="panel"><label class="rrow off"><input type="radio" name="t8" aria-disabled="true"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label><p class="why">Sending…</p></div></div>
+    <div class="tile"><span class="cap"><b>Forced colours</b> · chosen is Highlight, its check HighlightText</span>
+      <div class="panel fcm"><label class="rrow"><input type="radio" name="t9"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label><label class="rrow"><input type="radio" name="t9" checked><span class="nm"><b>Offensive</b><span>Hateful, violent or explicit</span></span><span class="dot on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label></div></div>
+  </div>
+
+  <div class="notes">
+    <p><b>Props:</b> <code>legend</code>, <code>name</code>, <code>options</code> (each a <code>value</code>, <code>label</code> and optional <code>hint</code>), <code>value</code>, <code>onValueChange</code>, and an optional <code>error</code>. The legend is Label, as List picker’s; each hint describes its radio.</p>
+    <p><b>Behaviour is the platform’s:</b> native radios in a fieldset, one tab stop, arrow keys move the choice; the whole row is the target. The box is round (a choice of one), where List picker’s and Checkbox row’s are square (any number).</p>
+    <p><b>Grows into</b> any short single choice that needs explaining: a list’s privacy, a household’s role. Two to four options with short names stay a Segmented control; long lists of plain names stay a native select.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, sw: 2.25, s3: 3 };
+  }
+}
+</script>
+</body>
+</html>
