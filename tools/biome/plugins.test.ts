@@ -130,9 +130,83 @@ const fixtures: Fixture[] = [
   },
   {
     plugin: 'token-only-styling',
+    what: 'literal values behind the important modifier',
+    path: 'frontend/src/recipes/styling-important-bad.tsx',
+    source: [
+      `export const Pad = () => <div className="!p-[7px]" />;`,
+      `export const Trailing = () => <div className="md:p-[7px]!" />;`,
+      `export const Size = () => <p className="!text-[13px]" />;`,
+      `export const Line = () => <p className="!leading-[1.1]" />;`,
+      `export const Face = () => <p className="!font-[Arial]" />;`,
+      `export const Fill = () => <div className="!bg-[#fff]" />;`,
+      ''
+    ].join('\n'),
+    reports: [
+      message.spacing,
+      message.spacing,
+      message.fontSize,
+      message.lineHeight,
+      message.fontFamily,
+      message.colour
+    ]
+  },
+  {
+    plugin: 'token-only-styling',
+    what: 'literal values in arbitrary properties and a typed font family',
+    path: 'frontend/src/recipes/styling-property-bad.tsx',
+    source: [
+      `export const Pad = () => <div className="[padding:7px]" />;`,
+      `export const Margin = () => <div className="md:[margin-inline-start:-0.5rem]" />;`,
+      `export const Gap = () => <div className="[row-gap:12px]" />;`,
+      `export const Size = () => <p className="[font-size:13px]" />;`,
+      `export const Line = () => <p className="[line-height:1.1]" />;`,
+      `export const Face = () => <p className="[font-family:Arial]" />;`,
+      `export const Named = () => <p className="font-[family-name:Arial]" />;`,
+      `export const Fill = () => <p className="[color:#fff]" />;`,
+      ''
+    ].join('\n'),
+    reports: [
+      message.spacing,
+      message.spacing,
+      message.spacing,
+      message.fontSize,
+      message.lineHeight,
+      message.fontFamily,
+      message.fontFamily,
+      message.colour
+    ]
+  },
+  {
+    plugin: 'token-only-styling',
+    what: 'a literal colour in an arbitrary property in a story',
+    path: 'frontend/src/recipes/styling-bad.stories.tsx',
+    source: `export const Ink = () => <p className="[color:#fff]" />;\n`,
+    reports: [message.colour]
+  },
+  {
+    plugin: 'token-only-styling',
+    what: 'a literal colour in an arbitrary property in a test',
+    path: 'frontend/src/recipes/styling-bad.test.tsx',
+    source: `import { render } from '@testing-library/react';\n\nrender(<p className="[color:oklch(0.5_0.1_30)]" />);\n`,
+    reports: [message.colour]
+  },
+  {
+    plugin: 'token-only-styling',
     what: 'tokens and a value built from them',
     path: 'frontend/src/recipes/styling-good.tsx',
     source: `export const Card = () => <div className="bg-ground p-4 text-body font-serif mt-[--spacing(7)]" />;\n`,
+    reports: []
+  },
+  {
+    plugin: 'token-only-styling',
+    what: 'tokens behind the important modifier and arbitrary properties built from tokens',
+    path: 'frontend/src/recipes/styling-property-good.tsx',
+    source: [
+      `export const Card = () => (`,
+      `  <div className="!p-4 !text-body font-[family-name:var(--font-x)] [padding:--spacing(7)] [font-size:var(--text-body)] [line-height:var(--leading-x)] [font-family:var(--font-serif)] [color:var(--color-ink)] font-[700]" />`,
+      `);`,
+      ''
+    ].join('\n'),
     reports: []
   },
   {
@@ -154,6 +228,37 @@ const fixtures: Fixture[] = [
     what: 'a colour token',
     path: 'frontend/src/recipes/styling-good.css',
     source: `.card {\n  color: var(--color-ink);\n}\n\n.row {\n  @apply p-4;\n}\n`,
+    reports: []
+  },
+  {
+    plugin: 'token-only-styling-css',
+    what: 'literal values behind the important modifier and in arbitrary properties in @apply',
+    path: 'frontend/src/recipes/styling-apply-bad.css',
+    source: [
+      `.pad {\n  @apply !p-[7px];\n}`,
+      `.gap {\n  @apply [padding:7px];\n}`,
+      `.size {\n  @apply [font-size:13px];\n}`,
+      `.line {\n  @apply !leading-[1.1];\n}`,
+      `.height {\n  @apply [line-height:1.1];\n}`,
+      `.face {\n  @apply [font-family:Arial];\n}`,
+      `.named {\n  @apply font-[family-name:Arial];\n}`,
+      ''
+    ].join('\n\n'),
+    reports: [
+      message.spacing,
+      message.spacing,
+      message.fontSize,
+      message.lineHeight,
+      message.lineHeight,
+      message.fontFamily,
+      message.fontFamily
+    ]
+  },
+  {
+    plugin: 'token-only-styling-css',
+    what: 'a font family and a spacing built from tokens in @apply',
+    path: 'frontend/src/recipes/styling-apply-good.css',
+    source: `.card {\n  @apply !p-4 font-[family-name:var(--font-x)] [padding:--spacing(7)];\n}\n`,
     reports: []
   },
   {
