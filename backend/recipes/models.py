@@ -290,6 +290,18 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
             return self.none()
         return self.filter(household_id=household_id).filter(Q(visibility=Visibility.PRIVATE) | Q(created_by=user))
 
+    def downloadable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
+        """The recipes an account's download holds in full: its household's private recipes, whoever wrote them, and
+        the public ones it wrote there. One it wrote in a household it has left is that household's now."""
+        household_id = user.household_id if user.is_authenticated else None
+        if household_id is None:
+            return self.none()
+        return (
+            self.visible_to(user)
+            .filter(household_id=household_id)
+            .filter(Q(visibility=Visibility.PRIVATE) | Q(created_by=user))
+        )
+
     def publishable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
         """The recipes an account may make public or private: those of its household it wrote. A catalogue recipe has
         no household, so nobody may."""

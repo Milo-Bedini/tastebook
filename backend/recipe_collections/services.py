@@ -72,6 +72,24 @@ class SavedList:
     saved_recipes: list[SavedRecipe]
 
 
+@dataclass(frozen=True)
+class DownloadedList:
+    name: str
+    scope: Scope
+    saved_recipes: list[SavedRecipe]
+
+
+@dataclass(frozen=True)
+class Download:
+    """Everything an account has, as the Tastebook format's version 1 holds it."""
+
+    exported_at: datetime
+    account: User
+    household_name: str | None
+    recipes: list[Recipe]
+    lists: list[DownloadedList]
+
+
 def _visible(account: User) -> Prefetch:
     # A recipe the account can't see is left as None, so the list shows the save as unavailable.
     recipes = Recipe.objects.visible_to(account).select_related('created_by').prefetch_related('cuisines')
@@ -180,6 +198,34 @@ def list_of(account: User, scope: Scope, slug: str) -> SavedList | None:
     if scope == Scope.PERSONAL and slug == FAVOURITES_SLUG:
         return SavedList(FAVOURITES_SLUG, FAVOURITES_NAME, Scope.PERSONAL, None, [])
     return None
+
+
+def download_for(account: User) -> Download:
+    """Everything the account has: its household's private recipes and the recipes it wrote there in full, and every
+    list it sees in the Lists page's order, each save newest first with its recipe only while the account can see it.
+    A few queries however many recipes and lists there are."""
+    recipes = (
+        Recipe.objects.downloadable_by(account)
+        .with_ingredients_and_method()
+        .prefetch_related('cuisines', 'courses', 'equipment')
+        .alphabetical()
+    )
+    lists = sorted(_lists_seen_by(account), key=_in_index_order)
+    saves = (
+        SavedRecipe.objects.filter(recipe_list__in=lists)
+        .newest_first()
+        .prefetch_related(Prefetch('recipe', queryset=Recipe.objects.visible_to(account)))
+    )
+    by_list: dict[int, list[SavedRecipe]] = {}
+    for saved in saves:
+        by_list.setdefault(saved.recipe_list_id, []).append(saved)
+    return Download(
+        exported_at=timezone.now(),
+        account=account,
+        household_name=_household_name(account),
+        recipes=list(recipes),
+        lists=[DownloadedList(found.name, found.scope, by_list.get(found.pk, [])) for found in lists],
+    )
 
 
 def _another_name(name: str) -> str:

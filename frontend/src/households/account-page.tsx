@@ -4,6 +4,7 @@ import { Navigate } from 'react-router';
 import type { components } from '../api/schema';
 import { Button, ErrorWithRetry, Field, Input, Loading, Page, SegmentedControl, Squiggle, toast } from '../dino';
 import type { Account } from './auth-api';
+import { type DownloadedFile, useDownloadEverything } from './download-api';
 import { NAME_MAX_LENGTH, NOT_A_NAME, useSaveName } from './name-api';
 import { useSession } from './session-api';
 import { useChooseUnitSystem } from './units-api';
@@ -93,6 +94,39 @@ const UnitsChoice = ({ unitSystem }: { unitSystem: UnitSystem }) => {
   );
 };
 
+const saveFile = ({ blob, filename }: DownloadedFile) => {
+  const address = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = address;
+  link.download = filename;
+  link.click();
+  // Safari starts the download after the click returns, so the address is let go a moment later.
+  setTimeout(() => URL.revokeObjectURL(address));
+};
+
+const DownloadEverything = () => {
+  const download = useDownloadEverything();
+  const start = () =>
+    download.mutate(undefined, {
+      onSuccess: saveFile,
+      onError: () => toast.error("Couldn't download your file. Check your connection and try again.")
+    });
+  return (
+    <section aria-labelledby="account-download" className="flex flex-col gap-4">
+      <h2 id="account-download">Your data</h2>
+      <p>
+        Download everything you have in Tastebook as one file: your account details, the recipes you wrote, your
+        household's private recipes and your lists.
+      </p>
+      <div>
+        <Button variant="secondary" onClick={start} loading={download.isPending} loadingLabel="Downloading…">
+          Download everything
+        </Button>
+      </div>
+    </section>
+  );
+};
+
 const AccountSettings = ({ account }: { account: Account }) => (
   <div className="flex max-w-100 flex-col gap-8">
     <h1>
@@ -100,6 +134,7 @@ const AccountSettings = ({ account }: { account: Account }) => (
     </h1>
     <NameForm name={account.name} />
     <UnitsChoice unitSystem={account.unit_system} />
+    <DownloadEverything />
   </div>
 );
 
