@@ -74,6 +74,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | List | A named collection of saved and own recipes, newest added first. Personal (only its owner sees it) or household (every member sees and changes it, and it stays with the household when someone leaves). Its name is unique among its owner's lists, or the household's, and its address is made from it: `/lists/<slug>` or `/lists/household/<slug>`. Removing takes a recipe out; the recipe itself stays. | `RecipeList`, `RecipeList.scope` (`Scope`), `make_list()`, `rename_list()`, `delete_list()` |
 | Favourites | The list every account has, which can't be renamed or deleted; the heart saves to it. Newest saved first. | `RecipeList.favourites`, `FavouriteButton` (Dino) |
 | Unavailable recipe | A saved recipe its author has since made private or deleted. It keeps its place in the list, shown by the title it was saved with, and can only be unsaved. | `UnavailableRecipe` (Dino) |
+| Download | One file in the Tastebook format with everything an account has: its details, its household's private recipes and the recipes it wrote there in full, and every list it sees, saved recipes as their addresses and photos as theirs. "Download everything" on the account page. | `download_for()`, `DownloadView`, `/api/account/download/`, `useDownloadEverything` |
 
 ## `kitchen`
 
@@ -102,7 +103,7 @@ Names marked _planned_ don't exist in the code yet; use them when you build the 
 | Term | Meaning | In code |
 | --- | --- | --- |
 | Import | Bringing a recipe in from a web address, pasted text or the Tastebook format. Always private, always credits its source. | `Import` _planned_ |
-| Tastebook format | The recipe format Tastebook publishes, with a prompt to copy into your own Claude, which Tastebook reads without AI. | `tastebook-format` _planned_ |
+| Tastebook format | The recipe format Tastebook publishes, with a prompt to copy into your own Claude, which Tastebook reads without AI. Version 1 is the download's, documented in [`docs/tastebook-format.md`](docs/tastebook-format.md); the prompt is still to come. | `DownloadSerializer`, `FORMAT_VERSION`; the prompt `tastebook-format` _planned_ |
 | Gap | Something an import couldn't read, flagged on the recipe for you to fix. | `ImportGap` _planned_ |
 
 ## Across areas
