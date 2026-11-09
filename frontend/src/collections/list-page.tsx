@@ -273,7 +273,7 @@ const ListGone = ({ scope }: { scope: Scope }) => (
     className="flex w-full flex-col items-center gap-2.5 rounded-card border border-line p-6 text-center"
   >
     <title>This list has gone · Tastebook</title>
-    <CircleAlert aria-hidden="true" strokeWidth={2.25} className="size-8 text-danger" />
+    <CircleAlert aria-hidden="true" strokeWidth={2.25} className="size-8 text-danger forced-colors:text-current" />
     <h1 ref={takeFocus} tabIndex={-1} className="font-serif text-title italic">
       This list has gone
     </h1>

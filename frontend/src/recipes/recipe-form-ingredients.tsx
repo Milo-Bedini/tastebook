@@ -331,7 +331,11 @@ const RowButton = ({ error, errorId, onPress, buttonRef, className, children }: 
         </span>
       )}
     </span>
-    <ChevronRight aria-hidden="true" strokeWidth={2.5} className="size-5 shrink-0 text-muted" />
+    <ChevronRight
+      aria-hidden="true"
+      strokeWidth={2.5}
+      className="size-5 shrink-0 text-muted forced-colors:text-current"
+    />
   </button>
 );
 

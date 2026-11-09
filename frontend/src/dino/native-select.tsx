@@ -39,7 +39,7 @@ export const NativeSelect = ({ className, onMouseDown, onKeyDown, ...props }: Na
       <ChevronDown
         aria-hidden="true"
         strokeWidth={2.5}
-        className="pointer-events-none absolute top-3.5 right-4 size-5 text-muted"
+        className="pointer-events-none absolute top-3.5 right-4 size-5 text-muted forced-colors:text-current"
       />
     </div>
   );
