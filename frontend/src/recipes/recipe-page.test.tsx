@@ -1672,6 +1672,68 @@ describe('Making a recipe public', () => {
   });
 });
 
+// What Tastebook answers once Sam has made several recipes public today.
+const waitingCurry: Recipe = { ...curry, waiting_for_review: true };
+
+const WAITING_NOTICE =
+  "You've made several recipes public today, so staff will check this one before anyone else can see it. You can still edit it, or turn off Public to withdraw it.";
+
+describe('Waiting for review', () => {
+  afterEach(() => {
+    toast.dismiss();
+  });
+
+  it('warns in the dialog that staff will check it first, then says it is waiting', async () => {
+    const shown = { recipe: { ...curry, will_wait_for_review: true } };
+    const sent = answerPublishing(shown, () => {
+      shown.recipe = waitingCurry;
+      return HttpResponse.json<Recipe>(waitingCurry);
+    });
+    await openCurry();
+    expect(screen.getByText('Private')).toBeVisible();
+
+    const dialog = await askToPublish();
+
+    expect(dialog).toHaveAccessibleDescription(
+      "You've made several recipes public today, so staff will check Grandma's curry before anyone else can see it. Once they approve it, anyone can find it, credited “by Sam”, and only you will be able to edit it. You can make it private again."
+    );
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Make public' }));
+
+    expect(await screen.findByText("Grandma's curry is waiting for review")).toBeInTheDocument();
+    expect(sent).toEqual([{ visibility: 'public' }]);
+    expect(publicSwitch()).toBeChecked();
+    expect(screen.getByText('Waiting for review')).toBeVisible();
+    expect(screen.getByText(WAITING_NOTICE)).toBeVisible();
+    expect(screen.queryByText('Private')).not.toBeInTheDocument();
+    expect(screen.queryByText('by Sam')).not.toBeInTheDocument();
+    await waitFor(() => expect(publicSwitch()).toHaveFocus());
+  });
+
+  it.each<[string, Recipe]>([
+    ['with everything it needs', waitingCurry],
+    ['edited since to lack a method', { ...waitingCurry, steps: [] }]
+  ])('shows the switch on for a waiting recipe %s, and turning it off withdraws it', async (_, waiting) => {
+    const shown = { recipe: waiting };
+    const sent = answerPublishing(shown, () => {
+      shown.recipe = { ...waiting, waiting_for_review: false };
+      return HttpResponse.json<Recipe>(shown.recipe);
+    });
+    await openCurry();
+    expect(publicSwitch()).toBeChecked();
+    expect(publicSwitch()).not.toHaveAttribute('aria-disabled');
+    expect(screen.getByText(WAITING_NOTICE)).toBeVisible();
+
+    await userEvent.click(publicSwitch());
+
+    expect(await screen.findByText("Grandma's curry is private and no longer waiting for review")).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(sent).toEqual([{ visibility: 'private' }]);
+    expect(publicSwitch()).not.toBeChecked();
+    expect(screen.queryByText(WAITING_NOTICE)).not.toBeInTheDocument();
+    expect(screen.getByText('Private')).toBeVisible();
+  });
+});
+
 const ourCopy: Recipe = {
   ...shakshuka,
   id: 8,

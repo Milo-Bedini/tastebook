@@ -438,6 +438,31 @@ describe('RecipesPage', () => {
     );
   });
 
+  it('says "Waiting for review" on the card of a recipe waiting for review, in place of "Private"', async () => {
+    const privateRecipe = { ...bananaBread, visibility: 'private' } as const;
+    server.use(
+      http.get('/api/recipes/', () =>
+        HttpResponse.json<Recipe[]>([
+          {
+            ...privateRecipe,
+            id: 5,
+            slug: 'grandmas-curry-k7m2qx',
+            title: "Grandma's curry",
+            waiting_for_review: true
+          },
+          { ...privateRecipe, id: 6, slug: 'sams-dal-d4l9xz', title: "Sam's dal" }
+        ])
+      )
+    );
+
+    renderRoute('/recipes');
+
+    expect(await screen.findByRole('link', { name: "Grandma's curry" })).toHaveAccessibleDescription(
+      'Waiting for review 1 hr 15 min · Easy'
+    );
+    expect(screen.getByRole('link', { name: "Sam's dal" })).toHaveAccessibleDescription('Private 1 hr 15 min · Easy');
+  });
+
   it('credits a public household recipe\'s card "by" its author, and not a catalogue one\'s', async () => {
     server.use(
       http.get('/api/recipes/', () =>

@@ -1,4 +1,4 @@
-import { EyeOff, Link as LinkIcon, Pencil } from 'lucide-react';
+import { EyeOff, Hourglass, Link as LinkIcon, Pencil } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router';
 
@@ -113,12 +113,13 @@ const RecipeTimes = ({ recipe }: RecipeContentProps) => {
   return times === null ? null : <TimeBlobs times={times} />;
 };
 
-// A public household recipe credits its author where a private one shows its mark: one or the other, never both.
+// A public household recipe credits its author where a private one shows its mark: one or the other, never both. One
+// waiting for review has neither, as its banner says where it stands.
 const RecipeCredit = ({ recipe }: RecipeProps) => {
   if (recipe.author !== null) {
     return <p className="text-muted">{`by ${recipe.author}`}</p>;
   }
-  return recipe.visibility === 'private' ? <PrivateMark /> : null;
+  return recipe.visibility === 'private' && !recipe.waiting_for_review ? <PrivateMark /> : null;
 };
 
 // A private copy says where it was copied from; a public one credits the original as an adaptation. An original the
@@ -193,6 +194,12 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
         <Banner tone="warning" icon={EyeOff} title="Hidden while a report is reviewed">
           Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or
           delete it.
+        </Banner>
+      )}
+      {recipe.waiting_for_review && (
+        <Banner tone="warning" icon={Hourglass} title="Waiting for review">
+          You've made several recipes public today, so staff will check this one before anyone else can see it. You can
+          still edit it, or turn off Public to withdraw it.
         </Banner>
       )}
       <AdaptedFrom recipe={recipe} />
