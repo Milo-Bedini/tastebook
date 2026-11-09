@@ -14,19 +14,19 @@ or {
       register_diagnostic(span=$rule, message="Use one of Picnic's colour tokens (var(--color-ink), bg-ground, border-field and the rest in docs/design.md › Colour), not a literal colour.")
     },
     and {
-      $rule <: r"[\s\S]*(?:^|[\s:])-?(?:[pm][xytrblse]?|gap(?:-[xy])?|space-[xy])-\[(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
+      $rule <: r"[\s\S]*(?:^|[\s:!])(?:-?(?:[pm][xytrblse]?|gap(?:-[xy])?|space-[xy])-\[|\[(?:(?:padding|margin)(?:-[a-z]+)*|(?:row-|column-)?gap):)(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
       register_diagnostic(span=$rule, message="Use Picnic's 4 px spacing steps (1, 2, 3, 4, 5, 6, 8 and 12, as in p-4 or gap-3), or --spacing(n) inside an arbitrary value, not a literal length.")
     },
     and {
-      $rule <: r"[\s\S]*(?:^|[\s:])text-\[(?:length:)?(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
+      $rule <: r"[\s\S]*(?:^|[\s:!])(?:text-\[(?:length:)?|\[font-size:)(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
       register_diagnostic(span=$rule, message="Use one of Picnic's type roles (text-display-xl, -display-l, -title, -caption, -step-number, -step, -timer, -body, -small, -label, -label-l, -method-number, -method-number-laptop, -method-laptop), not an arbitrary font size.")
     },
     and {
-      $rule <: r"[\s\S]*(?:(?:^|[\s:])leading-|(?:^|[\s:])text-[^\s/\[]*(?:\[[^\]\s]*\])?/)\[(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
+      $rule <: r"[\s\S]*(?:^|[\s:!])(?:leading-\[|\[line-height:|text-[^\s/\[]*(?:\[[^\]\s]*\])?/\[)(?:-?[\d.]+\]|[^\]\s]*\d(?:px|r?em|%|d?v[hw]|s?vh|lvh|v?min|v?max|ch|ex|pt|cq[whib]))[\s\S]*",
       register_diagnostic(span=$rule, message="Use a type role's own line height (text-body, text-title and the rest set it), not an arbitrary one.")
     },
     and {
-      $rule <: r"[\s\S]*(?:^|[\s:])font-\[(?:family-name:|['_A-Za-uw-z]|v[^a]|va[^r]|var[^(])[\s\S]*",
+      $rule <: r"[\s\S]*(?:^|[\s:!])(?:font-\[(?:family-name:)?(?:['_A-Za-uw-z]|v[^a]|va[^r]|var[^(])[^\]\s:]*\]|\[font-family:(?:[^\]\sv]|v[^a]|va[^r]|var[^(]))[\s\S]*",
       register_diagnostic(span=$rule, message="Use font-serif (Instrument Serif) or font-sans (Nunito), not an arbitrary font family.")
     }
   }
