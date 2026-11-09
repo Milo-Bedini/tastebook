@@ -1,0 +1,46 @@
+# Emails staff every hour when a report or a recipe waiting for review has joined their queue since the last email,
+# listing everything waiting (manage.py email_staff). A failed send shows red, and the next hour tries again.
+# docs/architecture.md, Staff.
+name: Staff email
+
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: staff-email
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  email-staff:
+    name: Email staff what's waiting
+    # The secrets live in the backups environment, which only main can use, so no other branch can read them.
+    environment: backups
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - run: uv sync --locked
+      - name: Email
+        # Without the key, settings fall back to a mailer that sends nothing, so the run would pass having told no one.
+        # Settings refuse to load without a secret key; this command signs nothing, so a throwaway one does.
+        run: |
+          if [ -z "$RESEND_API_KEY" ]; then
+            echo "::error::Add RESEND_API_KEY to the backups environment's secrets."
+            exit 1
+          fi
+          DJANGO_SECRET_KEY="$(openssl rand -hex 32)" uv run python manage.py email_staff
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DJANGO_SITE_URL: https://tastebook.dev

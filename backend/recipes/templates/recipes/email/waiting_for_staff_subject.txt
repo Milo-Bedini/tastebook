@@ -1,0 +1,1 @@
+{% autoescape off %}Waiting for staff on Tastebook: {{ reported|length }} reported recipe{{ reported|length|pluralize }}, {{ held|length }} waiting for review{% endautoescape %}

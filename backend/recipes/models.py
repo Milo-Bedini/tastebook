@@ -591,6 +591,16 @@ class HeldRecipe(Recipe):
         verbose_name_plural = 'recipes waiting for review'
 
 
+class StaffEmail(models.Model):
+    """When staff were last emailed what's waiting for them. One row, so the hourly run sends only when something has
+    joined the queue since."""
+
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'Staff last emailed at {self.sent_at}'
+
+
 class IngredientStatus(models.TextChoices):
     CATALOGUE = 'catalogue', 'From the catalogue'
     AWAITING_REVIEW = 'awaiting_review', 'Awaiting review'

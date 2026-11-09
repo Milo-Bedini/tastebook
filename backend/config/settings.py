@@ -25,6 +25,10 @@ TEST_ACCOUNT_CODES_NEED_SECRET = not DEBUG
 # Vercel sets this on deployments when Protection Bypass for Automation is on.
 TEST_ACCOUNT_SECRET = os.environ.get('VERCEL_AUTOMATION_BYPASS_SECRET', '')
 
+# Where links in an email sent outside a request point: production's address in the staff email's workflow, and the
+# frontend's dev server, which proxies /admin, locally.
+SITE_URL = os.environ.get('DJANGO_SITE_URL', 'http://localhost:5173')
+
 DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'Tastebook <noreply@tastebook.dev>')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 if RESEND_API_KEY:
