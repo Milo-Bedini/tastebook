@@ -99,7 +99,7 @@ The code is organised by domain area, the same areas on both sides, named in the
 
 ```text
 frontend/
-  src/<area>/       one folder per domain area (recipes/ and households/ so far): its pages, components and
+  src/<area>/       one folder per domain area (recipes/, households/ and collections/ so far): its pages, components and
                     API hooks, each *.test.tsx beside its file; index.ts exports what other areas use
   src/app/          router, query client, and what belongs to no area (home and not-found pages, health check)
   src/api/          typed client (openapi-fetch) and generated schema.d.ts, shared by every area
