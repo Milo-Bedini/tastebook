@@ -1,8 +1,10 @@
 name: Mutation testing
 
-# Mutation-tests the source files changed on main since a date, at most two a side, and times each side. Runs every
-# Monday at 04:30 UTC, an hour or more before the factory's weekly clean-up, which reads each side's summary from the
-# run's mutation-frontend and mutation-backend artifacts; it can also be run by hand.
+# Mutation-tests the source files changed on main since a date, at most two a side, and times each side. Each side's
+# command stops at a time limit that leaves its job time to upload, and its summary then says "complete": false and
+# how many of the mutants it tested. Runs every Monday at 04:30 UTC, an hour or more before the factory's weekly
+# clean-up, which reads each side's summary from the run's mutation-frontend and mutation-backend artifacts; it can
+# also be run by hand.
 on:
   schedule:
     - cron: "30 4 * * 1"
@@ -56,7 +58,8 @@ jobs:
     name: Frontend
     needs: changes
     runs-on: ubuntu-latest
-    # A side that runs out of time uploads no summary, which the clean-up reports as a gap.
+    # A backstop: the command's --time-limit stops it first. A side that runs out of time uploads no summary, which the
+    # clean-up reports as a gap.
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -73,7 +76,8 @@ jobs:
           CHANGED_FILES: ${{ needs.changes.outputs.files }}
         run: |
           mapfile -t files <<< "$CHANGED_FILES"
-          pnpm mutation:frontend --out mutation-frontend.json --max-files 2 "${files[@]}"
+          # Setup takes under a minute, leaving about 10 for Stryker to stop and the upload.
+          pnpm mutation:frontend --out mutation-frontend.json --max-files 2 --time-limit 40 "${files[@]}"
       - name: Upload the summary
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -88,7 +92,8 @@ jobs:
     name: Backend
     needs: changes
     runs-on: ubuntu-latest
-    # A side that runs out of time uploads no summary, which the clean-up reports as a gap.
+    # A backstop: the command's --time-limit stops it first. A side that runs out of time uploads no summary, which the
+    # clean-up reports as a gap.
     timeout-minutes: 50
     services:
       postgres:
@@ -142,7 +147,8 @@ jobs:
           CHANGED_FILES: ${{ needs.changes.outputs.files }}
         run: |
           mapfile -t files <<< "$CHANGED_FILES"
-          pnpm mutation:backend --out mutation-backend.json --max-files 2 "${files[@]}"
+          # The harness check before takes about 10 minutes, leaving about 10 for mutmut to stop and the upload.
+          pnpm mutation:backend --out mutation-backend.json --max-files 2 --time-limit 30 "${files[@]}"
       - name: Upload the summary
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
