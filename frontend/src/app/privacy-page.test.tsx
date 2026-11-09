@@ -32,7 +32,18 @@ describe('PrivacyPage', () => {
       'href',
       'mailto:milobedini64@gmail.com'
     );
-    expect(screen.getByRole('link', { name: 'account page' })).toHaveAttribute('href', '/account');
+    expect(
+      screen.getByText((_, element) =>
+        element?.tagName === 'LI'
+          ? element.textContent ===
+            'Download your account details, recipes and lists as one file from your account page.'
+          : false
+      )
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'account page' }).map((link) => link.getAttribute('href'))).toEqual([
+      '/account',
+      '/account'
+    ]);
     await waitFor(() => expect(document.title).toBe('Privacy · Tastebook'));
   });
 

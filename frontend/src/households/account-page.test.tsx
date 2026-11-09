@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { components } from '../api/schema';
 import { toast } from '../dino';
@@ -30,6 +30,36 @@ const answerSignedIn = (account: Partial<Account> = {}) => {
     })
   );
   return saves;
+};
+
+const DOWNLOAD = '/api/account/download/';
+
+type Download = components['schemas']['Download'];
+
+const DOWNLOADED: Download = {
+  format: 'tastebook',
+  version: 1,
+  exported_at: '2026-11-09T17:02:11Z',
+  account: { name: 'Milo', email: 'sam@example.com', unit_system: 'metric', household_name: "Milo's household" },
+  recipes: [],
+  lists: [{ name: 'Favourites', scope: 'personal', saved_recipes: [] }]
+};
+
+// Saving a file is the browser's: jsdom has no object URLs and a link's click downloads nothing. Each file the page
+// saves is kept here with the name it gave it.
+const catchSavedFiles = () => {
+  const saved: { filename: string; text: Promise<string> }[] = [];
+  const files = new Map<string, Blob>();
+  vi.spyOn(URL, 'createObjectURL').mockImplementation((file) => {
+    const address = `blob:http://localhost/${files.size}`;
+    files.set(address, file as Blob);
+    return address;
+  });
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+    saved.push({ filename: this.download, text: files.get(this.href)?.text() ?? Promise.resolve('') });
+  });
+  return saved;
 };
 
 const nameField = () => screen.getByRole('textbox', { name: 'Your name' });
@@ -224,5 +254,64 @@ describe('AccountPage', () => {
     await waitFor(() => expect(queryClient.isMutating()).toBe(0));
     expect(saves).toEqual([{ unit_system: 'us' }, { unit_system: 'metric' }]);
     expect(within(unitsGroup()).getByRole('radio', { name: 'Metric' })).toBeChecked();
+  });
+
+  describe('downloading everything', () => {
+    beforeEach(() => {
+      // jsdom's URL has no object URLs for the spies to wrap.
+      URL.createObjectURL ??= () => '';
+      URL.revokeObjectURL ??= () => {};
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('says it is downloading, then saves the file under the name the server gave it', async () => {
+      answerSignedIn();
+      const saved = catchSavedFiles();
+      const gate = { release: () => {} };
+      const released = new Promise<void>((resolve) => {
+        gate.release = resolve;
+      });
+      server.use(
+        http.get(DOWNLOAD, async () => {
+          await released;
+          return HttpResponse.json<Download>(DOWNLOADED, {
+            headers: { 'Content-Disposition': 'attachment; filename="tastebook-2026-11-09.json"' }
+          });
+        })
+      );
+      renderRoute('/account');
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Download everything' }));
+
+      expect(await screen.findByRole('button', { name: 'Downloading…' })).toHaveAttribute('aria-busy', 'true');
+      expect(saved).toEqual([]);
+
+      gate.release();
+
+      expect(await screen.findByRole('button', { name: 'Download everything' })).not.toHaveAttribute('aria-busy');
+      expect(saved.map(({ filename }) => filename)).toEqual(['tastebook-2026-11-09.json']);
+      expect(JSON.parse(await (saved[0]?.text ?? Promise.resolve('')))).toEqual(DOWNLOADED);
+    });
+
+    it.each([
+      ['the server fails', 500],
+      ['the session has ended', 403]
+    ])("says the file couldn't be downloaded when %s, and saves nothing", async (_, status) => {
+      answerSignedIn();
+      const saved = catchSavedFiles();
+      server.use(http.get(DOWNLOAD, () => new HttpResponse(null, { status })));
+      renderRoute('/account');
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Download everything' }));
+
+      expect(
+        await screen.findByText("Couldn't download your file. Check your connection and try again.")
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Download everything' })).not.toHaveAttribute('aria-busy');
+      expect(saved).toEqual([]);
+    });
   });
 });

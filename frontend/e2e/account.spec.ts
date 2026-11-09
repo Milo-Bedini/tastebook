@@ -1,7 +1,11 @@
+import { readFile } from 'node:fs/promises';
 import type { Page } from '@playwright/test';
 
+import type { components } from '../src/api/schema.js';
 import { expect, test } from './fixtures.ts';
 import { soleCook } from './setups.ts';
+
+type Download = components['schemas']['Download'];
 
 type Accessibility = { check: (on?: Page) => Promise<void> };
 
@@ -53,4 +57,45 @@ test("a new test account's account page under forced colours", async ({ seed, ac
     body: await page.screenshot({ fullPage: true }),
     contentType: 'image/png'
   });
+});
+
+test('a cook downloads everything they have as one Tastebook file', async ({ seed, accessibility }) => {
+  const { page } = (
+    await seed([
+      {
+        members: [
+          {
+            key: 'sam',
+            name: 'Sam',
+            recipes: [{ title: "Sam's download pie", ingredient_lines: [{ amount: 1, ingredient: 'onion' }] }],
+            saves: ['Baguette']
+          }
+        ]
+      }
+    ])
+  ).sam;
+  await page.goto('/recipes/baguette');
+  await openAccountPage(page, 'Sam', accessibility);
+
+  const downloading = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download everything' }).click();
+  const download = await downloading;
+  const file = JSON.parse(await readFile(await download.path(), 'utf-8')) as Download;
+
+  expect(download.suggestedFilename()).toMatch(/^tastebook-\d{4}-\d{2}-\d{2}\.json$/);
+  expect([file.format, file.version, file.account.name, file.account.household_name]).toEqual([
+    'tastebook',
+    1,
+    'Sam',
+    "Sam's household"
+  ]);
+  expect(file.recipes.map(({ title, ingredient_lines }) => [title, ingredient_lines[0]?.ingredient])).toEqual([
+    ["Sam's download pie", 'onion']
+  ]);
+  expect(
+    file.lists.map(({ name, saved_recipes }) => [
+      name,
+      saved_recipes.map(({ address }) => address && new URL(address).pathname)
+    ])
+  ).toEqual([['Favourites', ['/recipes/baguette']]]);
 });

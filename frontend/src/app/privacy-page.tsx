@@ -73,8 +73,12 @@ export const PrivacyPage = () => (
             Change your name and unit system on your <Link to="/account">account page</Link>.
           </li>
           <li>
-            To have a copy of everything Tastebook keeps about you as one file, or to have your account deleted, write
-            to <WriteTo />. Your account page will offer both soon.
+            Download your account details, recipes and lists as one file from your{' '}
+            <Link to="/account">account page</Link>.
+          </li>
+          <li>
+            To have a copy of anything else Tastebook keeps about you, such as your sessions, or to have your account
+            deleted, write to <WriteTo />. Your account page will offer deleting soon.
           </li>
           <li>
             Write to <WriteTo /> with any question about your data. If you're unhappy with the answer, you can complain
