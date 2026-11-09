@@ -1122,6 +1122,51 @@ paths:
         '404':
           description: No recipe has this slug, or it's another household's private
             recipe.
+  /api/recipes/{slug}/report/:
+    post:
+      operationId: recipes_report_create
+      description: Reports another household's public recipe to staff, once per account.
+        The first report hides it from everyone but its author until staff review
+        it; once staff have restored it, later reports leave it up.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NewReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NewReport'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportOutcome'
+          description: ''
+        '400':
+          description: The reason isn't one a report takes, the note is over 500 characters,
+            or the account has reported this recipe already.
+        '403':
+          description: Signed out.
+        '404':
+          description: 'No recipe has this slug that the account may report: there''s
+            none, it''s private, a catalogue recipe or its own household''s, or a
+            report hides it.'
   /api/recipes/{slug}/share-link/:
     put:
       operationId: recipes_share_link_update
@@ -1843,12 +1888,18 @@ components:
           items:
             $ref: '#/components/schemas/DietTag'
           readOnly: true
+        hidden_for_review:
+          type: boolean
+          readOnly: true
+          description: Whether a report hides this recipe from everyone but its author,
+            who alone is sent it until staff review it.
       required:
       - author
       - cuisines
       - description
       - diet_tags
       - difficulty
+      - hidden_for_review
       - id
       - photo
       - slug
@@ -2080,6 +2131,18 @@ components:
           maxItems: 100
       required:
       - title
+    NewReport:
+      type: object
+      properties:
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        note:
+          type: string
+          description: Anything that helps staff, like where it was copied from. ''
+            when left out.
+          maxLength: 500
+      required:
+      - reason
     OriginalRecipe:
       type: object
       properties:
@@ -2267,6 +2330,18 @@ components:
             has resized to 1,600 px.
       required:
       - photo
+    ReasonEnum:
+      enum:
+      - spam
+      - offensive
+      - copied
+      - other
+      type: string
+      description: |-
+        * `spam` - Spam
+        * `offensive` - Offensive
+        * `copied` - Copied without credit
+        * `other` - Something else
     Recipe:
       type: object
       properties:
@@ -2316,6 +2391,11 @@ components:
           items:
             $ref: '#/components/schemas/DietTag'
           readOnly: true
+        hidden_for_review:
+          type: boolean
+          readOnly: true
+          description: Whether a report hides this recipe from everyone but its author,
+            who alone is sent it until staff review it.
         adapted_from:
           allOf:
           - $ref: '#/components/schemas/OriginalRecipe'
@@ -2456,12 +2536,23 @@ components:
           description: The token of the recipe's share link, which /shared/<token>
             opens; null unless the signed-in account may share it and the link is
             on.
+        can_report:
+          type: boolean
+          readOnly: true
+          description: 'Whether the page offers Report recipe: on a household''s public
+            recipe, to anyone outside that household, signed in or not.'
+        reported:
+          type: boolean
+          readOnly: true
+          description: Whether the signed-in account has reported this recipe, which
+            it may do once.
       required:
       - adapted_from
       - author
       - can_delete
       - can_edit
       - can_publish
+      - can_report
       - can_share
       - cook_minutes
       - courses
@@ -2473,6 +2564,7 @@ components:
       - equipment
       - extra_label
       - extra_minutes
+      - hidden_for_review
       - id
       - ingredient_groups
       - ingredient_lines
@@ -2482,6 +2574,7 @@ components:
       - original_source_url
       - photo
       - prep_minutes
+      - reported
       - save_count
       - servings
       - share_token
@@ -2584,12 +2677,18 @@ components:
           items:
             $ref: '#/components/schemas/DietTag'
           readOnly: true
+        hidden_for_review:
+          type: boolean
+          readOnly: true
+          description: Whether a report hides this recipe from everyone but its author,
+            who alone is sent it until staff review it.
       required:
       - author
       - cuisines
       - description
       - diet_tags
       - difficulty
+      - hidden_for_review
       - id
       - photo
       - slug
@@ -2603,6 +2702,17 @@ components:
           $ref: '#/components/schemas/Visibility'
       required:
       - visibility
+    ReportOutcome:
+      type: object
+      properties:
+        hidden:
+          type: boolean
+          readOnly: true
+          description: Whether the report hid the recipe from everyone but its author.
+            False once staff have restored it after an earlier report, as later reports
+            reach staff without hiding it.
+      required:
+      - hidden
     SaveRecipe:
       type: object
       properties:
@@ -2816,6 +2926,24 @@ components:
             maxLength: 200
           description: Titles of this member's own private recipes they share by link
             once every recipe is made private.
+          maxItems: 20
+        restored:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Titles of this member's own public recipes that staff have
+            restored, as if after an earlier report, once every share is made and
+            before anyone's reports, so a report leaves them up.
+          maxItems: 20
+        reports:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Titles of other households' public recipes this member reports
+            as spam, last of all, as saves name them. The first report of a recipe
+            that is not restored hides it from everyone but its author.
           maxItems: 20
       required:
       - key

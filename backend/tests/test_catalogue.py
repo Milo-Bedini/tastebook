@@ -241,6 +241,7 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
         'total_minutes': 30,
         'photo': None,
         'diet_tags': ['vegetarian', 'vegan', 'gluten_free', 'dairy_free'],
+        'hidden_for_review': False,
         'courses': [{'slug': 'breakfast', 'name': 'Breakfast'}, {'slug': 'main', 'name': 'Main'}],
         'prep_minutes': 10,
         'cook_minutes': 20,
@@ -284,6 +285,8 @@ def test_loads_a_recipe_with_its_details_ingredients_and_method(tmp_path: Path) 
         'save_count': None,
         'can_share': False,
         'share_token': None,
+        'can_report': False,
+        'reported': False,
     }
     assert [
         (group['name'], [(line['amount'], line['amount_max'], line['ingredient']['name']) for line in group['lines']])

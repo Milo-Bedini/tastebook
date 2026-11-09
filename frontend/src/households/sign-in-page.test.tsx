@@ -49,7 +49,10 @@ const baguette: Recipe = {
   can_publish: false,
   save_count: null,
   can_share: false,
-  share_token: null
+  share_token: null,
+  hidden_for_review: false,
+  can_report: false,
+  reported: false
 };
 
 const signedIn = (email: string) =>

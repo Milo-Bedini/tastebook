@@ -402,6 +402,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recipes/{slug}/report/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Reports another household's public recipe to staff, once per account. The first report hides it from everyone but its author until staff review it; once staff have restored it, later reports leave it up. */
+        post: operations["recipes_report_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recipes/{slug}/share-link/": {
         parameters: {
             query?: never;
@@ -705,6 +722,8 @@ export interface components {
             readonly total_minutes: number | null;
             readonly photo: components["schemas"]["ListedPhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
+            /** @description Whether a report hides this recipe from everyone but its author, who alone is sent it until staff review it. */
+            readonly hidden_for_review: boolean;
         };
         Lists: {
             /** @description The account's household's name; null before it has one. */
@@ -790,6 +809,11 @@ export interface components {
             /** @description The method, a step each, in order. Sending it replaces every step. */
             steps?: string[];
         };
+        NewReport: {
+            reason: components["schemas"]["ReasonEnum"];
+            /** @description Anything that helps staff, like where it was copied from. '' when left out. */
+            note?: string;
+        };
         OriginalRecipe: {
             readonly slug: string;
             readonly title: string;
@@ -866,6 +890,14 @@ export interface components {
              */
             photo: string;
         };
+        /**
+         * @description * `spam` - Spam
+         *     * `offensive` - Offensive
+         *     * `copied` - Copied without credit
+         *     * `other` - Something else
+         * @enum {string}
+         */
+        ReasonEnum: "spam" | "offensive" | "copied" | "other";
         Recipe: {
             readonly id: number;
             readonly slug: string;
@@ -879,6 +911,8 @@ export interface components {
             readonly total_minutes: number | null;
             readonly photo: components["schemas"]["RecipePhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
+            /** @description Whether a report hides this recipe from everyone but its author, who alone is sent it until staff review it. */
+            readonly hidden_for_review: boolean;
             /** @description The recipe this is a copy of, shown as "Copied from <title>" on a private copy and "Adapted from <title> by <author>" on a public one; null for a recipe that is no copy, or when its original was deleted or the signed-in account can't see it. */
             readonly adapted_from: components["schemas"]["OriginalRecipe"] | null;
             /** @description Whether this recipe was made as a copy of another, which it stays once its original is deleted or made private: with adapted_from null, it's shown as "Adapted from a recipe that's no longer public". */
@@ -928,6 +962,10 @@ export interface components {
             readonly can_share: boolean;
             /** @description The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in account may share it and the link is on. */
             readonly share_token: string | null;
+            /** @description Whether the page offers Report recipe: on a household's public recipe, to anyone outside that household, signed in or not. */
+            readonly can_report: boolean;
+            /** @description Whether the signed-in account has reported this recipe, which it may do once. */
+            readonly reported: boolean;
         };
         RecipeLists: {
             /** @description The account's household's name; null before it has one. */
@@ -958,9 +996,15 @@ export interface components {
             readonly total_minutes: number | null;
             readonly photo: components["schemas"]["RecipePhoto"] | null;
             readonly diet_tags: components["schemas"]["DietTag"][];
+            /** @description Whether a report hides this recipe from everyone but its author, who alone is sent it until staff review it. */
+            readonly hidden_for_review: boolean;
         };
         RecipeVisibility: {
             visibility: components["schemas"]["Visibility"];
+        };
+        ReportOutcome: {
+            /** @description Whether the report hid the recipe from everyone but its author. False once staff have restored it after an earlier report, as later reports reach staff without hiding it. */
+            readonly hidden: boolean;
         };
         SaveRecipe: {
             /** @description The slug of a recipe the account can see: a public recipe, or its household's own. */
@@ -1051,6 +1095,10 @@ export interface components {
             made_private?: string[];
             /** @description Titles of this member's own private recipes they share by link once every recipe is made private. */
             shared?: string[];
+            /** @description Titles of this member's own public recipes that staff have restored, as if after an earlier report, once every share is made and before anyone's reports, so a report leaves them up. */
+            restored?: string[];
+            /** @description Titles of other households' public recipes this member reports as spam, last of all, as saves name them. The first report of a recipe that is not restored hides it from everyone but its author. */
+            reports?: string[];
         };
         Seeded: {
             session_cookie: string;
@@ -2447,6 +2495,54 @@ export interface operations {
                 content?: never;
             };
             /** @description No recipe has this slug, or it's another household's private recipe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recipes_report_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewReport"];
+                "application/x-www-form-urlencoded": components["schemas"]["NewReport"];
+                "multipart/form-data": components["schemas"]["NewReport"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOutcome"];
+                };
+            };
+            /** @description The reason isn't one a report takes, the note is over 500 characters, or the account has reported this recipe already. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signed out. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe has this slug that the account may report: there's none, it's private, a catalogue recipe or its own household's, or a report hides it. */
             404: {
                 headers: {
                     [name: string]: unknown;

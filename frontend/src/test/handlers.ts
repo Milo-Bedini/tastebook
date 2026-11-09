@@ -75,7 +75,10 @@ const recipes: Recipe[] = [
     can_publish: false,
     save_count: null,
     can_share: false,
-    share_token: null
+    share_token: null,
+    hidden_for_review: false,
+    can_report: false,
+    reported: false
   },
   {
     id: 2,
@@ -114,7 +117,10 @@ const recipes: Recipe[] = [
     can_publish: false,
     save_count: null,
     can_share: false,
-    share_token: null
+    share_token: null,
+    hidden_for_review: false,
+    can_report: false,
+    reported: false
   }
 ];
 
@@ -129,7 +135,8 @@ const toSummary = ({
   difficulty,
   total_minutes,
   photo,
-  diet_tags
+  diet_tags,
+  hidden_for_review
 }: Recipe): RecipeSummary => ({
   id,
   slug,
@@ -141,7 +148,8 @@ const toSummary = ({
   difficulty,
   total_minutes,
   photo,
-  diet_tags
+  diet_tags,
+  hidden_for_review
 });
 
 export const handlers = [

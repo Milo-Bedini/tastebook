@@ -59,7 +59,10 @@ const flatbreads: Recipe = {
   can_publish: false,
   save_count: null,
   can_share: false,
-  share_token: null
+  share_token: null,
+  hidden_for_review: false,
+  can_report: false,
+  reported: false
 };
 
 // Signed in, the recipe answered as `recipe`, and each PATCH body recorded and answered by `respond`, which by

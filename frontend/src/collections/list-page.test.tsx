@@ -24,6 +24,7 @@ const listed = (id: number, slug: string, title: string, fields: Partial<ListedR
   total_minutes: 35,
   photo: null,
   diet_tags: [],
+  hidden_for_review: false,
   ...fields
 });
 
@@ -164,7 +165,10 @@ describe('the Favourites page', () => {
           can_publish: false,
           save_count: null,
           can_share: false,
-          share_token: null
+          share_token: null,
+          hidden_for_review: false,
+          can_report: false,
+          reported: false
         })
       )
     );

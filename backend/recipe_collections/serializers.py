@@ -4,7 +4,7 @@ from rest_framework import serializers
 from recipe_collections.models import LIST_NAME_MAX_LENGTH, SavedRecipe, Scope
 from recipe_collections.services import NAME_MISSING
 from recipes import services as recipe_services
-from recipes.models import Cuisine, DietTag, Recipe, Visibility
+from recipes.models import Cuisine, DietTag, Moderation, Recipe, Visibility
 
 # A list's recipes are shown as the recipe list shows them, so these serializers answer the same fields as recipes'
 # RecipeSummary. They're the collections area's own: another area's serializers aren't its public surface.
@@ -46,6 +46,10 @@ class ListedRecipeSerializer(serializers.ModelSerializer):
     total_minutes = serializers.IntegerField(read_only=True, allow_null=True)
     photo = ListedPhotoSerializer(read_only=True, allow_null=True)
     diet_tags = serializers.SerializerMethodField()
+    hidden_for_review = serializers.SerializerMethodField(
+        help_text='Whether a report hides this recipe from everyone but its author, who alone is sent it until staff '
+        'review it.'
+    )
 
     class Meta:
         model = Recipe
@@ -61,6 +65,7 @@ class ListedRecipeSerializer(serializers.ModelSerializer):
             'total_minutes',
             'photo',
             'diet_tags',
+            'hidden_for_review',
         ]
         extra_kwargs = {
             'description': {'required': True, 'allow_blank': True},
@@ -70,6 +75,10 @@ class ListedRecipeSerializer(serializers.ModelSerializer):
     @extend_schema_field(ListedDietTagsField(read_only=True))
     def get_diet_tags(self, recipe: Recipe) -> list[DietTag]:
         return recipe_services.diet_tags(recipe.ingredient_lines.all())
+
+    @extend_schema_field(serializers.BooleanField())
+    def get_hidden_for_review(self, recipe: Recipe) -> bool:
+        return recipe.moderation == Moderation.HIDDEN
 
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_author(self, recipe: Recipe) -> str | None:

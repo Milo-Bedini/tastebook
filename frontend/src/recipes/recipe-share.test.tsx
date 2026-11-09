@@ -48,7 +48,10 @@ const curry: Recipe = {
   can_publish: true,
   save_count: 0,
   can_share: true,
-  share_token: null
+  share_token: null,
+  hidden_for_review: false,
+  can_report: false,
+  reported: false
 };
 
 const TOKEN = 'q8Zr2LwT4mVxN3kP';

@@ -7,6 +7,7 @@ from rest_framework import serializers
 
 from recipes import services
 from recipes.models import (
+    REPORT_NOTE_MAX_LENGTH,
     Course,
     Cuisine,
     DietTag,
@@ -15,7 +16,9 @@ from recipes.models import (
     Ingredient,
     IngredientGroup,
     IngredientLine,
+    Moderation,
     Recipe,
+    ReportReason,
     ShareLink,
     Step,
     Unit,
@@ -244,6 +247,10 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
     # null when the recipe has no photo, so the card shows its cuisine plate.
     photo = RecipePhotoSerializer(read_only=True, allow_null=True)
     diet_tags = serializers.SerializerMethodField()
+    hidden_for_review = serializers.SerializerMethodField(
+        help_text='Whether a report hides this recipe from everyone but its author, who alone is sent it until staff '
+        'review it.'
+    )
 
     class Meta:
         model = Recipe
@@ -259,6 +266,7 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
             'total_minutes',
             'photo',
             'diet_tags',
+            'hidden_for_review',
         ]
         # The API always sends these, as '' when there is none, so the schema marks them required.
         extra_kwargs = {
@@ -269,6 +277,10 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
     @extend_schema_field(DietTagsField(read_only=True))
     def get_diet_tags(self, recipe: Recipe) -> list[DietTag]:
         return services.diet_tags(recipe.ingredient_lines.all())
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_hidden_for_review(self, recipe: Recipe) -> bool:
+        return recipe.moderation == Moderation.HIDDEN
 
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_author(self, recipe: Recipe) -> str | None:
@@ -339,6 +351,13 @@ class RecipeSerializer(RecipeSummarySerializer):
         help_text="The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in "
         'account may share it and the link is on.'
     )
+    can_report = serializers.SerializerMethodField(
+        help_text="Whether the page offers Report recipe: on a household's public recipe, to anyone outside that "
+        'household, signed in or not.'
+    )
+    reported = serializers.SerializerMethodField(
+        help_text='Whether the signed-in account has reported this recipe, which it may do once.'
+    )
 
     class Meta(RecipeSummarySerializer.Meta):
         fields = [
@@ -369,6 +388,8 @@ class RecipeSerializer(RecipeSummarySerializer):
             'save_count',
             'can_share',
             'share_token',
+            'can_report',
+            'reported',
         ]
         # The API always sends these, even when they're '', null or their default, so the schema marks them required.
         extra_kwargs = {
@@ -440,6 +461,14 @@ class RecipeSerializer(RecipeSummarySerializer):
             return None
         return ShareLink.objects.filter(recipe=recipe).values_list('token', flat=True).first()
 
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_can_report(self, recipe: Recipe) -> bool:
+        return services.offers_report(recipe, self.context['request'].user)
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_reported(self, recipe: Recipe) -> bool:
+        return services.has_reported(recipe, self.context['request'].user)
+
 
 class SharedRecipeSerializer(RecipeSerializer):
     """A recipe as its share link shows it to anyone: the recipe itself, and nothing of the household's (no author,
@@ -483,6 +512,30 @@ class RecipeVisibilitySerializer(serializers.Serializer):
     visibility = serializers.ChoiceField(
         choices=Visibility.choices,
         error_messages={'required': NOT_A_VISIBILITY, 'invalid_choice': NOT_A_VISIBILITY},
+    )
+
+
+NO_REASON = "Choose what's wrong with it, like Spam."
+
+
+class NewReportSerializer(serializers.Serializer):
+    reason = serializers.ChoiceField(
+        choices=ReportReason.choices, error_messages={'required': NO_REASON, 'invalid_choice': NO_REASON}
+    )
+    note = serializers.CharField(
+        max_length=REPORT_NOTE_MAX_LENGTH,
+        allow_blank=True,
+        required=False,
+        error_messages={'max_length': f'Keep the note to {REPORT_NOTE_MAX_LENGTH} characters.'},
+        help_text="Anything that helps staff, like where it was copied from. '' when left out.",
+    )
+
+
+class ReportOutcomeSerializer(serializers.Serializer):
+    hidden = serializers.BooleanField(
+        read_only=True,
+        help_text='Whether the report hid the recipe from everyone but its author. False once staff have restored it '
+        'after an earlier report, as later reports reach staff without hiding it.',
     )
 
 

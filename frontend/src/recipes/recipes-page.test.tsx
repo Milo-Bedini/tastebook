@@ -28,7 +28,8 @@ const appleTart: Recipe = {
   difficulty: 'medium',
   total_minutes: 100,
   photo: null,
-  diet_tags: []
+  diet_tags: [],
+  hidden_for_review: false
 };
 const bananaBread: Recipe = {
   id: 2,
@@ -41,7 +42,8 @@ const bananaBread: Recipe = {
   difficulty: 'easy',
   total_minutes: 75,
   photo: null,
-  diet_tags: []
+  diet_tags: [],
+  hidden_for_review: false
 };
 
 // Holds the next response from `path` until released, so the test can see the page while the request is in flight.
@@ -204,7 +206,8 @@ describe('RecipesPage', () => {
           difficulty: 'easy',
           total_minutes: 35,
           photo: null,
-          diet_tags: []
+          diet_tags: [],
+          hidden_for_review: false
         },
         {
           id: 3,
@@ -217,7 +220,8 @@ describe('RecipesPage', () => {
           difficulty: 'hard',
           total_minutes: 90,
           photo: null,
-          diet_tags: []
+          diet_tags: [],
+          hidden_for_review: false
         }
       ])
     );
@@ -261,7 +265,8 @@ describe('RecipesPage', () => {
             difficulty: 'easy',
             total_minutes: 25,
             photo: null,
-            diet_tags: []
+            diet_tags: [],
+            hidden_for_review: false
           }
         ])
       )
@@ -292,7 +297,8 @@ describe('RecipesPage', () => {
             difficulty: '',
             total_minutes: null,
             photo: null,
-            diet_tags: []
+            diet_tags: [],
+            hidden_for_review: false
           },
           appleTart
         ])
@@ -632,7 +638,8 @@ describe('RecipesPage', () => {
           difficulty: 'easy',
           total_minutes: 35,
           photo: null,
-          diet_tags: []
+          diet_tags: [],
+          hidden_for_review: false
         }
       ])
     );

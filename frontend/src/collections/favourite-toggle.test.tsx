@@ -26,7 +26,8 @@ const appleTart: SavedRecipe = {
     difficulty: 'medium',
     total_minutes: 100,
     photo: null,
-    diet_tags: []
+    diet_tags: [],
+    hidden_for_review: false
   }
 };
 

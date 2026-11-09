@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
@@ -24,7 +25,10 @@ from recipes.models import (
     IngredientLine,
     IngredientStatus,
     IngredientSynonym,
+    Moderation,
     Recipe,
+    Report,
+    ReportReason,
     ShareLink,
     Step,
     Visibility,
@@ -201,11 +205,17 @@ def publishing_gaps(recipe: Recipe) -> list[str]:
     return [gap for gap, is_missing in missing if is_missing]
 
 
+HELD_FOR_REVIEW = 'You can change this once staff have reviewed the report.'
+
+
 def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
     """Makes the recipe public or private. Raises ValidationError({'visibility': [...]}) when it's made public
-    while publishing_gaps() names something."""
+    while publishing_gaps() names something, or made private while a report hides it."""
     if recipe.visibility == visibility:
         return recipe
+    # Going private would take the recipe out of review, and public again would bring it back unreviewed.
+    if recipe.moderation == Moderation.HIDDEN:
+        raise ValidationError({'visibility': [HELD_FOR_REVIEW]})
     if visibility == Visibility.PUBLIC:
         gaps = publishing_gaps(recipe)
         if gaps:
@@ -216,6 +226,43 @@ def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
         # A public recipe is open to anyone, so its link stops, and making it private again doesn't bring it back.
         if visibility == Visibility.PUBLIC:
             ShareLink.objects.filter(recipe=recipe).delete()
+    return recipe
+
+
+ALREADY_REPORTED = "You've reported this recipe already."
+
+
+def report_recipe(recipe: Recipe, reporter: User, reason: ReportReason, note: str) -> bool:
+    """Records the reporter's report of the recipe for staff, and hides the recipe from everyone but its author unless
+    staff have restored it before. True when the recipe is hidden. Raises ValidationError when the reporter has
+    reported it already."""
+    try:
+        with transaction.atomic():
+            Report.objects.create(recipe=recipe, reporter=reporter, reason=reason, note=note)
+    except IntegrityError as error:
+        raise ValidationError({NON_FIELD_ERRORS: [ALREADY_REPORTED]}) from error
+    # An update, not a save, so a report racing staff's restore can't hide the recipe again.
+    Recipe.objects.filter(pk=recipe.pk, moderation=Moderation.UNREPORTED).update(moderation=Moderation.HIDDEN)
+    return Recipe.objects.filter(pk=recipe.pk, moderation=Moderation.HIDDEN).exists()
+
+
+def offers_report(recipe: Recipe, viewer: User | AnonymousUser) -> bool:
+    """Whether the recipe's page offers Report recipe: on a household's public recipe, to anyone outside that
+    household, signed in or not, as signing in comes first."""
+    if recipe.visibility != Visibility.PUBLIC or recipe.household_id is None:
+        return False
+    return not viewer.is_authenticated or viewer.household_id != recipe.household_id
+
+
+def has_reported(recipe: Recipe, viewer: User | AnonymousUser) -> bool:
+    return viewer.is_authenticated and Report.objects.filter(recipe=recipe, reporter=viewer).exists()
+
+
+def restore_recipe(recipe: Recipe) -> Recipe:
+    """Shows the recipe to everyone who could see it before it was reported. Later reports reach staff without hiding
+    it."""
+    recipe.moderation = Moderation.RESTORED
+    recipe.save(update_fields=['moderation'])
     return recipe
 
 

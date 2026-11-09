@@ -57,7 +57,10 @@ const saved: Recipe = {
   can_publish: false,
   save_count: null,
   can_share: false,
-  share_token: null
+  share_token: null,
+  hidden_for_review: false,
+  can_report: false,
+  reported: false
 };
 
 // Signed in, with each POST body recorded and answered by `respond`; the saved recipe's page answers with it.
