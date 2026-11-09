@@ -77,8 +77,10 @@ export const PrivacyPage = () => (
             <Link to="/account">account page</Link>.
           </li>
           <li>
-            To have a copy of anything else Tastebook keeps about you, such as your sessions, or to have your account
-            deleted, write to <WriteTo />. Your account page will offer deleting soon.
+            Delete your account on your <Link to="/account">account page</Link>.
+          </li>
+          <li>
+            To have a copy of anything else Tastebook keeps about you, such as your sessions, write to <WriteTo />.
           </li>
           <li>
             Write to <WriteTo /> with any question about your data. If you're unhappy with the answer, you can complain
