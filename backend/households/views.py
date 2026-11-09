@@ -9,7 +9,14 @@ from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework.exceptions import APIException, NotAuthenticated, NotFound
+from rest_framework.exceptions import (
+    APIException,
+    NotAuthenticated,
+    NotFound,
+    PermissionDenied,
+    Throttled,
+    ValidationError,
+)
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +24,8 @@ from rest_framework.views import APIView
 from households.models import Household, Invite, User
 from households.serializers import (
     AccountChangesSerializer,
+    AccountDeletionCodeSerializer,
+    AccountDeletionSerializer,
     AccountSerializer,
     CurrentAccountSerializer,
     HouseholdChangesSerializer,
@@ -25,9 +34,13 @@ from households.serializers import (
     SignInCodeSerializer,
 )
 from households.services import (
+    DeletionCodeStoppedError,
     InviteNotLiveError,
+    WrongDeletionCodeError,
     cancel_invite,
     current_invite,
+    delete_account,
+    deletion_preview,
     invite_seen_by,
     invite_status,
     is_test_account,
@@ -40,6 +53,7 @@ from households.services import (
     remove_member,
     rename_household,
     seconds_until_allowed,
+    send_deletion_code,
     update_account,
 )
 
@@ -244,6 +258,81 @@ class JoinView(APIView):
         except InviteNotLiveError as dead:
             raise DeadInviteError from dead
         return Response(household_body(joined))
+
+
+STAFF_REFUSED = "Staff accounts can't be deleted here. Ask another staff member to take your staff access away first."
+WRONG_DELETION_CODE = "That code isn't right. Check the email and try again."
+DELETION_CODE_STOPPED = 'That code has stopped working. Send a new code.'
+WHAT_DELETING_DOES = (
+    'Deleting an account deletes its name, email address, sessions, Favourites and personal lists, and the private '
+    'recipes it wrote (every private recipe in its household when it is the last member). The public recipes it wrote '
+    'stay, credited "a former member". A household with others in it carries on; a last member\'s household stays, '
+    'renamed "A former household", only while it holds public recipes.'
+)
+
+
+class DeadDeletionCodeError(APIException):
+    status_code = HTTPStatus.CONFLICT
+    default_detail = DELETION_CODE_STOPPED
+    default_code = 'deletion_code_stopped'
+
+
+def account_to_delete(request: Request) -> User:
+    if not request.user.is_authenticated:
+        raise NotAuthenticated
+    # Checked before anything else, so staff never spend a code.
+    if request.user.is_staff:
+        raise PermissionDenied(STAFF_REFUSED)
+    return request.user
+
+
+class AccountDeletionView(APIView):
+    @extend_schema(
+        operation_id='account_deletion_retrieve',
+        responses={200: AccountDeletionSerializer, 403: None},
+        description='What deleting the signed-in account now would delete and keep. ' + WHAT_DELETING_DOES,
+    )
+    def get(self, request: Request) -> Response:
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        return Response(AccountDeletionSerializer(deletion_preview(request.user)).data)
+
+    @extend_schema(
+        operation_id='account_deletion_create',
+        request=AccountDeletionCodeSerializer,
+        responses={204: None, 400: None, 403: None, 409: None},
+        description='Deletes the signed-in account with the code emailed to this browser in the last 10 minutes, and '
+        'signs it out everywhere. ' + WHAT_DELETING_DOES + ' 400 for a wrong code with tries left; 403 for a staff '
+        'account; 409 when this browser has no code to try: none was sent, it was used, it is over 10 '
+        'minutes old, or the fifth wrong try stopped it.',
+    )
+    def post(self, request: Request) -> Response:
+        account_to_delete(request)
+        body = AccountDeletionCodeSerializer(data=request.data)
+        body.is_valid(raise_exception=True)
+        try:
+            delete_account(request, body.validated_data['code'])
+        except WrongDeletionCodeError as wrong:
+            raise ValidationError({'code': [WRONG_DELETION_CODE]}) from wrong
+        except DeletionCodeStoppedError as stopped:
+            raise DeadDeletionCodeError from stopped
+        return Response(status=HTTPStatus.NO_CONTENT)
+
+
+class DeletionCodeView(APIView):
+    @extend_schema(
+        operation_id='account_deletion_code_create',
+        request=None,
+        responses={204: None, 403: None, 429: None},
+        description='Emails the signed-in account a 6-digit code that deletes it from this browser for the next 10 '
+        'minutes, replacing any earlier one. 403 for a staff account; 429 with Retry-After once the address has been '
+        'sent 3 codes (to sign in or to delete) in 10 minutes.',
+    )
+    def post(self, request: Request) -> Response:
+        account = account_to_delete(request)
+        if not send_deletion_code(request):
+            raise Throttled(wait=seconds_until_allowed(request, 'request_login_code', key=account.email.lower()))
+        return Response(status=HTTPStatus.NO_CONTENT)
 
 
 def rate_limited(request: HttpRequest, seconds: int) -> HttpResponse:

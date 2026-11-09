@@ -4,8 +4,10 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from households.views import (
+    AccountDeletionView,
     ConfirmSignInCodeView,
     CurrentAccountView,
+    DeletionCodeView,
     HouseholdMemberView,
     HouseholdView,
     InviteLinkView,
@@ -31,6 +33,8 @@ urlpatterns = [
     path('api/health/', include('health.urls')),
     path('api/account/', CurrentAccountView.as_view(), name='current-account'),
     path('api/account/download/', DownloadView.as_view(), name='account-download'),
+    path('api/account/deletion/', AccountDeletionView.as_view(), name='account-deletion'),
+    path('api/account/deletion/code/', DeletionCodeView.as_view(), name='account-deletion-code'),
     path('api/household/', HouseholdView.as_view(), name='household'),
     path('api/household/invite/', InviteView.as_view(), name='household-invite'),
     path('api/household/leave/', LeaveHouseholdView.as_view(), name='household-leave'),

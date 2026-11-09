@@ -10,8 +10,10 @@ from functools import partial
 from importlib import import_module
 from typing import Any
 
+from allauth.account.adapter import get_adapter
 from allauth.account.authentication import get_authentication_records
 from allauth.account.models import EmailAddress
+from allauth.core import ratelimit
 from allauth.core.internal.ratelimit import Rate, get_cache_key, get_rates
 from allauth.mfa.base.internal.flows import post_authentication
 from allauth.mfa.models import Authenticator
@@ -19,13 +21,15 @@ from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
 from allauth.mfa.totp.forms import ActivateTOTPForm
 from allauth.mfa.totp.internal.flows import activate_totp
 from django.conf import settings
-from django.contrib.auth import login
+from django.contrib.auth import SESSION_KEY, login, logout
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.sessions.models import Session
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import connection, transaction
 from django.db.models.functions import Lower
+from django.dispatch import Signal
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -40,7 +44,13 @@ from households.models import (
     UnitSystem,
     User,
 )
-from households.signals import counting_recipes_to_copy, member_moved
+from households.signals import (
+    account_deleting,
+    counting_recipes_to_copy,
+    counting_recipes_to_delete,
+    counting_recipes_to_keep,
+    member_moved,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -335,6 +345,135 @@ def name_from_google(profile: dict[str, Any]) -> str:
     """The first name on a Google profile, as an account's name; blank when it has none that fits."""
     name = str(profile.get('given_name') or '').strip()
     return name if len(name) <= NAME_MAX_LENGTH else ''
+
+
+FORMER_HOUSEHOLD = 'A former household'
+# The session key holding a deletion code: {'account': pk, 'code': str, 'sent_at': time.time(), 'attempts': int}.
+DELETION_CODE = 'account_deletion_code'
+
+
+@dataclass(frozen=True)
+class AccountDeletion:
+    private_recipes: int
+    public_recipes: int
+    others_in_household: int
+    is_staff: bool
+
+
+class WrongDeletionCodeError(Exception):
+    """The code isn't the one emailed, and it has tries left."""
+
+
+class DeletionCodeStoppedError(Exception):
+    """This session has no deletion code to try: none was asked, it was used, it's over 10 minutes old, it was asked
+    for another account, or the last wrong try ended it."""
+
+
+def others_in_household(account: User) -> int:
+    if account.household_id is None:
+        return 0
+    return User.objects.filter(household_id=account.household_id).exclude(pk=account.pk).count()
+
+
+def counted(signal: Signal, account: User, last: bool) -> int:
+    """The sum of what a counting signal's receivers answer for the account; 0 for one with no household."""
+    if account.household_id is None:
+        return 0
+    return sum(count for _, count in signal.send(sender=User, account=account, last=last))
+
+
+def deletion_preview(account: User) -> AccountDeletion:
+    """What deleting the account now would delete and keep of its household's recipes, and who'd stay in it."""
+    others = others_in_household(account)
+    last = account.household_id is not None and others == 0
+    return AccountDeletion(
+        private_recipes=counted(counting_recipes_to_delete, account, last),
+        public_recipes=counted(counting_recipes_to_keep, account, last),
+        others_in_household=others,
+        is_staff=account.is_staff,
+    )
+
+
+def send_deletion_code(request: HttpRequest) -> bool:
+    """Emails the signed-in account a new deletion code and keeps it in this session, replacing any earlier one.
+    False when sign-in's code limit refuses, which deletion codes count towards; then nothing is sent."""
+    account = request.user
+    # Sign-in's own limit and key, so an address is sent no more codes of both kinds together than of either alone.
+    if not ratelimit.consume(request, action='request_login_code', key=account.email.lower()):
+        return False
+    adapter = get_adapter(request)
+    code = adapter.generate_login_code()
+    request.session[DELETION_CODE] = {'account': account.pk, 'code': code, 'sent_at': time.time(), 'attempts': 0}
+    adapter.send_mail('households/email/deletion_code', account.email, {'code': code})
+    return True
+
+
+def _spend_deletion_code(request: HttpRequest, code: str) -> None:
+    """Spends this session's deletion code when `code` is it. Raises WrongDeletionCodeError or
+    DeletionCodeStoppedError."""
+    state = request.session.get(DELETION_CODE)
+    if (
+        state is None
+        or state['account'] != request.user.pk
+        or time.time() - state['sent_at'] > settings.ACCOUNT_LOGIN_BY_CODE_TIMEOUT
+    ):
+        request.session.pop(DELETION_CODE, None)
+        raise DeletionCodeStoppedError
+    if not hmac.compare_digest(code.encode(), state['code'].encode()):
+        attempts = state['attempts'] + 1
+        if attempts >= settings.ACCOUNT_LOGIN_BY_CODE_MAX_ATTEMPTS:
+            request.session.pop(DELETION_CODE)
+            raise DeletionCodeStoppedError
+        request.session[DELETION_CODE] = {**state, 'attempts': attempts}
+        raise WrongDeletionCodeError
+    request.session.pop(DELETION_CODE)
+
+
+def delete_account(request: HttpRequest, code: str) -> None:
+    """Deletes the signed-in account once `code` is this session's deletion code: its name, address, sessions and
+    personal lists, and the private recipes it wrote. Its public recipes stay. A household it was the last member of
+    stays as FORMER_HOUSEHOLD, with no lists or invite, while it holds public recipes, and is deleted otherwise.
+    Signs this browser out. Raises WrongDeletionCodeError or DeletionCodeStoppedError, and then deletes nothing."""
+    _spend_deletion_code(request, code)
+    _delete_account(request.user)
+    # Flushed, not left: with SESSION_SAVE_EVERY_REQUEST, saving a session whose row is gone fails the response.
+    logout(request)
+
+
+def _delete_account(user: User) -> None:
+    with transaction.atomic():
+        # Household first, then the account, as every move locks them.
+        Household.objects.select_for_update().filter(pk=user.household_id).first()
+        try:
+            account = User.objects.select_for_update().get(pk=user.pk)
+        except User.DoesNotExist:
+            # A second press already deleted it.
+            return
+        # Removed while this waited: then it's alone in a new household that nobody can join, so it goes on with that.
+        household_id = account.household_id
+        last = household_id is not None and others_in_household(account) == 0
+        kept = counted(counting_recipes_to_keep, account, last)
+        if household_id is not None:
+            account_deleting.send(sender=User, account=account, last=last)
+        end_sessions_of(account)
+        StoredSignInCode.objects.filter(email=account.email.lower()).delete()
+        account.delete()
+        if last and kept == 0:
+            Household.objects.filter(pk=household_id).delete()
+        elif last:
+            Household.objects.filter(pk=household_id).update(name=FORMER_HOUSEHOLD)
+            cancel_current_invite(household_id)
+
+
+def end_sessions_of(account: User) -> None:
+    """Deletes every session the account is signed in on, expired ones included."""
+    # Database sessions don't record their account, so each is decoded; fine at Tastebook's size.
+    signed_in = [
+        session.session_key
+        for session in Session.objects.iterator()
+        if session.get_decoded().get(SESSION_KEY) == str(account.pk)
+    ]
+    Session.objects.filter(session_key__in=signed_in).delete()
 
 
 ALLAUTH_LIMITS = 'allauth.account'

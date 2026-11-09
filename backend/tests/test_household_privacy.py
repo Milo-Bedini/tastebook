@@ -69,6 +69,8 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
     'api/health/': (get('/api/health/'),),
     'api/account/': (get('/api/account/'), patch('/api/account/', {'name': 'Taken'})),
     'api/account/download/': (get('/api/account/download/'),),
+    'api/account/deletion/': (get('/api/account/deletion/'), post('/api/account/deletion/', {'code': '000000'})),
+    'api/account/deletion/code/': (post('/api/account/deletion/code/'),),
     'api/household/': (get('/api/household/'), patch('/api/household/', {'name': 'Taken'})),
     'api/household/invite/': (post('/api/household/invite/'), delete('/api/household/invite/')),
     'api/household/leave/': (post('/api/household/leave/'),),

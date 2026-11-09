@@ -1,0 +1,1 @@
+Your code to delete your Tastebook account is {{ code }}
