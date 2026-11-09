@@ -2,14 +2,15 @@ import type { RouteObject } from 'react-router';
 
 import { HouseholdListPage, ListPage, ListsPage } from '../collections';
 import { AccountPage, HouseholdPage, JoinPage, NameGate, SignInPage, WelcomePage } from '../households';
-import { EditRecipePage, NewRecipePage, RecipePage, RecipesPage } from '../recipes';
+import { EditRecipePage, NewRecipePage, RecipePage, RecipesPage, SharedRecipePage } from '../recipes';
 import { AppLayout } from './app-layout';
 import { HomePage } from './home-page';
 import { NotFoundPage } from './not-found-page';
 import { PrivacyPage } from './privacy-page';
 
 // The layout route has no path, so every page keeps its address and gets the top bar. The privacy page sits outside
-// the name gate, so someone asked for their name can read what it's used for first.
+// the name gate, so someone asked for their name can read what it's used for first, and so does a shared recipe, which
+// anyone with its link may open.
 export const routes: RouteObject[] = [
   {
     Component: AppLayout,
@@ -33,7 +34,8 @@ export const routes: RouteObject[] = [
           { path: '*', Component: NotFoundPage }
         ]
       },
-      { path: '/privacy', Component: PrivacyPage }
+      { path: '/privacy', Component: PrivacyPage },
+      { path: '/shared/:token', Component: SharedRecipePage }
     ]
   }
 ];

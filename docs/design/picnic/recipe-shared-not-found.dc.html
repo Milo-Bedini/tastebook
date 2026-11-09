@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>A link that's off or unknown</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:620px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:16px}
+.page h1{margin:0}
+.page p{margin:0}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 940px; height: 1060px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-128 · /shared/q8Zr2LwT4mVxN3kP · phone, 390 px · signed out</span>
+    <h1 class="ttl">A link that’s off or unknown</h1>
+    <span class="cap">Turned off, never made, deleted with its recipe, or made public: all the same “Recipe not found”, so the page gives nothing away about which.</span>
+  </header>
+
+  <div class="boards">
+    <div class="col">
+      <span class="cap"><b>Not found</b> · the recipe page’s own not-found, as it is</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import></div>
+        </div></header>
+        <main class="page">
+          <h1>Recipe not found</h1>
+          <p>This recipe doesn’t exist or has been removed.</p>
+        </main>
+      </div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>Couldn’t load</b> · offline or a 5xx; Try again beside it</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import></div>
+        </div></header>
+        <main class="page">
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load the recipe" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>The same words as a recipe’s page</b> (RecipeNotFound, “Recipe not found · Tastebook”), so the criterion’s “Not found” is the screen people already know. It’s noindex like the shared page, and answers 404 from the API.</p>
+    <p><b>The way on</b> is the bar: the wordmark and Sign in. The page doesn’t say the link was turned off, which would confirm it once pointed at something.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":940,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, retry: function () { return Promise.resolve(); } };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,11 @@
-import { keepPreviousData, useMutation, useMutationState, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  type MutationKey,
+  useMutation,
+  useMutationState,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query';
 
 import { api } from '../api/client';
 import type { components } from '../api/schema';
@@ -152,12 +159,15 @@ export const useSetVisibility = (slug: string) => {
   });
 };
 
-// Whether the latest change to the recipe's visibility found it gone, which can take the switch off the page with focus.
-export const useVisibilityGone = (slug: string) =>
+// What the latest of the mutations under the key answered, for the page a control it held focus on has gone from.
+const useLatestAnswer = (mutationKey: MutationKey): string | undefined =>
   useMutationState({
-    filters: { mutationKey: visibilityKey(slug) },
-    select: ({ state }) => (state.data as VisibilityChange | undefined)?.kind === 'gone'
-  }).at(-1) === true;
+    filters: { mutationKey },
+    select: ({ state }) => (state.data as { kind: string } | undefined)?.kind
+  }).at(-1);
+
+// Whether the latest change to the recipe's visibility found it gone, which can take the switch off the page with focus.
+export const useVisibilityGone = (slug: string) => useLatestAnswer(visibilityKey(slug)) === 'gone';
 
 export type RecipeCopying = { kind: 'copied'; recipe: Recipe } | { kind: 'signed-out' } | { kind: 'gone' };
 
@@ -202,8 +212,90 @@ export const useCopyRecipe = (slug: string) => {
 };
 
 // Whether the latest copy of the recipe found it gone, which takes the page, and the focused button, away.
-export const useCopyGone = (slug: string) =>
-  useMutationState({
-    filters: { mutationKey: copyKey(slug) },
-    select: ({ state }) => (state.data as RecipeCopying | undefined)?.kind === 'gone'
-  }).at(-1) === true;
+export const useCopyGone = (slug: string) => useLatestAnswer(copyKey(slug)) === 'gone';
+
+export type ShareLinkChange =
+  | { kind: 'changed'; recipe: Recipe }
+  // The API's own words: the recipe is public, so it has no link to turn on.
+  | { kind: 'refused'; message: string }
+  | { kind: 'signed-out' }
+  | { kind: 'gone' };
+
+// DRF refuses a share link as {"share_link": ["…"]}.
+const shareLinkMessage = (body: unknown): string | undefined => {
+  if (typeof body !== 'object' || body === null || !('share_link' in body) || !Array.isArray(body.share_link)) {
+    return undefined;
+  }
+  const [message] = body.share_link;
+  return typeof message === 'string' ? message : undefined;
+};
+
+const shareLinkKey = (slug: string) => ['recipes', slug, 'share-link'];
+
+const sendShareLink = (slug: string, on: boolean) => {
+  const params = { params: { path: { slug } } };
+  return on
+    ? api.PUT('/api/recipes/{slug}/share-link/', params)
+    : api.DELETE('/api/recipes/{slug}/share-link/', params);
+};
+
+export const useSetShareLink = (slug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: shareLinkKey(slug),
+    mutationFn: async (on: boolean): Promise<ShareLinkChange> => {
+      const { data, error, response } = await sendShareLink(slug, on);
+      if (data !== undefined) {
+        return { kind: 'changed', recipe: data };
+      }
+      const message = response.status === 400 ? shareLinkMessage(error) : undefined;
+      if (message !== undefined) {
+        return { kind: 'refused', message };
+      }
+      // Signed out, or no household any more: the page asks the session again.
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // Deleted, or the account may not share it any more (it moved household).
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Turning a share link ${on ? 'on' : 'off'} failed with ${response.status}`);
+    },
+    onSuccess: async (result) => {
+      if (result.kind === 'signed-out') {
+        return;
+      }
+      if (result.kind === 'changed') {
+        queryClient.setQueryData<Recipe>(['recipes', slug], result.recipe);
+        return;
+      }
+      // Refused or gone, the page shows what's true now.
+      await queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    }
+  });
+};
+
+// Whether the latest change to the recipe's share link found it gone or public, which can take the switch off the page
+// with focus.
+export const useShareLinkGone = (slug: string) => {
+  const kind = useLatestAnswer(shareLinkKey(slug));
+  return kind === 'gone' || kind === 'refused';
+};
+
+// A share link's recipe, or null for a link that's off or never was.
+export const useSharedRecipe = (token: string) =>
+  useQuery({
+    queryKey: ['shared', token],
+    queryFn: async () => {
+      const { data, error, response } = await api.GET('/api/shared/{token}/', { params: { path: { token } } });
+      // A link that's off is an answer, not a failure, so it's cached and never retried.
+      if (response.status === 404) {
+        return null;
+      }
+      if (error || !data) {
+        throw new Error('Shared recipe request failed');
+      }
+      return data;
+    }
+  });

@@ -21,6 +21,9 @@ type Story = StoryObj<typeof meta>;
 
 const disabledReason = 'Add a photo before making it public.';
 
+const description =
+  "Anyone you send the link to can see this recipe, without signing in. They see nothing else of your household's.";
+
 export const Default = {
   render: (args) => {
     const [checked, setChecked] = useState(args.checked);
@@ -75,5 +78,21 @@ export const IsOnAndDisabled = {
     await userEvent.click(control);
     await expect(args.onCheckedChange).not.toHaveBeenCalled();
     await expect(control).toBeChecked();
+  }
+} satisfies Story;
+export const WithDescription = {
+  args: { children: 'Share by link', description },
+  play: async ({ canvasElement }) => {
+    const control = within(canvasElement).getByRole('switch', { name: 'Share by link' });
+    await expect(control).toHaveAccessibleDescription(description);
+  }
+} satisfies Story;
+export const WithDescriptionIsOn = { args: { children: 'Share by link', description, checked: true } } satisfies Story;
+export const WithDescriptionIsDisabled = {
+  args: { children: 'Share by link', description, disabled: true, disabledReason: 'Saving…' },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('switch', { name: 'Share by link' })).toHaveAccessibleDescription('Saving…');
+    await expect(canvas.queryByText(description)).not.toBeInTheDocument();
   }
 } satisfies Story;

@@ -28,6 +28,7 @@ from recipes.serializers import (
     RecipeSerializer,
     RecipeSummarySerializer,
     RecipeVisibilitySerializer,
+    SharedRecipeSerializer,
 )
 from recipes.services import (
     IngredientList,
@@ -37,6 +38,9 @@ from recipes.services import (
     delete_recipe,
     edit_recipe,
     set_visibility,
+    shared_recipe,
+    turn_off_share_link,
+    turn_on_share_link,
 )
 
 INGREDIENT_FIELDS = tuple(RecipeIngredientsSerializer().fields)
@@ -249,6 +253,87 @@ class RecipeVisibilityView(APIView):
             raise _refusals(error) from error
         changed = _detail_queryset(request.user).get(pk=recipe.pk)
         return Response(RecipeSerializer(changed, context={'request': request}).data)
+
+
+class RecipeShareLinkView(APIView):
+    permission_classes = []
+
+    def _shareable(self, request: Request, slug: str) -> Recipe:
+        # Refused before the lookup, so a signed-out answer says nothing about the slug.
+        if not request.user.is_authenticated or request.user.household_id is None:
+            raise PermissionDenied
+        return get_object_or_404(Recipe.objects.publishable_by(request.user), slug=slug)
+
+    def _answer(self, request: Request, recipe: Recipe) -> Response:
+        changed = _detail_queryset(request.user).get(pk=recipe.pk)
+        return Response(RecipeSerializer(changed, context={'request': request}).data)
+
+    @extend_schema(
+        operation_id='recipes_share_link_update',
+        request=None,
+        responses={
+            200: RecipeSerializer,
+            400: OpenApiResponse(description='The recipe is public, so anyone can open it already.'),
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            404: OpenApiResponse(
+                description="No recipe has this slug that the account may share: there's none, it's another "
+                "household's or a catalogue recipe, or another member wrote it."
+            ),
+        },
+        description="Turns on a share link to a private recipe of the signed-in account's household, which anyone "
+        'with its address can open without signing in. Only its author may. A link already on stays as it is; one '
+        'turned on again after being turned off has a new address.',
+    )
+    def put(self, request: Request, slug: str) -> Response:
+        recipe = self._shareable(request, slug)
+        try:
+            turn_on_share_link(recipe)
+        except DjangoValidationError as error:
+            raise _refusals(error) from error
+        return self._answer(request, recipe)
+
+    @extend_schema(
+        operation_id='recipes_share_link_destroy',
+        request=None,
+        responses={
+            200: RecipeSerializer,
+            403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            404: OpenApiResponse(
+                description="No recipe has this slug that the account may share: there's none, it's another "
+                "household's or a catalogue recipe, or another member wrote it."
+            ),
+        },
+        description="Turns off a recipe's share link, so its address shows nothing. Only its author may. A recipe "
+        'with no link stays as it is.',
+    )
+    def delete(self, request: Request, slug: str) -> Response:
+        recipe = self._shareable(request, slug)
+        turn_off_share_link(recipe)
+        return self._answer(request, recipe)
+
+
+class SharedRecipeView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    @extend_schema(
+        operation_id='shared_recipes_retrieve',
+        responses={
+            200: SharedRecipeSerializer,
+            404: OpenApiResponse(description='No share link has this token: it was turned off, or never was.'),
+        },
+        description='The recipe a share link opens, for anyone with its token, signed in or not: the recipe and none '
+        "of its household's details. Both answers ask search engines not to index them.",
+    )
+    def get(self, request: Request, token: str) -> Response:
+        recipe = shared_recipe(token)
+        response = (
+            Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+            if recipe is None
+            else Response(SharedRecipeSerializer(recipe, context={'request': request}).data)
+        )
+        response['X-Robots-Tag'] = 'noindex'
+        return response
 
 
 class RecipeCopyView(APIView):

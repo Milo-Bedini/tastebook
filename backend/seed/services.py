@@ -9,7 +9,14 @@ from households.services import TestMember, add_test_household, start_session
 from recipe_collections.models import Scope
 from recipe_collections.services import make_list, save_to_favourites, save_to_list
 from recipes.models import Recipe, Visibility
-from recipes.services import CatalogueError, add_described_recipes, add_ingredient, copy_recipe, set_visibility
+from recipes.services import (
+    CatalogueError,
+    add_described_recipes,
+    add_ingredient,
+    copy_recipe,
+    set_visibility,
+    turn_on_share_link,
+)
 
 
 @dataclass(frozen=True)
@@ -22,8 +29,8 @@ class SeededAccount:
 
 def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
     """Makes the described households, members, recipes, saves, lists and copies, then makes private the recipes
-    named, in one transaction and signs each member in. Keyed by each member's key. Raises CatalogueError for a recipe
-    the database can't hold, or a save, list, copy or change it can't make."""
+    named and shares by link the ones named, in one transaction, and signs each member in. Keyed by each member's key.
+    Raises CatalogueError for a recipe the database can't hold, or a save, list, copy or change it can't make."""
     with transaction.atomic():
         made = [pair for household in households for pair in _add_household(household)]
         # Before any recipe, so a recipe can name an ingredient another member added.
@@ -43,7 +50,13 @@ def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
             ]
         for member, account in made:
             for title in member['made_private']:
-                set_visibility(_recipe_they_wrote(title, recipes[member['key']], account), Visibility.PRIVATE)
+                set_visibility(
+                    _recipe_they_wrote(title, recipes[member['key']], account, 'make "{}" private'),
+                    Visibility.PRIVATE,
+                )
+        for member, account in made:
+            for title in member['shared']:
+                _share(_recipe_they_wrote(title, recipes[member['key']], account, 'share "{}" by link'))
         return {
             member['key']: SeededAccount(
                 email=account.email, name=account.name, session=start_session(account), recipes=recipes[member['key']]
@@ -79,8 +92,17 @@ def _recipe_they_can_see(title: str, seeded: dict[str, Recipe], account: User, a
     return recipe
 
 
-def _recipe_they_wrote(title: str, written: list[Recipe], account: User) -> Recipe:
+def _recipe_they_wrote(title: str, written: list[Recipe], account: User, action: str) -> Recipe:
+    """The recipe the account wrote with this title; `action` says what they'd do with it, `{}` for the title."""
     recipe = next((recipe for recipe in written if recipe.title == title), None)
     if recipe is None:
-        raise CatalogueError(f'{account.name} can\'t make "{title}" private: they wrote no recipe with that title.')
+        doing = action.replace('{}', title)
+        raise CatalogueError(f"{account.name} can't {doing}: they wrote no recipe with that title.")
     return recipe
+
+
+def _share(recipe: Recipe) -> None:
+    try:
+        turn_on_share_link(recipe)
+    except ValidationError as error:
+        raise CatalogueError(f'"{recipe.title}" is public, so it can\'t be shared by link.') from error

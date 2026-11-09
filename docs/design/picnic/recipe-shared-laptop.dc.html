@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The shared recipe, laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:1286px;height:1180px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) 360px auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 72px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.page{padding:32px 72px 48px}
+.cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:64px;row-gap:40px;align-items:start}
+.left{display:flex;flex-direction:column;gap:40px;padding:8px 24px 0}
+.right{display:flex;flex-direction:column;gap:32px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0}
+.intro p{margin:0}
+.muted{color:var(--color-muted)}
+.shared{display:inline-flex;align-items:center;gap:6px;color:var(--color-muted)}
+.shared svg{width:18px;height:18px;flex-shrink:0}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sec{display:flex;flex-direction:column;gap:16px}
+.sec h2{margin:0;font-family:var(--font-serif);font-size:28px;line-height:30px;font-weight:400;font-style:italic}
+.notes{display:flex;gap:40px}
+.notes p{margin:0;flex:1;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1540px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-128 · /shared/q8Zr2LwT4mVxN3kP · laptop, 1280 px · signed out</span>
+    <h1 class="ttl">The shared recipe, laptop</h1>
+    <span class="cap">The recipe page’s laptop grid as it is: the photo with the ingredients under it on the left (5 parts), the intro, servings, units and method on the right (7).</span>
+  </header>
+
+  <div class="frame">
+    <header class="bar"><div class="in">
+      <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+      <x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import>
+      <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+    </div></header>
+    <main class="page">
+      <div class="cols">
+        <div class="left">
+          <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+          <section class="sec">
+            <h2>Ingredients</h2>
+            <x-import component-from-global-scope="Dino.AmountList" items="{{ingredients}}"></x-import>
+          </section>
+        </div>
+        <div class="right">
+          <div class="intro">
+            <h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1>
+            <p class="shared"><x-import component-from-global-scope="Dino.icons.Link" aria-hidden="true" stroke-width="{{sw}}"></x-import>Shared with you by link</p>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+            <div class="ctl">
+              <x-import component-from-global-scope="Dino.ServingsStepper" value="{{four}}" min="{{one}}" max="{{ninetynine}}" on-value-change="{{noop}}"></x-import>
+              <x-import component-from-global-scope="Dino.SegmentedControl" label="Units" options="{{units}}" value="metric" on-value-change="{{noop}}"></x-import>
+            </div>
+          </div>
+          <section class="sec">
+            <h2>Method</h2>
+            <x-import component-from-global-scope="Dino.Method" steps="{{steps}}"></x-import>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="notes">
+    <p><b>No new layout:</b> the shared page is the recipe page without its household parts, so it takes the page’s grid at every width. Tablet is the phone’s single column, wider, as today.</p>
+    <p><b>The share controls on a laptop</b> sit in the right column under Public, at most 400 px wide like the Public switch; the link field is 400 px too, so the address isn’t cut short.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1540}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, sw: 2.25, nothing: null, t7: 7, noop: function () {},
+      one: 1, four: 4, ninetynine: 99,
+      units: [{ value: 'metric', label: 'Metric' }, { value: 'us', label: 'US' }],
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }],
+      ingredients: [
+        { key: 1, name: 'chicken thighs', amount: '800 g' },
+        { key: 2, name: 'onions', amount: '2' },
+        { key: 3, name: 'garlic cloves', amount: '4' },
+        { key: 4, name: 'fresh ginger', amount: '30 g' },
+        { key: 5, name: 'chopped tomatoes', amount: '400 g' },
+        { key: 6, name: 'garam masala', amount: '2 tsp' },
+        { key: 7, name: 'natural yoghurt', amount: '150 g' }
+      ],
+      steps: [
+        { key: 1, text: 'Soften the onions in a little oil over a low heat for 15 minutes, until golden.' },
+        { key: 2, text: 'Add the garlic, ginger and garam masala and cook for 2 minutes more.' },
+        { key: 3, text: 'Add the chicken and tomatoes, cover and simmer for 40 minutes.' },
+        { key: 4, text: 'Take off the heat and stir in the yoghurt.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

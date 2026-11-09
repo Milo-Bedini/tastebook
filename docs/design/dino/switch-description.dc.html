@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Switch with a help line</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:32px 48px}
+.cell{display:flex;flex-direction:column;gap:10px}
+.spec{border:1px dashed var(--color-line);border-radius:var(--radius-card);padding:16px;display:flex;flex-direction:column}
+.swhelp{margin:0;padding:0 8px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.props{margin:0;padding:16px;border-radius:var(--radius-card);background:var(--color-surface);font-family:ui-monospace, monospace;font-size:13px;line-height:20px;color:var(--color-ink);white-space:pre}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 48px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1000px; height: 900px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-128 · Dino · Switch, changed · 400 px wide</span>
+    <h1 class="ttl">Switch with a help line</h1>
+    <span class="cap">An optional <code>description</code>: one line or two in Small Muted under the row, 8 px in from its edge so it lines up with the label, tied to the switch with <code>aria-describedby</code>.</span>
+  </header>
+
+  <div class="grid">
+    <div class="cell">
+      <span class="cap"><b>Off, with its help</b> · says what on does before you turn it on</span>
+      <div class="spec" style="max-width: 400px">
+        <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Share by link</x-import>
+        <p class="swhelp">Anyone you send the link to can see this recipe, without signing in. They see nothing else of your household’s.</p>
+      </div>
+    </div>
+    <div class="cell">
+      <span class="cap"><b>On, with its help</b> · the line stays; it’s the same fact either way</span>
+      <div class="spec" style="max-width: 400px">
+        <x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">Share by link</x-import>
+        <p class="swhelp">Anyone you send the link to can see this recipe, without signing in. They see nothing else of your household’s.</p>
+      </div>
+    </div>
+    <div class="cell">
+      <span class="cap"><b>Saving</b> · the reason takes the help’s place, as an error replaces a field’s help</span>
+      <div class="spec" style="max-width: 400px">
+        <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}" disabled="{{yes}}" disabled-reason="Saving…">Share by link</x-import>
+      </div>
+    </div>
+    <div class="cell">
+      <span class="cap"><b>The props</b> · nothing else changes</span>
+<pre class="props">type SwitchProps = {
+  children: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) =&gt; void;
+  description?: string; // new
+} &amp; DisabledProps;</pre>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Why on Switch, not beside it:</b> the help belongs to the control, so a screen reader hears it with “Share by link, switch, off”. Segmented control already has the same help line; this follows it (design.md, Segmented control). Hover, pressed and focus stay on the row only, so the help line isn’t part of the target.</p>
+    <p><b>Disabled</b> shows its reason and not the help, so there’s one line under the row at a time; the help comes back once it’s enabled. Under forced colours the line is CanvasText like any text. Its stories gain <code>with-description</code> and <code>with-description-is-on</code>.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, no: false, noop: function () {} };
+  }
+}
+</script>
+</body>
+</html>

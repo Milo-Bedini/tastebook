@@ -79,9 +79,9 @@ The code is organised by domain area, the same areas on both sides, named in the
 
 | Area          | Owns                                                                                       |
 | ------------- | ------------------------------------------------------------------------------------------ |
-| `recipes`     | recipes, ingredients, equipment, cuisines, the catalogue, copies, publishing, moderation   |
+| `recipes`     | recipes, ingredients, equipment, cuisines, the catalogue, copies, publishing, share links, moderation |
 | `households`  | accounts, households, invites, staff                                                       |
-| `collections` | saving, lists, share links                                                                 |
+| `collections` | saving, lists                                                                              |
 | `kitchen`     | "always have", the pantry, the household's equipment, "What I have", cooking mode          |
 | `planning`    | the meal plan, the shopping list                                                           |
 | `importing`   | importing from a web address, pasted text and the Tastebook format                         |

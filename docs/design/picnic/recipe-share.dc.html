@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>A Share by link switch under Public</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:24px}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.body{display:flex;flex-direction:column;gap:32px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0;overflow-wrap:break-word}
+.intro p{margin:0}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:12px}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.pmark{display:inline-flex;align-items:center;gap:4px;width:fit-content;box-sizing:border-box;padding:2px 8px 2px 6px;border:2px solid transparent;border-radius:var(--radius-check);background:var(--color-surface);color:var(--color-ink);font-size:13px;line-height:17px;font-weight:700}
+.pmark svg{width:14px;height:14px;flex-shrink:0}
+.gaps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:2px;list-style:disc}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.sw{display:flex;flex-direction:column}
+.swhelp{margin:0;padding:0 8px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.share{display:flex;flex-direction:column;gap:12px;padding:0 8px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.after{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-top:1px dashed var(--color-line);padding-top:12px;margin:0}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2000px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-128 · /recipes/grandmas-curry-k7m2qx · phone, 390 px · signed in as Sam, its author</span>
+    <h1 class="ttl">A Share by link switch under Public</h1>
+    <span class="cap">The author’s controls gain a second switch, “Share by link”, under Public. On, the link sits under it in a read-only field with Copy link. Only a private recipe has it: a public one is already open to anyone.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Off</b> · a private recipe, not shared</span>
+      <div class="frame" style="height: 1480px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{no}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="ctrls">
+                <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Public</x-import>
+                <div class="sw">
+                  <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Share by link</x-import>
+                  <p class="swhelp">Anyone you send the link to can see this recipe, without signing in. They see nothing else of your household’s.</p>
+                </div>
+                <div class="btnrow">
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+                </div>
+              </div>
+            </div>
+            <p class="after">Servings, ingredients and method follow, as today.</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>On</b> · the link, read-only, with Copy link</span>
+      <div class="frame" style="height: 1480px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{no}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="ctrls">
+                <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}">Public</x-import>
+                <div class="sw">
+                  <x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">Share by link</x-import>
+                  <p class="swhelp">Anyone you send the link to can see this recipe, without signing in. They see nothing else of your household’s.</p>
+                </div>
+                <div class="share">
+                  <div class="fld">
+                    <label for="a-link" class="text-label">Share link</label>
+                    <x-import component-from-global-scope="Dino.Input" id="a-link" type="text" read-only="{{yes}}" default-value="{{address}}" aria-describedby="a-lhelp"></x-import>
+                    <p id="a-lhelp" class="help">Turn it off and the link stops working.</p>
+                  </div>
+                  <div class="btnrow"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Copy link</x-import></div>
+                </div>
+                <div class="btnrow">
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+                </div>
+              </div>
+            </div>
+            <p class="after">Servings, ingredients and method follow, as today.</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>On, not ready to publish</b> · sharing doesn’t wait for what’s missing</span>
+      <div class="frame" style="height: 1480px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{no}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <span class="pmark"><x-import component-from-global-scope="Dino.icons.Lock" aria-hidden="true" stroke-width="{{sw}}"></x-import>Private</span>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">20 min · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{prepOnly}}"></x-import>
+              <x-import component-from-global-scope="Dino.Banner" tone="warning" title="What’s missing">
+                <ul class="gaps"><li>No method yet</li><li>No cook time yet</li></ul>
+              </x-import>
+              <div class="ctrls">
+                <x-import component-from-global-scope="Dino.Switch" checked="{{no}}" on-checked-change="{{noop}}" disabled="{{yes}}" disabled-reason="Add what’s missing before making it public.">Public</x-import>
+                <div class="sw">
+                  <x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">Share by link</x-import>
+                  <p class="swhelp">Anyone you send the link to can see this recipe, without signing in. They see nothing else of your household’s.</p>
+                </div>
+                <div class="share">
+                  <div class="fld">
+                    <label for="c-link" class="text-label">Share link</label>
+                    <x-import component-from-global-scope="Dino.Input" id="c-link" type="text" read-only="{{yes}}" default-value="{{address}}" aria-describedby="c-lhelp"></x-import>
+                    <p id="c-lhelp" class="help">Turn it off and the link stops working.</p>
+                  </div>
+                  <div class="btnrow"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Copy link</x-import></div>
+                </div>
+                <div class="btnrow">
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+                </div>
+              </div>
+            </div>
+            <p class="after">Servings, ingredients and method follow, as today. (Scrolled past the photo.)</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>One group:</b> everything only the author can do stays together, and the link is right where it was turned on, so there’s no second place to look. Two switches read as two separate answers to “who can see this?”. The intro grows by about 230 px while the link is on.</p>
+    <p><b>Only the author sees it</b>, beside Public (the same <code>can_publish</code>-style flag, say <code>can_share</code>). Another member, another household and someone signed out see the page without it: see the states board.</p>
+    <p><b>Switch gains a help line</b> (its own board): Small Muted under the row, tied to it with <code>aria-describedby</code>, saying what turning it on does before you do it. The link field is the household page’s invite-link field as it is: Label, a read-only Input that selects the whole address on focus, a help line.</p>
+    <p><b>Copy link is secondary</b>, so the screen still has no peach button competing with cooking. A private recipe with gaps can be shared: the link shows it as it is, while Public stays disabled with its reason.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, nothing: null, t7: 7, noop: function () {},
+      address: 'https://tastebook.dev/shared/q8Zr2LwT4mVxN3kP',
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }],
+      prepOnly: [{ label: 'Prep', value: '20 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

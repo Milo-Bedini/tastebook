@@ -56,7 +56,9 @@ const chanaMasala: Recipe = {
   can_delete: true,
   can_edit: true,
   can_publish: true,
-  save_count: null
+  save_count: null,
+  can_share: false,
+  share_token: null
 };
 
 describe('deletionWarning', () => {

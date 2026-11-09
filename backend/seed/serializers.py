@@ -61,6 +61,12 @@ class SeedMemberSerializer(serializers.Serializer):
         help_text="Titles of this member's own public recipes they make private once every copy is made, so a copy of "
         "one is adapted from a recipe that's no longer public.",
     )
+    shared = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text="Titles of this member's own private recipes they share by link once every recipe is made private.",
+    )
 
 
 class SeedHouseholdSerializer(serializers.Serializer):
@@ -84,6 +90,11 @@ class SeedSerializer(serializers.Serializer):
 class SeededRecipeSerializer(serializers.Serializer):
     title = serializers.CharField()
     slug = serializers.CharField()
+    share_token = serializers.CharField(
+        source='share_link.token',
+        allow_null=True,
+        help_text="The token of its share link, which /shared/<token> opens; null when it's off.",
+    )
 
 
 class SeededAccountSerializer(serializers.Serializer):
