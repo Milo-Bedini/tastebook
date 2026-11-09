@@ -358,7 +358,7 @@ class RecipeSerializer(RecipeSummarySerializer):
     )
     can_share = serializers.SerializerMethodField(
         help_text='Whether the signed-in account may turn a share link to this recipe on or off: its author, while it '
-        'is private, not waiting for review and in their household.'
+        'is private, not waiting for review or removed by staff, and in their household.'
     )
     share_token = serializers.SerializerMethodField(
         help_text="The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in "
@@ -473,9 +473,9 @@ class RecipeSerializer(RecipeSummarySerializer):
 
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_can_share(self, recipe: Recipe) -> bool:
-        # One waiting for review will be public.
-        waiting = recipe.moderation == Moderation.HELD
-        return recipe.visibility == Visibility.PRIVATE and not waiting and self.get_can_publish(recipe)
+        # One waiting for review will be public, and one staff removed mustn't reach anyone outside its household.
+        unshareable = recipe.moderation in {Moderation.HELD, Moderation.REMOVED}
+        return recipe.visibility == Visibility.PRIVATE and not unshareable and self.get_can_publish(recipe)
 
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_share_token(self, recipe: Recipe) -> str | None:

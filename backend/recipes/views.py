@@ -280,7 +280,8 @@ class RecipeShareLinkView(APIView):
         responses={
             200: RecipeSerializer,
             400: OpenApiResponse(
-                description='The recipe is public, so anyone can open it already, or waiting for review, so it will be.'
+                description='The recipe is public, so anyone can open it already, waiting for review, so it will be, '
+                'or removed by staff.'
             ),
             403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
             404: OpenApiResponse(
