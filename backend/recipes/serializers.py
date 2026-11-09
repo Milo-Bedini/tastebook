@@ -239,7 +239,7 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
     visibility = serializers.ChoiceField(choices=Visibility.choices, read_only=True)
     author = serializers.SerializerMethodField(
         help_text='The name of whoever wrote a public household recipe, shown as "by <name>"; '
-        'null for a private or catalogue recipe.'
+        f'"{services.FORMER_MEMBER}" once its author has deleted their account; null for a private or catalogue recipe.'
     )
     cuisines = CuisineSerializer(many=True, read_only=True)
     # null unless prep and cook times are both given.
@@ -294,8 +294,11 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_author(self, recipe: Recipe) -> str | None:
         # Only publishing puts the name on show, so a private recipe's household isn't sent it either.
-        if recipe.visibility != Visibility.PUBLIC or recipe.household_id is None or recipe.created_by is None:
+        if recipe.visibility != Visibility.PUBLIC or recipe.household_id is None:
             return None
+        # The id, not the account, so a former member's recipe costs no query.
+        if recipe.created_by_id is None:
+            return services.FORMER_MEMBER
         return recipe.created_by.name
 
 

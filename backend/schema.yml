@@ -54,6 +54,90 @@ paths:
           description: No response body
         '403':
           description: No response body
+  /api/account/deletion/:
+    get:
+      operationId: account_deletion_retrieve
+      description: What deleting the signed-in account now would delete and keep.
+        Deleting an account deletes its name, email address, sessions, Favourites
+        and personal lists, and the private recipes it wrote (every private recipe
+        in its household when it is the last member). The public recipes it wrote
+        stay, credited "a former member". A household with others in it carries on;
+        a last member's household stays, renamed "A former household", only while
+        it holds public recipes.
+      tags:
+      - account
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDeletion'
+          description: ''
+        '403':
+          description: No response body
+    post:
+      operationId: account_deletion_create
+      description: 'Deletes the signed-in account with the code emailed to this browser
+        in the last 10 minutes, and signs it out everywhere. Deleting an account deletes
+        its name, email address, sessions, Favourites and personal lists, and the
+        private recipes it wrote (every private recipe in its household when it is
+        the last member). The public recipes it wrote stay, credited "a former member".
+        A household with others in it carries on; a last member''s household stays,
+        renamed "A former household", only while it holds public recipes. 400 for
+        a wrong code with tries left; 403 for a staff account; 409 when this browser
+        has no code to try: none was sent, it was used, it is over 10 minutes old,
+        or the fifth wrong try stopped it.'
+      tags:
+      - account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDeletionCode'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountDeletionCode'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountDeletionCode'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+        '400':
+          description: No response body
+        '403':
+          description: No response body
+        '409':
+          description: No response body
+  /api/account/deletion/code/:
+    post:
+      operationId: account_deletion_code_create
+      description: Emails the signed-in account a 6-digit code that deletes it from
+        this browser for the next 10 minutes, replacing any earlier one. 403 for a
+        staff account; 429 with Retry-After once the address has been sent 3 codes
+        (to sign in or to delete) in 10 minutes.
+      tags:
+      - account
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+        '403':
+          description: No response body
+        '429':
+          description: No response body
   /api/account/download/:
     get:
       operationId: account_download_retrieve
@@ -1392,6 +1476,38 @@ components:
       - email
       - name
       - unit_system
+    AccountDeletion:
+      type: object
+      properties:
+        private_recipes:
+          type: integer
+          description: 'How many private recipes deleting the account now would delete:
+            those it wrote in its household, or every private recipe in it when it''s
+            the household''s last member. 0 with no household.'
+        public_recipes:
+          type: integer
+          description: 'How many public recipes stay, credited "a former member":
+            those it wrote in its household, or every public recipe in it when it''s
+            the household''s last member. 0 with no household.'
+        others_in_household:
+          type: integer
+          description: How many members stay in the household. 0 for its last member
+            or an account with no household.
+        is_staff:
+          type: boolean
+          description: Whether it's a staff account, which can't delete itself here.
+      required:
+      - is_staff
+      - others_in_household
+      - private_recipes
+      - public_recipes
+    AccountDeletionCode:
+      type: object
+      properties:
+        code:
+          type: string
+      required:
+      - code
     BlankEnum:
       enum:
       - ''
@@ -2174,8 +2290,9 @@ components:
           type: string
           nullable: true
           readOnly: true
-          description: The name of whoever wrote a public household recipe; null for
-            a private or catalogue recipe.
+          description: The name of whoever wrote a public household recipe; "a former
+            member" once its author has deleted their account; null for a private
+            or catalogue recipe.
         title:
           type: string
           maxLength: 200
@@ -2672,7 +2789,8 @@ components:
           nullable: true
           readOnly: true
           description: The name of whoever wrote a public household recipe, shown
-            as "by <name>"; null for a private or catalogue recipe.
+            as "by <name>"; "a former member" once its author has deleted their account;
+            null for a private or catalogue recipe.
         title:
           type: string
           maxLength: 200
@@ -2972,7 +3090,8 @@ components:
           nullable: true
           readOnly: true
           description: The name of whoever wrote a public household recipe, shown
-            as "by <name>"; null for a private or catalogue recipe.
+            as "by <name>"; "a former member" once its author has deleted their account;
+            null for a private or catalogue recipe.
         title:
           type: string
           maxLength: 200

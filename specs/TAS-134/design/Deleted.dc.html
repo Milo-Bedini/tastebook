@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Deleted: signed out on the home page</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:780px}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.ghost{padding:24px 20px;display:flex;flex-direction:column;gap:16px}
+.ghost span{display:block;height:14px;border-radius:var(--radius-pill);background:var(--color-line)}
+.ghost .pol{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:16px;margin-top:8px}
+.ghost .pol i{display:block;aspect-ratio:4/5;background:var(--color-surface);border:2px solid transparent}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:20px}
+.page h1{margin:0}
+.cards{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:16px}
+.meta{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.row{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:460px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1150px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-134 part 2 · after Delete account answers 204 · phone, 390 px</span>
+    <h1 class="ttl">Deleted: signed out on the home page</h1>
+    <span class="cap">The dialog closes, the page goes to / signed out, and a toast says it’s done. What Sam’s household sees afterwards needs no new design: “by a former member” is the existing “by &lt;name&gt;” line.</span>
+  </header>
+
+  <div class="row">
+    <div class="col">
+      <span class="cap"><b>Sam, signed out</b> · the home page as it is, with Sign in in the bar</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import>
+        </div></header>
+        <div class="ghost" aria-hidden="true">
+          <span style="width: 70%; height: 36px"></span>
+          <span style="width: 45%"></span>
+          <div class="pol"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="toast" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg><span>Your account is deleted.</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Jo’s Favourites, afterwards</b> · Sam’s public dal, credited to a former member</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Jo Smith" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">J</span></button>
+        </div></header>
+        <main class="page">
+          <h1>Favourites</h1>
+          <div class="cards">
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Sam’s dal" to="#" recipe-id="{{idA}}" photo="{{nothing}}" lean="left">
+              <p class="meta">by a former member</p>
+            </x-import>
+            <x-import component-from-global-scope="Dino.PolaroidCard" title="Lemon drizzle" to="#" recipe-id="{{idB}}" photo="{{nothing}}" lean="right">
+              <p class="meta">by Jo</p>
+            </x-import>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="col" style="padding-top: 27px">
+      <div class="notes">
+        <p><b>A success toast, not a page.</b> The spec’s “Your account is deleted.” in the dock colours with the check, as “Name saved” is. It’s the last thing Tastebook says to Sam, so it says only that.</p>
+        <p><b>Focus starts at the top of the home page</b>, as any navigation does; the toast is announced politely.</p>
+        <p><b>Every place an author shows</b> (a card’s meta, a recipe’s “by” line, a saved list, a copy’s “Adapted from … by a former member”) prints the new words with no change of its own; that’s part 1.</p>
+        <p><b>Not drawn:</b> a confirmation email. The spec leaves it out on purpose.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1150}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, idA: 7, idB: 12, nothing: null };
+  }
+}
+</script>
+</body>
+</html>

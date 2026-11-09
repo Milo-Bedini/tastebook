@@ -1,0 +1,7 @@
+Here's your code to delete your Tastebook account:
+
+{{ code }}
+
+It works once, for the next 10 minutes, in the browser that asked for it.
+
+If you didn't ask for it, don't share it with anyone. Nobody can delete your account without it.

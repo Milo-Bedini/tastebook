@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The dialog: what goes and what stays</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.box{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:780px}
+.ghostpage{position:absolute;inset:0;padding:100px 20px;display:flex;flex-direction:column;gap:16px}
+.ghostpage span{display:block;height:14px;border-radius:var(--radius-pill);background:var(--color-line)}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg .body{display:flex;flex-direction:column;gap:8px}
+.dlg .body p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.fr button{outline:3px solid var(--color-ink);outline-offset:0}
+.grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 2050px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-134 part 2 · the dialog’s first step · phone, 390 px</span>
+    <h1 class="ttl">The dialog: what goes and what stays</h1>
+    <span class="cap">Opened by Delete account. It fetches the numbers as it opens, then says what deleting removes and keeps, one line each, a line left out when its number is 0. Send code is the step’s action; nothing is deleted yet.</span>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <span class="cap"><b>Checking</b> · the numbers load as it opens; only Cancel</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="a-t">
+          <h2 id="a-t">Delete your account?</h2>
+          <x-import component-from-global-scope="Dino.Loading">Checking what deleting removes…</x-import>
+          <div class="btns fr">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t check</b> · offline or a 5xx; Try again loads the numbers</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="b-t">
+          <h2 id="b-t">Delete your account?</h2>
+          <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t reach Tastebook" on-retry="{{retry}}">Check your connection and try again.</x-import>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>With others in the household</b> · 12 private, 3 public, Jo stays; focus on Cancel</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="c-t" aria-describedby="c-d">
+          <h2 id="c-t">Delete your account?</h2>
+          <div class="body" id="c-d">
+            <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+            <p>The 12 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.</p>
+            <p>The 3 public recipes you wrote stay, credited to “a former member”, so links to them keep working.</p>
+            <p>Nightly backups keep a copy for up to 30 days.</p>
+          </div>
+          <div class="btns">
+            <div class="fr"><x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import></div>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Send code</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>The last member</b> · 1 private, 0 public: the public line goes</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="d-t" aria-describedby="d-d">
+          <h2 id="d-t">Delete your account?</h2>
+          <div class="body" id="d-d">
+            <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+            <p>Your household’s 1 private recipe will be deleted, as nobody else is in it.</p>
+            <p>Nightly backups keep a copy for up to 30 days.</p>
+          </div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Send code</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Nothing written yet</b> · no household, or 0 and 0: two lines</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="e-t" aria-describedby="e-d">
+          <h2 id="e-t">Delete your account?</h2>
+          <div class="body" id="e-d">
+            <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+            <p>Nightly backups keep a copy for up to 30 days.</p>
+          </div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Send code</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Staff</b> · why it can’t be deleted, and only Close</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="f-t" aria-describedby="f-d">
+          <h2 id="f-t">Delete your account?</h2>
+          <div class="body" id="f-d">
+            <p>Staff accounts can’t be deleted here. Ask another staff member to take your staff access away first.</p>
+          </div>
+          <div class="btns fr">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Close</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>Lines, not a paragraph.</b> Each consequence is its own Body line in Muted, 8 px apart, so a line can go when its number is 0 without the rest reading oddly. The numbers come from the API, never estimated; “recipe” and “recipes” follow the number.</p>
+    <p><b>Send code is primary, not danger.</b> Pressing it deletes nothing: it only emails a code. The danger button comes in the next step, named for the action, “Delete account”, as docs/design.md’s Dialog row says. Primary is the dialog’s one main action while the page sits under the scrim (see Proposed rule change).</p>
+    <p><b>Focus lands on Cancel</b> when it opens, as every alert dialog’s does, so Enter never sends a code by accident. Escape and Cancel close it and give focus back to Delete account.</p>
+    <p><b>Checking and Couldn’t check keep the title</b>, so the screen reader names the dialog straight away; the Loading line shows after half a second, as States › Loading says. Try again only fetches the numbers again.</p>
+    <p><b>Staff keep the title</b> as asked, and the dialog becomes a notice: its way out reads “Close”, as nothing is being cancelled, and there’s no Send code.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2050}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, retry: function () { return Promise.resolve(); } };
+  }
+}
+</script>
+</body>
+</html>

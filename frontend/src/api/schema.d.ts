@@ -22,6 +22,41 @@ export interface paths {
         patch: operations["current_account_partial_update"];
         trace?: never;
     };
+    "/api/account/deletion/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description What deleting the signed-in account now would delete and keep. Deleting an account deletes its name, email address, sessions, Favourites and personal lists, and the private recipes it wrote (every private recipe in its household when it is the last member). The public recipes it wrote stay, credited "a former member". A household with others in it carries on; a last member's household stays, renamed "A former household", only while it holds public recipes. */
+        get: operations["account_deletion_retrieve"];
+        put?: never;
+        /** @description Deletes the signed-in account with the code emailed to this browser in the last 10 minutes, and signs it out everywhere. Deleting an account deletes its name, email address, sessions, Favourites and personal lists, and the private recipes it wrote (every private recipe in its household when it is the last member). The public recipes it wrote stay, credited "a former member". A household with others in it carries on; a last member's household stays, renamed "A former household", only while it holds public recipes. 400 for a wrong code with tries left; 403 for a staff account; 409 when this browser has no code to try: none was sent, it was used, it is over 10 minutes old, or the fifth wrong try stopped it. */
+        post: operations["account_deletion_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account/deletion/code/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Emails the signed-in account a 6-digit code that deletes it from this browser for the next 10 minutes, replacing any earlier one. 403 for a staff account; 429 with Retry-After once the address has been sent 3 codes (to sign in or to delete) in 10 minutes. */
+        post: operations["account_deletion_code_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/account/download/": {
         parameters: {
             query?: never;
@@ -532,6 +567,19 @@ export interface components {
             name: string;
             unit_system: components["schemas"]["UnitSystem"];
         };
+        AccountDeletion: {
+            /** @description How many private recipes deleting the account now would delete: those it wrote in its household, or every private recipe in it when it's the household's last member. 0 with no household. */
+            private_recipes: number;
+            /** @description How many public recipes stay, credited "a former member": those it wrote in its household, or every public recipe in it when it's the household's last member. 0 with no household. */
+            public_recipes: number;
+            /** @description How many members stay in the household. 0 for its last member or an account with no household. */
+            others_in_household: number;
+            /** @description Whether it's a staff account, which can't delete itself here. */
+            is_staff: boolean;
+        };
+        AccountDeletionCode: {
+            code: string;
+        };
         /** @enum {unknown} */
         BlankEnum: "";
         Course: {
@@ -824,7 +872,7 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
-            /** @description The name of whoever wrote a public household recipe; null for a private or catalogue recipe. */
+            /** @description The name of whoever wrote a public household recipe; "a former member" once its author has deleted their account; null for a private or catalogue recipe. */
             readonly author: string | null;
             title: string;
             description: string;
@@ -1007,7 +1055,7 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
-            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; null for a private or catalogue recipe. */
+            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; "a former member" once its author has deleted their account; null for a private or catalogue recipe. */
             readonly author: string | null;
             title: string;
             description: string;
@@ -1096,7 +1144,7 @@ export interface components {
             readonly id: number;
             readonly slug: string;
             readonly visibility: components["schemas"]["Visibility"];
-            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; null for a private or catalogue recipe. */
+            /** @description The name of whoever wrote a public household recipe, shown as "by <name>"; "a former member" once its author has deleted their account; null for a private or catalogue recipe. */
             readonly author: string | null;
             title: string;
             description: string;
@@ -1392,6 +1440,109 @@ export interface operations {
             };
             /** @description No response body */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    account_deletion_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDeletion"];
+                };
+            };
+            /** @description No response body */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    account_deletion_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDeletionCode"];
+                "application/x-www-form-urlencoded": components["schemas"]["AccountDeletionCode"];
+                "multipart/form-data": components["schemas"]["AccountDeletionCode"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    account_deletion_code_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

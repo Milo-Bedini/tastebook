@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The dialog: the code</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.box{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;height:720px}
+.ghostpage{position:absolute;inset:0;padding:100px 20px;display:flex;flex-direction:column;gap:16px}
+.ghostpage span{display:block;height:14px;border-radius:var(--radius-pill);background:var(--color-line)}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.dlg{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-card);background:var(--color-surface);color:var(--color-ink);padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.dlg .body{display:flex;flex-direction:column;gap:8px}
+.dlg .body p{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.dlg .body b{color:var(--color-ink);font-weight:800;overflow-wrap:anywhere}
+.dlg .btns{margin-top:8px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.fld{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.err{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:17px;font-weight:700;color:var(--color-danger)}
+.err svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.resend{display:flex}
+.is-focus input{outline:1px solid var(--color-ink);outline-offset:0}
+.is-focus input:not([aria-invalid="true"]){border-color:var(--color-ink)}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;min-height:56px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:12px;padding:4px 18px;font-size:15px;line-height:20px;font-weight:800}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:40px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 3450px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-134 part 2 · the dialog’s second step · phone, 390 px · Sam Jones, sam@example.com</span>
+    <h1 class="ttl">The dialog: the code</h1>
+    <span class="cap">Send code emails a 6-digit code and the same dialog asks for it, with sign-in’s field, words and limits. Delete account is the danger button; it deletes once the code is right. Every error sits on the Code field, as sign-in’s do.</span>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <span class="cap"><b>Sending</b> · Send code keeps its size; Cancel still closes</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="a-t">
+          <h2 id="a-t">Delete your account?</h2>
+          <div class="body">
+            <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+            <p>The 12 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.</p>
+            <p>The 3 public recipes you wrote stay, credited to “a former member”, so links to them keep working.</p>
+            <p>Nightly backups keep a copy for up to 30 days.</p>
+          </div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary" loading="{{yes}}" loading-label="Sending…">Send code</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Too many codes</b> · 429 on Send code; no field yet, so the line sits over the buttons</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="b-t">
+          <h2 id="b-t">Delete your account?</h2>
+          <div class="body">
+            <p>Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.</p>
+            <p>The 12 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.</p>
+            <p>The 3 public recipes you wrote stay, credited to “a former member”, so links to them keep working.</p>
+            <p>Nightly backups keep a copy for up to 30 days.</p>
+          </div>
+          <p class="err" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>You’ve asked for too many codes. Try again in 7 minutes.</span></p>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="primary">Send code</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Code sent</b> · focus in the empty Code field; the number keyboard</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="c-t" aria-describedby="c-d">
+          <h2 id="c-t">Delete your account?</h2>
+          <div class="body" id="c-d">
+            <p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p>
+          </div>
+          <div class="fld is-focus">
+            <label for="c-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="c-code" type="text" input-mode="numeric" auto-complete="one-time-code" max-length="{{six}}" default-value=""></x-import>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Deleting</b> · Delete account shows the request; the dialog stays until it answers</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="d-t">
+          <h2 id="d-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld">
+            <label for="d-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="d-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="123456"></x-import>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger" loading="{{yes}}" loading-label="Deleting…">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Not 6 digits</b> · checked before anything is sent; focus back in the field</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="e-t">
+          <h2 id="e-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld is-focus">
+            <label for="e-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="e-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="12ab" aria-invalid="true" aria-describedby="e-err"></x-import>
+            <p id="e-err" class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>Enter the 6-digit code from the email, like 123456.</span></p>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Wrong code</b> · 400, tries left; the code stays to correct</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="f-t">
+          <h2 id="f-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld is-focus">
+            <label for="f-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="f-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="123465" aria-invalid="true" aria-describedby="f-err"></x-import>
+            <p id="f-err" class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>That code isn’t right. Check the email and try again.</span></p>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Stopped</b> · 409: over 10 minutes, the 5th wrong try, or a newer code sent</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="g-t">
+          <h2 id="g-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld is-focus">
+            <label for="g-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="g-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="123456" aria-invalid="true" aria-describedby="g-err"></x-import>
+            <p id="g-err" class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>That code has stopped working. Send a new code.</span></p>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Sending a new code</b> · only Send a new code shows the request</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="h-t">
+          <h2 id="h-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld">
+            <label for="h-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="h-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="123456"></x-import>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary" loading="{{yes}}" loading-label="Sending…">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>New code sent</b> · the field empties and takes focus; the help line is announced</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="i-t">
+          <h2 id="i-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld is-focus">
+            <label for="i-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="i-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="" aria-describedby="i-help"></x-import>
+            <p id="i-help" class="help" role="status">We sent a new code. The last one has stopped working.</p>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Too many new codes</b> · 429 on Send a new code; the last code still works</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="j-t">
+          <h2 id="j-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld">
+            <label for="j-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="j-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="" aria-invalid="true" aria-describedby="j-err"></x-import>
+            <p id="j-err" class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>You’ve asked for too many codes. Try again in 7 minutes.</span></p>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Couldn’t delete</b> · offline or a 5xx; a toast, and the dialog keeps the code</span>
+      <div class="box">
+        <div class="ghostpage"><span style="width: 55%"></span><span style="width: 80%"></span><span style="width: 70%"></span><span style="width: 40%"></span></div>
+        <div class="scrim"></div>
+        <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="k-t" style="top: 44%">
+          <h2 id="k-t">Delete your account?</h2>
+          <div class="body"><p>We sent a 6-digit code to <b>sam@example.com</b>. It works for 10 minutes.</p></div>
+          <div class="fld">
+            <label for="k-code" class="text-label">Code</label>
+            <x-import component-from-global-scope="Dino.Input" id="k-code" type="text" input-mode="numeric" max-length="{{six}}" default-value="123456"></x-import>
+          </div>
+          <div class="resend"><x-import component-from-global-scope="Dino.Button" variant="secondary">Send a new code</x-import></div>
+          <div class="btns">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Cancel</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="danger">Delete account</x-import>
+          </div>
+        </div>
+        <div class="toast" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>Couldn’t delete your account. Check your connection and try again.</span></div>
+      </div>
+    </div>
+
+    <div class="col" style="padding-top: 27px">
+      <div class="notes">
+        <p><b>One dialog, two steps.</b> The title stays “Delete your account?” throughout, so the question being asked never changes; the description swaps from what goes and stays to where the code went. The address is bold and wraps anywhere, as on sign-in.</p>
+        <p><b>Send a new code sits under the field</b>, a secondary button on its own line, rather than a third button in the row: at 390 px three buttons would wrap and push Delete account away from Cancel. The spec lists it in the button row; this places it with the field it refills.</p>
+        <p><b>The field’s rules are sign-in’s:</b> label “Code”, the number keyboard, one-time-code autofill, at most 6 characters; errors replace nothing, sit in the field’s own line and go when Delete account is pressed again.</p>
+        <p><b>A thrown request is a toast</b> (dock colours, at the foot), as the spec says, so the code stays in the field and pressing again is the retry. “Couldn’t send the code. Check your connection and try again.” is the same toast for either send.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":3450}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, six: 6 };
+  }
+}
+</script>
+</body>
+</html>

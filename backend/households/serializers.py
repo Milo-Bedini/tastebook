@@ -65,3 +65,22 @@ class JoinInviteSerializer(serializers.Serializer):
         help_text='How many private recipes the viewer wrote in their household and would take a copy of by joining. '
         '0 when the link offers them no household to join.'
     )
+
+
+class AccountDeletionSerializer(serializers.Serializer):
+    private_recipes = serializers.IntegerField(
+        help_text='How many private recipes deleting the account now would delete: those it wrote in its household, '
+        "or every private recipe in it when it's the household's last member. 0 with no household."
+    )
+    public_recipes = serializers.IntegerField(
+        help_text='How many public recipes stay, credited "a former member": those it wrote in its household, or every '
+        "public recipe in it when it's the household's last member. 0 with no household."
+    )
+    others_in_household = serializers.IntegerField(
+        help_text='How many members stay in the household. 0 for its last member or an account with no household.'
+    )
+    is_staff = serializers.BooleanField(help_text="Whether it's a staff account, which can't delete itself here.")
+
+
+class AccountDeletionCodeSerializer(serializers.Serializer):
+    code = serializers.CharField()

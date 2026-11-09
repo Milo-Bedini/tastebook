@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from households.models import Household, User
-from households.signals import member_moved
+from households.signals import household_emptied, member_moved
 from recipes.models import Recipe
 from recipes.signals import counting_saves
 
@@ -112,3 +112,9 @@ def drop_unseen_saves(sender: type[User], account: User, left: int, **kwargs: An
     SavedRecipe.objects.filter(recipe_list__owner=account, recipe__household_id=left).exclude(
         recipe__in=Recipe.objects.visible_to(account)
     ).delete()
+
+
+@receiver(household_emptied, dispatch_uid='collections-drop-household-lists')
+def drop_household_lists(sender: type[Household], household_id: int, **kwargs: Any) -> None:
+    """A household nobody is left in keeps no lists, as nobody is left to see them."""
+    RecipeList.objects.filter(household_id=household_id).delete()
