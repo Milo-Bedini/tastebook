@@ -956,7 +956,7 @@ export interface components {
             readonly will_wait_for_review: boolean;
             /** @description How many other accounts have saved this recipe, which its delete dialog warns of; null unless the signed-in account may delete it. */
             readonly save_count: number | null;
-            /** @description Whether the signed-in account may turn a share link to this recipe on or off: its author, while it is private, not waiting for review and in their household. */
+            /** @description Whether the signed-in account may turn a share link to this recipe on or off: its author, while it is private, not waiting for review or removed by staff, and in their household. */
             readonly can_share: boolean;
             /** @description The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in account may share it and the link is on. */
             readonly share_token: string | null;
@@ -2582,7 +2582,7 @@ export interface operations {
                     "application/json": components["schemas"]["Recipe"];
                 };
             };
-            /** @description The recipe is public, so anyone can open it already, or waiting for review, so it will be. */
+            /** @description The recipe is public, so anyone can open it already, waiting for review, so it will be, or removed by staff. */
             400: {
                 headers: {
                     [name: string]: unknown;

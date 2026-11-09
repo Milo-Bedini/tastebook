@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 from django.http import HttpResponse
+from django.test import Client
 from rest_framework.test import APIClient
 
 from households.models import User
@@ -14,6 +15,8 @@ from tests.test_join import join_through
 from tests.test_moving_recipes import ANN, JO
 from tests.test_private_recipes import another_household, another_member, its_author, stranger
 from tests.test_publishing_recipes import publish
+from tests.test_reporting_recipes import report
+from tests.test_reviewing_reports import reported_curry, review
 
 SHARED = '/api/shared/'
 
@@ -213,6 +216,38 @@ def test_making_the_recipe_public_stops_its_link_for_good() -> None:
     assert stopped == 404
     assert (private_again['can_share'], private_again['share_token']) == (True, None)
     assert open_link(token).status_code == 404
+
+
+@pytest.mark.django_db
+def test_a_recipe_staff_removed_has_no_link_to_turn_on(admin_client: Client) -> None:
+    slug = reported_curry()
+    review(admin_client, 'remove', slug)
+
+    response = turn_on(its_author(), slug)
+
+    assert (response.status_code, response.json()) == (
+        400,
+        {'share_link': ['Staff removed this recipe from public view after a report, so it has no share link.']},
+    )
+    assert ShareLink.objects.count() == 0
+    assert its_author().client.get(f'{RECIPES}{slug}/').json()['can_share'] is False
+
+
+@pytest.mark.django_db
+def test_staff_removing_the_recipe_stops_its_link(admin_client: Client) -> None:
+    slug = reported_curry()
+    review(admin_client, 'restore', slug)
+    # A restored recipe's later report doesn't hide it, so its author can make it private and share it meanwhile.
+    report(signed_up('cy@example.com', 'Cy'), slug)
+    milo = its_author()
+    publish(milo, slug, 'private')
+    token = turn_on(milo, slug).json()['share_token']
+    opened = open_link(token).status_code
+
+    review(admin_client, 'remove', slug)
+
+    assert (opened, open_link(token).status_code) == (200, 404)
+    assert ShareLink.objects.count() == 0
 
 
 @pytest.mark.django_db

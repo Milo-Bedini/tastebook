@@ -1193,8 +1193,8 @@ paths:
                 $ref: '#/components/schemas/Recipe'
           description: ''
         '400':
-          description: The recipe is public, so anyone can open it already, or waiting
-            for review, so it will be.
+          description: The recipe is public, so anyone can open it already, waiting
+            for review, so it will be, or removed by staff.
         '403':
           description: Signed out, or the account has no household yet.
         '404':
@@ -2538,7 +2538,7 @@ components:
           readOnly: true
           description: 'Whether the signed-in account may turn a share link to this
             recipe on or off: its author, while it is private, not waiting for review
-            and in their household.'
+            or removed by staff, and in their household.'
         share_token:
           type: string
           nullable: true

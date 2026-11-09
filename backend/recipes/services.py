@@ -341,6 +341,8 @@ def remove_recipe(recipe: Recipe) -> Recipe:
     recipe.visibility = Visibility.PRIVATE
     recipe.moderation = Moderation.REMOVED
     recipe.save(update_fields=['visibility', 'moderation'])
+    # Its author may have shared it while a report of it, once restored, awaited review.
+    turn_off_share_link(recipe)
     return recipe
 
 
@@ -384,12 +386,16 @@ def tell_author_of_review(recipe: Recipe, reasons: list[str]) -> None:
 
 def turn_on_share_link(recipe: Recipe) -> ShareLink:
     """Gives the private recipe a share link, or the one it has. Raises ValidationError({'share_link': [...]}) for a
-    public recipe, which anyone can open already, or one waiting for review, which will be public."""
+    public recipe, which anyone can open already, one waiting for review, which will be public, or one staff removed."""
     if recipe.visibility != Visibility.PRIVATE:
         raise ValidationError({'share_link': ['A public recipe is open to anyone already, so it has no share link.']})
     if recipe.moderation == Moderation.HELD:
         raise ValidationError(
             {'share_link': ['This recipe will be public once staff approve it, so it has no share link.']}
+        )
+    if recipe.moderation == Moderation.REMOVED:
+        raise ValidationError(
+            {'share_link': ['Staff removed this recipe from public view after a report, so it has no share link.']}
         )
     link, _ = ShareLink.objects.get_or_create(recipe=recipe)
     return link
