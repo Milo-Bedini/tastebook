@@ -67,6 +67,13 @@ class SeedMemberSerializer(serializers.Serializer):
         default=list,
         help_text="Titles of this member's own private recipes they share by link once every recipe is made private.",
     )
+    made_public = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text="Titles of this member's own private recipes they make public, in order, once every share is made. "
+        'Each counts towards the day, so once 3 are public each one more waits for review.',
+    )
     restored = serializers.ListField(
         child=serializers.CharField(max_length=200),
         max_length=20,

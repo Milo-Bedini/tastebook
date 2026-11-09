@@ -33,6 +33,7 @@ from recipes.serializers import (
     SharedRecipeSerializer,
 )
 from recipes.services import (
+    PUBLIC_A_DAY,
     IngredientList,
     add_ingredient,
     add_recipe,
@@ -241,6 +242,8 @@ class RecipeVisibilityView(APIView):
             ),
         },
         description="Makes a recipe of the signed-in account's household public or private. Only its author may. "
+        f'Once they have made {PUBLIC_A_DAY} others public today, it waits for review instead (waiting_for_review): it '
+        'stays private until staff approve it, asking again changes nothing, and making it private withdraws it. '
         'Asking for the visibility it already has changes nothing.',
     )
     def put(self, request: Request, slug: str) -> Response:
@@ -276,7 +279,9 @@ class RecipeShareLinkView(APIView):
         request=None,
         responses={
             200: RecipeSerializer,
-            400: OpenApiResponse(description='The recipe is public, so anyone can open it already.'),
+            400: OpenApiResponse(
+                description='The recipe is public, so anyone can open it already, or waiting for review, so it will be.'
+            ),
             403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
             404: OpenApiResponse(
                 description="No recipe has this slug that the account may share: there's none, it's another "

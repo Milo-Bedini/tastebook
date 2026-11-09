@@ -1,15 +1,14 @@
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
 import pytest
 from django.core.mail import EmailMessage
 from django.http import HttpResponse
-from django.utils import timezone
 
 from households.models import Household, Invite, User
 from households.services import make_invite
+from tests.conftest import Clock
 from tests.test_accounts import BrowserClient, save_name, sign_up
 
 HOUSEHOLD = '/api/household/'
@@ -46,18 +45,6 @@ def make_link(browser: BrowserClient) -> HttpResponse:
 
 def cancel_link(browser: BrowserClient) -> HttpResponse:
     return browser.client.delete(INVITE, **browser.csrf_header())
-
-
-@dataclass
-class Clock:
-    now: datetime
-
-
-@pytest.fixture
-def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
-    frozen = Clock(timezone.now())
-    monkeypatch.setattr(timezone, 'now', lambda: frozen.now)
-    return frozen
 
 
 def household_id_of(email: str) -> int | None:

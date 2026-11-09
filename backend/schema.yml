@@ -1193,7 +1193,8 @@ paths:
                 $ref: '#/components/schemas/Recipe'
           description: ''
         '400':
-          description: The recipe is public, so anyone can open it already.
+          description: The recipe is public, so anyone can open it already, or waiting
+            for review, so it will be.
         '403':
           description: Signed out, or the account has no household yet.
         '404':
@@ -1231,8 +1232,11 @@ paths:
   /api/recipes/{slug}/visibility/:
     put:
       operationId: recipes_visibility_update
-      description: Makes a recipe of the signed-in account's household public or private.
-        Only its author may. Asking for the visibility it already has changes nothing.
+      description: 'Makes a recipe of the signed-in account''s household public or
+        private. Only its author may. Once they have made 3 others public today, it
+        waits for review instead (waiting_for_review): it stays private until staff
+        approve it, asking again changes nothing, and making it private withdraws
+        it. Asking for the visibility it already has changes nothing.'
       parameters:
       - in: path
         name: slug
@@ -1893,6 +1897,11 @@ components:
           readOnly: true
           description: Whether a report hides this recipe from everyone but its author,
             who alone is sent it until staff review it.
+        waiting_for_review:
+          type: boolean
+          readOnly: true
+          description: Whether its author asked to make this recipe public after making
+            3 others public that day, so it stays private until staff approve it.
       required:
       - author
       - cuisines
@@ -1906,6 +1915,7 @@ components:
       - title
       - total_minutes
       - visibility
+      - waiting_for_review
     Lists:
       type: object
       properties:
@@ -2384,6 +2394,11 @@ components:
           readOnly: true
           description: Whether a report hides this recipe from everyone but its author,
             who alone is sent it until staff review it.
+        waiting_for_review:
+          type: boolean
+          readOnly: true
+          description: Whether its author asked to make this recipe public after making
+            3 others public that day, so it stays private until staff approve it.
         adapted_from:
           allOf:
           - $ref: '#/components/schemas/OriginalRecipe'
@@ -2506,6 +2521,12 @@ components:
           readOnly: true
           description: 'Whether the signed-in account may make this recipe public
             or private: its author, while it is in their household.'
+        will_wait_for_review:
+          type: boolean
+          readOnly: true
+          description: Whether making this recipe public now would leave it waiting
+            for review, as its author has made 3 others public today; false unless
+            the signed-in account may make it public.
         save_count:
           type: integer
           nullable: true
@@ -2516,7 +2537,8 @@ components:
           type: boolean
           readOnly: true
           description: 'Whether the signed-in account may turn a share link to this
-            recipe on or off: its author, while it is private and in their household.'
+            recipe on or off: its author, while it is private, not waiting for review
+            and in their household.'
         share_token:
           type: string
           nullable: true
@@ -2573,6 +2595,8 @@ components:
       - title
       - total_minutes
       - visibility
+      - waiting_for_review
+      - will_wait_for_review
       - yield_amount
       - yield_unit
     RecipeLists:
@@ -2670,6 +2694,11 @@ components:
           readOnly: true
           description: Whether a report hides this recipe from everyone but its author,
             who alone is sent it until staff review it.
+        waiting_for_review:
+          type: boolean
+          readOnly: true
+          description: Whether its author asked to make this recipe public after making
+            3 others public that day, so it stays private until staff approve it.
       required:
       - author
       - cuisines
@@ -2683,6 +2712,7 @@ components:
       - title
       - total_minutes
       - visibility
+      - waiting_for_review
     RecipeVisibility:
       type: object
       properties:
@@ -2926,6 +2956,15 @@ components:
             maxLength: 200
           description: Titles of this member's own private recipes they share by link
             once every recipe is made private.
+          maxItems: 20
+        made_public:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Titles of this member's own private recipes they make public,
+            in order, once every share is made. Each counts towards the day, so once
+            3 are public each one more waits for review.
           maxItems: 20
         restored:
           type: array

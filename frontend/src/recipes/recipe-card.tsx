@@ -1,4 +1,4 @@
-import { EyeOff } from 'lucide-react';
+import { EyeOff, Hourglass } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import type { components } from '../api/schema';
@@ -35,11 +35,18 @@ const metaOf = (recipe: RecipeSummary) => {
   return parts.filter((part) => part !== '').join(' · ');
 };
 
-type RecipeMetaProps = { author: string | null; isPrivate: boolean; isHidden: boolean; meta: string };
+type RecipeMetaProps = {
+  author: string | null;
+  isPrivate: boolean;
+  isHidden: boolean;
+  isWaiting: boolean;
+  meta: string;
+};
 
 // The mark, or a public household recipe's credit in its place, sits above the meta, so it's read with the card. Its
-// author's card for a recipe a report hides says so in place of the credit.
-const RecipeMeta = ({ author, isPrivate, isHidden, meta }: RecipeMetaProps) => (
+// author's card for a recipe a report hides says so in place of the credit, and one waiting for review in place of the
+// mark.
+const RecipeMeta = ({ author, isPrivate, isHidden, isWaiting, meta }: RecipeMetaProps) => (
   <>
     {isHidden && (
       <p className="mb-1 flex w-fit items-center gap-1 text-ink">
@@ -47,8 +54,14 @@ const RecipeMeta = ({ author, isPrivate, isHidden, meta }: RecipeMetaProps) => (
         Hidden for review
       </p>
     )}
+    {isWaiting && (
+      <p className="mb-1 flex w-fit items-center gap-1 text-ink">
+        <Hourglass aria-hidden="true" strokeWidth={2.25} className="size-3.5 shrink-0" />
+        Waiting for review
+      </p>
+    )}
     {author !== null && !isHidden && <p>{`by ${author}`}</p>}
-    {author === null && isPrivate && (
+    {author === null && isPrivate && !isWaiting && (
       <span className="mb-1 block">
         <PrivateMark />
       </span>
@@ -83,7 +96,13 @@ export const RecipeCard = ({ recipe, lean, eager, openedFrom, action }: RecipeCa
         action={action}
       >
         {(isPrivate || recipe.author !== null || recipe.hidden_for_review || meta !== '') && (
-          <RecipeMeta author={recipe.author} isPrivate={isPrivate} isHidden={recipe.hidden_for_review} meta={meta} />
+          <RecipeMeta
+            author={recipe.author}
+            isPrivate={isPrivate}
+            isHidden={recipe.hidden_for_review}
+            isWaiting={recipe.waiting_for_review}
+            meta={meta}
+          />
         )}
       </PolaroidCard>
     </li>

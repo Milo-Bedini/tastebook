@@ -156,3 +156,27 @@ export const reportableRecipes: SeedHouseholdOf<'sam' | 'milo'>[] = [
   },
   { members: [{ key: 'milo', name: 'Milo' }] }
 ];
+
+const busyDayTitles = ["Sam's busy-day soup", "Sam's busy-day salad", "Sam's busy-day stew", "Sam's busy-day traybake"];
+
+// Sam, in "Sam's household", wrote four complete private recipes and has made the first three public today, so making
+// the fourth, "Sam's busy-day traybake", public leaves it waiting for review. Cy is in a household of their own. The
+// titles are their own: once approved, the traybake is found by every spec that searches the database.
+export const busyDay: SeedHouseholdOf<'sam' | 'cy'>[] = [
+  {
+    members: [
+      {
+        key: 'sam',
+        name: 'Sam',
+        recipes: busyDayTitles.map((title) => ({
+          ...reportableCurry,
+          title,
+          description: 'One of a busy day of recipes.',
+          visibility: 'private'
+        })),
+        made_public: busyDayTitles.slice(0, 3)
+      }
+    ]
+  },
+  { members: [{ key: 'cy', name: 'Cy' }] }
+];

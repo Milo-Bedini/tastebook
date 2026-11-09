@@ -48,10 +48,12 @@ const curry: Recipe = {
   can_delete: false,
   can_edit: false,
   can_publish: false,
+  will_wait_for_review: false,
   save_count: null,
   can_share: false,
   share_token: null,
   hidden_for_review: false,
+  waiting_for_review: false,
   can_report: true,
   reported: false
 };
@@ -338,6 +340,7 @@ const authorsCurry: Recipe = {
   can_edit: true,
   can_delete: true,
   can_publish: true,
+  will_wait_for_review: false,
   save_count: 0
 };
 
@@ -385,6 +388,7 @@ describe("The author's hidden recipe", () => {
       photo: null,
       diet_tags: [],
       hidden_for_review: false,
+      waiting_for_review: false,
       ...fields
     });
     server.use(

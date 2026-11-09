@@ -68,6 +68,7 @@ class Moderation(models.TextChoices):
     HIDDEN = 'hidden', 'Hidden while a report is reviewed'
     RESTORED = 'restored', 'Restored by staff'
     REMOVED = 'removed', 'Removed by staff'
+    HELD = 'held', 'Waiting for review'
 
 
 class RecipeQuerySet(models.QuerySet['Recipe']):
@@ -224,8 +225,10 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
                     original,
                     household_id=household_id,
                     slug=Recipe.objects.private_slug_for(original.title),
-                    # A new recipe, so its original's reports and staff's review of them stay with the original.
+                    # A new recipe, so its original's reports, staff's review of them and its publishing stay with
+                    # the original.
                     moderation=Moderation.UNREPORTED,
+                    published_at=None,
                     **made_by_copier(original),
                 )
                 for original in originals
@@ -338,7 +341,15 @@ class Recipe(models.Model):
         default=Moderation.UNREPORTED,
         editable=False,
         help_text="A recipe's first report hides it from everyone but its author until staff review it. Once staff "
-        'restore it, later reports reach staff without hiding it; once they remove it, it stays private.',
+        'restore it, later reports reach staff without hiding it; once they remove it, it stays private. A recipe '
+        'waiting for review stays private until staff approve it.',
+    )
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False,
+        help_text='When its author first asked to make it public on the latest day they did, which counts it towards '
+        "that day's recipes made public.",
     )
     adapted_from = models.ForeignKey(
         'self',
@@ -569,6 +580,15 @@ class ReportedRecipe(Recipe):
 
     class Meta:
         proxy = True
+
+
+class HeldRecipe(Recipe):
+    """A household's recipe waiting for review, as staff approve it in the admin."""
+
+    class Meta:
+        proxy = True
+        verbose_name = 'recipe waiting for review'
+        verbose_name_plural = 'recipes waiting for review'
 
 
 class IngredientStatus(models.TextChoices):
@@ -818,6 +838,8 @@ def take_recipes_written(sender: type[User], account: User, left: int, **kwargs:
     written.public().update(household_id=account.household_id)
     # The original stays behind where its author can no longer turn its link off, so the link stops; the copy has none.
     ShareLink.objects.filter(recipe__in=written.private()).delete()
+    # Nor could they make it private again, so staff aren't asked to make it public in a household its author left.
+    written.private().filter(moderation=Moderation.HELD).update(moderation=Moderation.UNREPORTED)
     written.private().copy_into(account.household_id)
 
 

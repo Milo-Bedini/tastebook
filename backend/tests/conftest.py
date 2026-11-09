@@ -1,8 +1,11 @@
 import os
+from dataclasses import dataclass
+from datetime import datetime
 
 import pytest
 from django.conf import settings as django_settings
 from django.test import Client
+from django.utils import timezone
 from pytest_django.fixtures import Settings
 
 from households.models import User
@@ -39,3 +42,15 @@ def test_accounts(settings: Settings) -> Settings:
     settings.TEST_ACCOUNT_CODES_NEED_SECRET = False
     settings.TEST_ACCOUNT_SECRET = SECRET
     return settings
+
+
+@dataclass
+class Clock:
+    now: datetime
+
+
+@pytest.fixture
+def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
+    frozen = Clock(timezone.now())
+    monkeypatch.setattr(timezone, 'now', lambda: frozen.now)
+    return frozen

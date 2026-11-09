@@ -29,7 +29,8 @@ const appleTart: Recipe = {
   total_minutes: 100,
   photo: null,
   diet_tags: [],
-  hidden_for_review: false
+  hidden_for_review: false,
+  waiting_for_review: false
 };
 const bananaBread: Recipe = {
   id: 2,
@@ -43,7 +44,8 @@ const bananaBread: Recipe = {
   total_minutes: 75,
   photo: null,
   diet_tags: [],
-  hidden_for_review: false
+  hidden_for_review: false,
+  waiting_for_review: false
 };
 
 // Holds the next response from `path` until released, so the test can see the page while the request is in flight.
@@ -207,7 +209,8 @@ describe('RecipesPage', () => {
           total_minutes: 35,
           photo: null,
           diet_tags: [],
-          hidden_for_review: false
+          hidden_for_review: false,
+          waiting_for_review: false
         },
         {
           id: 3,
@@ -221,7 +224,8 @@ describe('RecipesPage', () => {
           total_minutes: 90,
           photo: null,
           diet_tags: [],
-          hidden_for_review: false
+          hidden_for_review: false,
+          waiting_for_review: false
         }
       ])
     );
@@ -266,7 +270,8 @@ describe('RecipesPage', () => {
             total_minutes: 25,
             photo: null,
             diet_tags: [],
-            hidden_for_review: false
+            hidden_for_review: false,
+            waiting_for_review: false
           }
         ])
       )
@@ -298,7 +303,8 @@ describe('RecipesPage', () => {
             total_minutes: null,
             photo: null,
             diet_tags: [],
-            hidden_for_review: false
+            hidden_for_review: false,
+            waiting_for_review: false
           },
           appleTart
         ])
@@ -430,6 +436,31 @@ describe('RecipesPage', () => {
     expect(screen.getByRole('link', { name: "Grandma's curry" })).toHaveAccessibleDescription(
       'Private 1 hr 15 min · Easy'
     );
+  });
+
+  it('says "Waiting for review" on the card of a recipe waiting for review, in place of "Private"', async () => {
+    const privateRecipe = { ...bananaBread, visibility: 'private' } as const;
+    server.use(
+      http.get('/api/recipes/', () =>
+        HttpResponse.json<Recipe[]>([
+          {
+            ...privateRecipe,
+            id: 5,
+            slug: 'grandmas-curry-k7m2qx',
+            title: "Grandma's curry",
+            waiting_for_review: true
+          },
+          { ...privateRecipe, id: 6, slug: 'sams-dal-d4l9xz', title: "Sam's dal" }
+        ])
+      )
+    );
+
+    renderRoute('/recipes');
+
+    expect(await screen.findByRole('link', { name: "Grandma's curry" })).toHaveAccessibleDescription(
+      'Waiting for review 1 hr 15 min · Easy'
+    );
+    expect(screen.getByRole('link', { name: "Sam's dal" })).toHaveAccessibleDescription('Private 1 hr 15 min · Easy');
   });
 
   it('credits a public household recipe\'s card "by" its author, and not a catalogue one\'s', async () => {
@@ -639,7 +670,8 @@ describe('RecipesPage', () => {
           total_minutes: 35,
           photo: null,
           diet_tags: [],
-          hidden_for_review: false
+          hidden_for_review: false,
+          waiting_for_review: false
         }
       ])
     );
