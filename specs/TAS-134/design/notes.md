@@ -4,12 +4,12 @@ Canvas: https://claude.ai/artifact/VTKbPDdeQBuMVGmRd3Nk8W
 
 ## Boards
 
-- **Main** — The Delete your account section: a fourth section at the foot of /account after Your data, with a danger "Delete account" button; phone (390), 320 px with keyboard focus, and laptop (1288) with the dialog open (384 px wide from 424 px up).
-- **Dialog-numbers** — The dialog's first step, what goes and what stays: Checking (loading), Couldn't check (ErrorWithRetry), with others in the household, the last member, nothing written yet, and staff (a notice with only Close). Lines with a number of 0 are left out; Send code is primary.
-- **Dialog-code** — The dialog's second step, the code: Sending, Too many codes (429), Code sent, Deleting, Not 6 digits, Wrong code (400), Stopped (409), Sending a new code, New code sent, Too many new codes, Couldn't delete (toast; the dialog keeps the code).
-- **Deleted** — After a 204: signed out on the home page with the "Your account is deleted." success toast, and Jo's Favourites showing Sam's public recipe "by a former member".
-- **ConfirmDialog** — The changed Dino component: several lines of description, content (children), an error with no field, loading, failed, a notice, 320 px, forced colours, and the proposed props.
-- **Rule-change** — Proposed rule change to docs/design.md's Dialog row (below).
+- `docs/design/picnic/account-delete.dc.html` — The Delete your account section: a fourth section at the foot of /account after Your data, with a danger "Delete account" button; phone (390), 320 px with keyboard focus, and laptop (1288) with the dialog open (384 px wide from 424 px up).
+- `docs/design/picnic/account-delete-numbers.dc.html` — The dialog's first step, what goes and what stays: Checking (loading), Couldn't check (ErrorWithRetry), with others in the household, the last member, nothing written yet, and staff (a notice with only Close). Lines with a number of 0 are left out; Send code is primary.
+- `docs/design/picnic/account-delete-code.dc.html` — The dialog's second step, the code: Sending, Too many codes (429), Code sent, Deleting, Not 6 digits, Wrong code (400), Stopped (409), Sending a new code, New code sent, Too many new codes, Couldn't delete (toast; the dialog keeps the code).
+- `docs/design/picnic/account-delete-deleted.dc.html` — After a 204: signed out on the home page with the "Your account is deleted." success toast, and Jo's Favourites showing Sam's public recipe "by a former member".
+- `docs/design/dino/confirm-dialog-steps.dc.html` — The changed Dino component: several lines of description, content (children), an error with no field, loading, failed, a notice, 320 px, forced colours, and the proposed props.
+- `docs/design/dino/confirm-dialog-steps-rule-change.dc.html` — Proposed rule change to docs/design.md's Dialog row (below).
 
 ## Reading the boards
 
