@@ -1,3 +1,4 @@
+import { EyeOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import type { components } from '../api/schema';
@@ -11,6 +12,22 @@ type RecipeSummary = components['schemas']['RecipeSummary'];
 // A list's name and address, which a recipe opened from it offers as the way back.
 export type OpenedFrom = { name: string; path: string };
 
+// The list a recipe's page was opened from, from the page's location state, or null when it wasn't opened from one.
+export const openedFromList = (state: unknown): OpenedFrom | null => {
+  if (typeof state !== 'object' || state === null || !('openedFrom' in state)) {
+    return null;
+  }
+  const { openedFrom } = state;
+  return typeof openedFrom === 'object' &&
+    openedFrom !== null &&
+    'name' in openedFrom &&
+    typeof openedFrom.name === 'string' &&
+    'path' in openedFrom &&
+    typeof openedFrom.path === 'string'
+    ? { name: openedFrom.name, path: openedFrom.path }
+    : null;
+};
+
 const metaOf = (recipe: RecipeSummary) => {
   const cuisineNames = recipe.cuisines.map(({ name }) => name).join(', ');
   const totalTime = recipe.total_minutes === null ? '' : formatMinutes(recipe.total_minutes);
@@ -18,12 +35,19 @@ const metaOf = (recipe: RecipeSummary) => {
   return parts.filter((part) => part !== '').join(' · ');
 };
 
-type RecipeMetaProps = { author: string | null; isPrivate: boolean; meta: string };
+type RecipeMetaProps = { author: string | null; isPrivate: boolean; isHidden: boolean; meta: string };
 
-// The mark, or a public household recipe's credit in its place, sits above the meta, so it's read with the card.
-const RecipeMeta = ({ author, isPrivate, meta }: RecipeMetaProps) => (
+// The mark, or a public household recipe's credit in its place, sits above the meta, so it's read with the card. Its
+// author's card for a recipe a report hides says so in place of the credit.
+const RecipeMeta = ({ author, isPrivate, isHidden, meta }: RecipeMetaProps) => (
   <>
-    {author !== null && <p>{`by ${author}`}</p>}
+    {isHidden && (
+      <p className="mb-1 flex w-fit items-center gap-1 text-ink">
+        <EyeOff aria-hidden="true" strokeWidth={2.25} className="size-3.5 shrink-0" />
+        Hidden for review
+      </p>
+    )}
+    {author !== null && !isHidden && <p>{`by ${author}`}</p>}
     {author === null && isPrivate && (
       <span className="mb-1 block">
         <PrivateMark />
@@ -58,8 +82,8 @@ export const RecipeCard = ({ recipe, lean, eager, openedFrom, action }: RecipeCa
         eager={eager}
         action={action}
       >
-        {(isPrivate || recipe.author !== null || meta !== '') && (
-          <RecipeMeta author={recipe.author} isPrivate={isPrivate} meta={meta} />
+        {(isPrivate || recipe.author !== null || recipe.hidden_for_review || meta !== '') && (
+          <RecipeMeta author={recipe.author} isPrivate={isPrivate} isHidden={recipe.hidden_for_review} meta={meta} />
         )}
       </PolaroidCard>
     </li>

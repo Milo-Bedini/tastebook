@@ -123,3 +123,36 @@ export const copiedRecipe: SeedHouseholdOf<'sam' | 'jo'>[] = [
   { members: [{ key: 'sam', name: 'Sam', recipes: [sharedDal] }] },
   { members: [{ key: 'jo', name: 'Jo', copies: ["Nana's dal"] }] }
 ];
+
+const reportableCurry = {
+  title: "Grandma's Sunday curry",
+  description: "Sam's grandma's Sunday curry, slow and mild. Better the next day.",
+  visibility: 'public',
+  cuisines: ['Indian'],
+  difficulty: 'easy',
+  prep_minutes: 20,
+  cook_minutes: 40,
+  servings: 4,
+  ingredient_lines: [
+    { amount: 1, ingredient: 'onion' },
+    { amount: 2, ingredient: 'garlic', note: 'cloves' }
+  ],
+  steps: ['Fry the onion and garlic until soft.', 'Add the spices and simmer for 40 minutes.']
+};
+
+// Sam, in "Sam's household", wrote two public recipes: "Grandma's Sunday curry", and "Sam's restored dal", which staff
+// restored after an earlier report, so a report leaves it up. Milo is in a household of his own. Their titles are
+// their own: a report hides the curry from every other spec that searches the database.
+export const reportableRecipes: SeedHouseholdOf<'sam' | 'milo'>[] = [
+  {
+    members: [
+      {
+        key: 'sam',
+        name: 'Sam',
+        recipes: [reportableCurry, { ...reportableCurry, title: "Sam's restored dal", description: 'Red lentils.' }],
+        restored: ["Sam's restored dal"]
+      }
+    ]
+  },
+  { members: [{ key: 'milo', name: 'Milo' }] }
+];
