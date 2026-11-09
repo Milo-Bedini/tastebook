@@ -1,8 +1,11 @@
 name: Mutation testing
 
-# Mutation-tests the source files changed on main since a date, and times each side. Run by hand; the factory's
-# weekly clean-up calls the same two commands.
+# Mutation-tests the source files changed on main since a date, at most two a side, and times each side. Runs every
+# Monday at 04:30 UTC, an hour or more before the factory's weekly clean-up, which reads each side's summary from the
+# run's mutation-frontend and mutation-backend artifacts; it can also be run by hand.
 on:
+  schedule:
+    - cron: "30 4 * * 1"
   workflow_dispatch:
     inputs:
       since:
@@ -32,14 +35,16 @@ jobs:
         env:
           SINCE: ${{ inputs.since || '7 days ago' }}
         run: |
-          # Diff main as it was at SINCE against main now, so a PR merged in the window counts whenever its commits
-          # were written. Each command skips what isn't its own source, so the list only drops deleted files.
+          # Diff main as it was at SINCE (the empty tree before main's first commit) against main now, so a PR merged
+          # in the window counts whenever its commits were written. Deleted files are dropped and the rest listed by
+          # lines changed (added plus deleted; a binary file's "-" counts as 0), most first: each command skips what
+          # isn't its own source, then keeps the first --max-files.
           from=$(git rev-list -1 --first-parent --before="$SINCE" origin/main)
-          if [ -n "$from" ]; then
-            files=$(git diff --name-only --diff-filter=d "$from" origin/main)
-          else
-            files=$(git ls-tree -r --name-only origin/main)
-          fi
+          from=${from:-$(git hash-object -t tree /dev/null)}
+          files=$(git -c core.quotePath=false diff --numstat --no-renames --diff-filter=d "$from" origin/main \
+            | awk -F '\t' -v OFS='\t' '{ print ($1 == "-" ? 0 : $1) + ($2 == "-" ? 0 : $2), $3 }' \
+            | sort -t "$(printf '\t')" -k1,1nr -s \
+            | cut -f 2-)
           echo "Changed since $SINCE: $(printf '%s' "$files" | grep -c . || true) files"
           {
             echo 'files<<EOF'
@@ -51,6 +56,8 @@ jobs:
     name: Frontend
     needs: changes
     runs-on: ubuntu-latest
+    # A side that runs out of time uploads no summary, which the clean-up reports as a gap.
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -66,7 +73,13 @@ jobs:
           CHANGED_FILES: ${{ needs.changes.outputs.files }}
         run: |
           mapfile -t files <<< "$CHANGED_FILES"
-          pnpm mutation:frontend --out mutation-frontend.json "${files[@]}"
+          pnpm mutation:frontend --out mutation-frontend.json --max-files 2 "${files[@]}"
+      - name: Upload the summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mutation-frontend
+          path: mutation-frontend.json
       - name: Summarise
         if: ${{ !cancelled() && hashFiles('mutation-frontend.json') != '' }}
         run: jq -r --arg side Frontend -f .github/mutation-summary.jq mutation-frontend.json >> "$GITHUB_STEP_SUMMARY"
@@ -75,6 +88,8 @@ jobs:
     name: Backend
     needs: changes
     runs-on: ubuntu-latest
+    # A side that runs out of time uploads no summary, which the clean-up reports as a gap.
+    timeout-minutes: 50
     services:
       postgres:
         image: postgres:18
@@ -127,7 +142,13 @@ jobs:
           CHANGED_FILES: ${{ needs.changes.outputs.files }}
         run: |
           mapfile -t files <<< "$CHANGED_FILES"
-          pnpm mutation:backend --out mutation-backend.json "${files[@]}"
+          pnpm mutation:backend --out mutation-backend.json --max-files 2 "${files[@]}"
+      - name: Upload the summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mutation-backend
+          path: mutation-backend.json
       - name: Summarise
         if: ${{ !cancelled() && hashFiles('mutation-backend.json') != '' }}
         run: jq -r --arg side Backend -f .github/mutation-summary.jq mutation-backend.json >> "$GITHUB_STEP_SUMMARY"
