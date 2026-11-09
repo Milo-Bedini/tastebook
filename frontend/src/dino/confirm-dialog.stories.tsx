@@ -4,6 +4,8 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '@/dino/button';
 import { ConfirmDialog } from '@/dino/confirm-dialog';
+import { Field } from '@/dino/field';
+import { Input } from '@/dino/input';
 import { Switch } from '@/dino/switch';
 
 const meta = {
@@ -99,7 +101,7 @@ const publishing = {
 // Opened by a switch rather than a trigger of its own, as the recipe page's Public switch opens it.
 export const PrimaryTone = {
   args: { ...publishing, pending: false },
-  render: ({ pending, onConfirm }) => {
+  render: ({ pending = false, onConfirm = () => {} }) => {
     const [open, setOpen] = useState(false);
     return (
       <>
@@ -137,7 +139,7 @@ export const PrimaryTone = {
 
 export const Controlled = {
   args: { ...publishing, pending: true },
-  render: ({ pending, onConfirm }) => {
+  render: ({ pending = false, onConfirm = () => {} }) => {
     const [open, setOpen] = useState(true);
     return <ConfirmDialog {...publishing} open={open} onOpenChange={setOpen} pending={pending} onConfirm={onConfirm} />;
   },
@@ -152,5 +154,226 @@ export const Controlled = {
     await userEvent.click(confirm);
     await expect(args.onConfirm).not.toHaveBeenCalled();
     await expect(dialog).toBeVisible();
+  }
+} satisfies Story;
+
+const deleting = { title: 'Delete your account?' } as const;
+
+const everyLine = [
+  'Your name, email address, Favourites and personal lists will be deleted, and you’ll be signed out everywhere.',
+  'The 12 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.',
+  'Nightly backups keep a copy for up to 30 days.'
+];
+
+const sendCode = { pending: false, pendingLabel: 'Sending…', confirmLabel: 'Send code', tone: 'primary' } as const;
+
+// The stories below hold their dialog open themselves, so these stand in for the caller.
+const confirmed = fn();
+const retried = fn(async () => {});
+
+// Opens already open and stays so, as a page holds it open across its steps.
+const opened = async (canvasElement: HTMLElement) => {
+  const body = within(canvasElement.ownerDocument.body);
+  const dialog = await body.findByRole('alertdialog', { name: 'Delete your account?' });
+  // It fades in, so it's visible once the animation has started.
+  await waitFor(() => expect(dialog).toBeVisible());
+  return dialog;
+};
+
+// Several lines of description, one paragraph each, all of them the dialog's description.
+export const Lines = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <ConfirmDialog
+        {...deleting}
+        {...sendCode}
+        description={everyLine}
+        open={open}
+        onOpenChange={setOpen}
+        onConfirm={confirmed}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const dialog = await opened(canvasElement);
+
+    await expect(dialog).toHaveAccessibleDescription(everyLine.join(' '));
+    await expect(
+      within(dialog)
+        .getAllByRole('paragraph')
+        .map((line) => line.textContent)
+    ).toEqual(everyLine);
+    await expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    // A step before the action is primary: peach, not danger's coral.
+    await expect(within(dialog).getByRole('button', { name: 'Send code' })).toHaveStyle({
+      backgroundColor: 'rgb(255, 179, 138)'
+    });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Send code' }));
+    await expect(confirmed).toHaveBeenCalledOnce();
+  }
+} satisfies Story;
+
+// What the action needs first, between the description and the buttons; the confirm shows its request.
+export const WithContent = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <ConfirmDialog
+        {...deleting}
+        description={[
+          <>
+            We sent a 6-digit code to{' '}
+            <b className="font-extrabold text-ink [overflow-wrap:anywhere]">sam@example.com</b>. It works for 10
+            minutes.
+          </>
+        ]}
+        pending
+        pendingLabel="Deleting…"
+        confirmLabel="Delete account"
+        open={open}
+        onOpenChange={setOpen}
+        onConfirm={confirmed}
+      >
+        <Field label="Code" error="Enter the 6-digit code from the email, like 123456.">
+          {(control) => <Input {...control} inputMode="numeric" maxLength={6} defaultValue="12345" />}
+        </Field>
+        <div>
+          <Button variant="secondary">Send a new code</Button>
+        </div>
+      </ConfirmDialog>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const dialog = await opened(canvasElement);
+    const code = within(dialog).getByRole('textbox', { name: 'Code' });
+
+    await expect(dialog).toHaveAccessibleDescription(
+      'We sent a 6-digit code to sam@example.com. It works for 10 minutes.'
+    );
+    await expect(code).toHaveAccessibleDescription('Enter the 6-digit code from the email, like 123456.');
+    const buttons = within(dialog).getAllByRole('button');
+    await expect(buttons).toHaveLength(3);
+    await expect(buttons[0]).toHaveAccessibleName('Send a new code');
+    await expect(buttons[1]).toHaveAccessibleName('Cancel');
+    await expect(buttons[2]).toHaveAccessibleName('Deleting…');
+    const confirm = within(dialog).getByRole('button', { name: 'Deleting…' });
+    await expect(confirm).toHaveAttribute('aria-busy', 'true');
+    await userEvent.click(confirm);
+    await expect(confirmed).not.toHaveBeenCalled();
+  }
+} satisfies Story;
+
+// Why the action can't go ahead, when no field holds it: over the buttons, announced.
+export const WithError = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <ConfirmDialog
+        {...deleting}
+        {...sendCode}
+        description={[everyLine[0], everyLine[2]]}
+        error="You’ve asked for too many codes. Try again in 7 minutes."
+        open={open}
+        onOpenChange={setOpen}
+        onConfirm={confirmed}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const dialog = await opened(canvasElement);
+
+    await expect(within(dialog).getByRole('alert')).toHaveTextContent(
+      'You’ve asked for too many codes. Try again in 7 minutes.'
+    );
+    await expect(within(dialog).getByRole('button', { name: 'Send code' })).toBeVisible();
+  }
+} satisfies Story;
+
+// While what it says loads there's no confirm, and focus stays on Cancel.
+export const Loading = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <ConfirmDialog
+        {...deleting}
+        {...sendCode}
+        status="loading"
+        loadingLabel="Checking what deleting removes…"
+        open={open}
+        onOpenChange={setOpen}
+        onConfirm={confirmed}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const dialog = await opened(canvasElement);
+
+    // Loading shows its line after half a second.
+    await waitFor(() => expect(within(dialog).getByRole('status')).toBeVisible());
+    await expect(within(dialog).getByRole('status')).toHaveTextContent('Checking what deleting removes…');
+    await expect(
+      within(dialog)
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['Cancel']);
+    await expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
+  }
+} satisfies Story;
+
+// What it says couldn't load: a retry in the body, and no confirm.
+export const Failed = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <ConfirmDialog
+        {...deleting}
+        {...sendCode}
+        status="error"
+        errorTitle="Couldn’t reach Tastebook"
+        errorText="Check your connection and try again."
+        onRetry={retried}
+        open={open}
+        onOpenChange={setOpen}
+        onConfirm={confirmed}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const dialog = await opened(canvasElement);
+
+    await expect(within(dialog).getByRole('alert')).toHaveTextContent(
+      'Couldn’t reach TastebookCheck your connection and try again.'
+    );
+    await expect(within(dialog).queryByRole('button', { name: 'Send code' })).not.toBeInTheDocument();
+    await expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Try again' }));
+    await expect(retried).toHaveBeenCalledOnce();
+  }
+} satisfies Story;
+
+// It can only explain: its one button is the way out, "Close".
+export const Notice = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <ConfirmDialog
+        {...deleting}
+        notice
+        description="Staff accounts can’t be deleted here. Ask another staff member to take your staff access away first."
+        open={open}
+        onOpenChange={setOpen}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const dialog = await opened(canvasElement);
+
+    await expect(
+      within(dialog)
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['Close']);
+    await expect(within(dialog).getByRole('button', { name: 'Close' })).toHaveFocus();
   }
 } satisfies Story;
