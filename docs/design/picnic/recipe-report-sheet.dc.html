@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Reasons as radio rows</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{position:absolute;top:0;left:0;right:0;z-index:1;background:var(--color-ground);border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:93px 20px 104px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box}
+.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.scrim{position:absolute;inset:0;background:var(--color-scrim);z-index:2}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:3;box-sizing:border-box;background:var(--color-surface);border:2px solid transparent;border-bottom:0;border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:6px 18px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lift)}
+.grab{align-self:center;width:40px;height:5px;border-radius:var(--radius-pill);background:var(--color-field)}
+.shd{margin-top:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.shd div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.st{margin:0;font-family:var(--font-serif);font-style:italic;font-size:34px;line-height:36px;font-weight:400}
+.sdesc{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.sbody{display:flex;flex-direction:column;gap:20px;margin:0}
+.fs{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fs legend{padding:0 0 6px;font-size:15px;line-height:20px;font-weight:800}
+.rrow{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 8px 6px 12px;box-sizing:border-box;border-radius:var(--radius-row);cursor:pointer}
+.rrow input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.rrow .nm{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.rrow .nm b{font-size:16px;line-height:24px;font-weight:600}
+.rrow .nm span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.dot{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-pill);display:grid;place-items:center;color:var(--color-on-pastel)}
+.dot.on{background:var(--color-mint);border-color:transparent}
+.dot svg{width:18px;height:18px}
+.rrow.fc{outline:3px solid var(--color-ink);outline-offset:0}
+.fld{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.sacts{display:flex;justify-content:flex-end}
+.is-focus textarea{outline:1px solid var(--color-ink);outline-offset:0;border-color:var(--color-ink)}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+.pc{margin:0;font-size:15px;line-height:22px;font-weight:600;max-width:1288px}
+.pc b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1480px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-129 · the report sheet · phone, 390 px · Milo reports Sam’s Grandma’s curry</span>
+    <h1 class="ttl">Reasons as radio rows</h1>
+    <span class="cap">Report recipe opens a sheet: the four reasons as a radio list you can see at a glance, an optional note, and Send report.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col"><span class="cap"><b>Opened</b> · nothing chosen yet · focus on the first reason</span>
+      <div class="phone">
+        <main class="pg"><h1 class="h1">Grandma’s curry</h1></main>
+        <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="a-t" aria-describedby="a-d">
+          <span class="grab" aria-hidden="true"></span>
+          <div class="shd"><div><h2 id="a-t" class="st">Report recipe</h2><p id="a-d" class="sdesc">Grandma’s curry, by Sam</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+          <form class="sbody" novalidate>
+            <fieldset class="fs"><legend>What’s wrong with it?</legend>
+              <label class="rrow fc"><input type="radio" name="a-why"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="a-why"><span class="nm"><b>Offensive</b><span>Hateful, violent or explicit</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="a-why"><span class="nm"><b>Copied without credit</b><span>Someone else’s recipe, passed off as theirs</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="a-why"><span class="nm"><b>Something else</b><span>Say what in the note</span></span><span class="dot" aria-hidden="true"></span></label>
+            </fieldset>
+            <div class="fld"><label for="a-note" class="lbl">Note</label><x-import component-from-global-scope="Dino.TextArea" id="a-note" max-length="{{t500}}" default-value="" aria-describedby="a-nhelp"></x-import><p id="a-nhelp" class="help">Optional. Anything that helps staff, like where it was copied from.</p></div>
+            <div class="sacts"><x-import component-from-global-scope="Dino.Button" type="submit">Send report</x-import></div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div class="col"><span class="cap"><b>Filled</b> · Copied without credit, with a note · focus on Send report</span>
+      <div class="phone">
+        <main class="pg"><h1 class="h1">Grandma’s curry</h1></main>
+        <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="b-t" aria-describedby="b-d">
+          <span class="grab" aria-hidden="true"></span>
+          <div class="shd"><div><h2 id="b-t" class="st">Report recipe</h2><p id="b-d" class="sdesc">Grandma’s curry, by Sam</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+          <form class="sbody" novalidate>
+            <fieldset class="fs"><legend>What’s wrong with it?</legend>
+              <label class="rrow"><input type="radio" name="b-why"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="b-why"><span class="nm"><b>Offensive</b><span>Hateful, violent or explicit</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="b-why" checked><span class="nm"><b>Copied without credit</b><span>Someone else’s recipe, passed off as theirs</span></span><span class="dot on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+              <label class="rrow"><input type="radio" name="b-why"><span class="nm"><b>Something else</b><span>Say what in the note</span></span><span class="dot" aria-hidden="true"></span></label>
+            </fieldset>
+            <div class="fld"><label for="b-note" class="lbl">Note</label><x-import component-from-global-scope="Dino.TextArea" id="b-note" max-length="{{t500}}" default-value="It’s word for word from Meera Sodha’s Made in India, page 112." aria-describedby="b-nhelp"></x-import><p id="b-nhelp" class="help">Optional. Anything that helps staff, like where it was copied from.</p></div>
+            <div class="sacts"><span style="display: inline-flex; border-radius: var(--radius-pill); outline: 3px solid var(--color-ink)"><x-import component-from-global-scope="Dino.Button" type="submit">Send report</x-import></span></div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div class="col"><span class="cap"><b>Sending</b> · the button keeps its size, “Sending…” beside a spinner</span>
+      <div class="phone">
+        <main class="pg"><h1 class="h1">Grandma’s curry</h1></main>
+        <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="c-t" aria-describedby="c-d">
+          <span class="grab" aria-hidden="true"></span>
+          <div class="shd"><div><h2 id="c-t" class="st">Report recipe</h2><p id="c-d" class="sdesc">Grandma’s curry, by Sam</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+          <form class="sbody" novalidate>
+            <fieldset class="fs"><legend>What’s wrong with it?</legend>
+              <label class="rrow"><input type="radio" name="c-why"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="c-why"><span class="nm"><b>Offensive</b><span>Hateful, violent or explicit</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="c-why" checked><span class="nm"><b>Copied without credit</b><span>Someone else’s recipe, passed off as theirs</span></span><span class="dot on" aria-hidden="true"><x-import component-from-global-scope="Dino.icons.Check" stroke-width="{{s3}}" aria-hidden="true"></x-import></span></label>
+              <label class="rrow"><input type="radio" name="c-why"><span class="nm"><b>Something else</b><span>Say what in the note</span></span><span class="dot" aria-hidden="true"></span></label>
+            </fieldset>
+            <div class="fld"><label for="c-note" class="lbl">Note</label><x-import component-from-global-scope="Dino.TextArea" id="c-note" max-length="{{t500}}" default-value="It’s word for word from Meera Sodha’s Made in India, page 112." aria-describedby="c-nhelp"></x-import><p id="c-nhelp" class="help">Optional. Anything that helps staff, like where it was copied from.</p></div>
+            <div class="sacts"><x-import component-from-global-scope="Dino.Button" type="submit" loading="{{yes}}" loading-label="Sending…">Send report</x-import></div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>A sheet, not a dialog:</b> design.md keeps a Dialog for what can’t be undone and gives Sheet the light tasks; a report is a short form. Close, Escape, the scrim and a drag are the way out, and nothing is sent until Send report.</p>
+    <p><b>Send report is the sheet’s one peach button.</b> The reason is a native radio group (arrow keys move it), each named by its reason with its line as its description. The note is a Text area, at most 500 characters, and optional for every reason.</p>
+    <p><b>What it doesn’t say:</b> nothing promises the recipe goes away, as a recipe staff have restored stays up. The sheet names the recipe and its author, so you know what you’re reporting.</p>
+    <p><b>Sending:</b> Send report turns to “Sending…” with <code>aria-busy</code> and ignores presses; the rows and note stay as they are. What happens next is on “After a report”.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1480}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, yes: true, no: false, sw: 2.25, s3: 3, t500: 500, noop: function () {} };
+  }
+}
+</script>
+</body>
+</html>

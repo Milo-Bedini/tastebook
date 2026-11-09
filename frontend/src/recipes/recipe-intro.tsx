@@ -1,9 +1,9 @@
-import { Link as LinkIcon, Pencil } from 'lucide-react';
+import { EyeOff, Link as LinkIcon, Pencil } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router';
 
 import type { components } from '../api/schema';
-import { Button, PrivateMark, Squiggle, TimeBlobs } from '../dino';
+import { Banner, Button, PrivateMark, Squiggle, TimeBlobs } from '../dino';
 import { capitalise } from './capitalise';
 import { describeDietTagConflict } from './diet-tags';
 import { difficultyLabel } from './difficulty';
@@ -13,6 +13,7 @@ import { CopyRecipe, MADE_COPY } from './recipe-copy';
 import { DeleteRecipe } from './recipe-delete';
 import { RecipeGaps } from './recipe-gaps';
 import { hasIngredients } from './recipe-ingredients';
+import { RecipeReport } from './recipe-report';
 import { RecipeShare } from './recipe-share';
 import { RecipeVisibility } from './recipe-visibility';
 import { useShareLinkGone, useVisibilityGone } from './recipes-api';
@@ -188,6 +189,12 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
         </FavouriteHearts>
       </div>
       <RecipeCredit recipe={recipe} />
+      {recipe.hidden_for_review && (
+        <Banner tone="warning" icon={EyeOff} title="Hidden while a report is reviewed">
+          Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or
+          delete it.
+        </Banner>
+      )}
       <AdaptedFrom recipe={recipe} />
       <RecipeFacts recipe={recipe} />
       <SavedIn recipe={recipe} />
@@ -211,6 +218,11 @@ export const RecipeIntro = ({ recipe }: RecipeProps) => {
         <CopyRecipe recipe={recipe} />
         {recipe.can_delete && <DeleteRecipe recipe={recipe} />}
       </div>
+      {recipe.can_report && (
+        <div className="flex flex-col items-start gap-1 border-line border-t pt-3">
+          <RecipeReport recipe={recipe} />
+        </div>
+      )}
     </div>
   );
 };

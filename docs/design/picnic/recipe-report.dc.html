@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Report on a public recipe’s page</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;box-sizing:border-box}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:24px}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.body{display:flex;flex-direction:column;gap:32px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0;overflow-wrap:break-word}
+.intro p{margin:0}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:12px}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.rep{display:flex;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--color-line);padding-top:12px}
+.rep-ring{display:inline-flex;border-radius:var(--radius-pill);outline:3px solid var(--color-ink);outline-offset:0}
+.after{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-top:1px dashed var(--color-line);padding-top:12px;margin:0}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1800px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-129 · /recipes/grandmas-curry-k7m2qx · phone, 390 px · a public recipe by Sam, of another household</span>
+    <h1 class="ttl">Report on a public recipe’s page</h1>
+    <span class="cap">Report recipe sits under the recipe’s own buttons, after a hairline: there for anyone who needs it, quiet for everyone who doesn’t. It opens the report sheet.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Signed in</b> · Milo, of The Bedinis · focus on Report recipe</span>
+      <div class="frame" style="height: 1240px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">M</span></button></div>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{no}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <p class="muted">by Sam</p>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="acts">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+              </div>
+              <div class="rep">
+                <span class="rep-ring"><x-import component-from-global-scope="Dino.Button" variant="ghost" aria-haspopup="dialog"><x-import component-from-global-scope="Dino.icons.Flag" aria-hidden="true" stroke-width="{{sw}}"></x-import>Report recipe</x-import></span>
+              </div>
+            </div>
+            <p class="after">Servings, ingredients and method follow, as today.</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Signed out</b> · Report recipe shows; pressing it signs in first</span>
+      <div class="frame" style="height: 1240px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><x-import component-from-global-scope="Dino.Button" variant="secondary">Sign in</x-import></div>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{no}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <p class="muted">by Sam</p>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="acts">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+              </div>
+              <div class="rep">
+                <x-import component-from-global-scope="Dino.Button" variant="ghost"><x-import component-from-global-scope="Dino.icons.Flag" aria-hidden="true" stroke-width="{{sw}}"></x-import>Report recipe</x-import>
+              </div>
+            </div>
+            <p class="after">Pressing Report recipe goes to sign-in, as Make a copy does, and comes back to this page with the report sheet open.</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Its author</b> · Sam sees no Report recipe on their own recipe</span>
+      <div class="frame" style="height: 1240px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Sam" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button></div>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{yes}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <p class="muted">by Sam</p>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="ctrls">
+                <x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}">Public</x-import>
+                <div class="acts">
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+                </div>
+              </div>
+            </div>
+            <p class="after">The page as today. Members of Sam’s household see no Report recipe either (a question for you).</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>A ghost button, set apart:</b> Lucide Flag and “Report recipe”, under a Line hairline after Save to list and Make a copy. It names what it does, keeps the page’s buttons about the recipe, and stays out of the way of cooking. No peach: the page still has no main action competing with the recipe.</p>
+    <p><b>Who sees it:</b> anyone on a household’s public recipe who isn’t in its household, signed in or not. Catalogue recipes, private recipes and a shared-by-link page have none. It takes <code>aria-haspopup="dialog"</code>, as it opens the sheet.</p>
+    <p><b>Signed out</b> it still shows, so nobody has to know to sign in first: pressing it goes to sign-in and back, the way Make a copy does, and the sheet opens on return.</p>
+    <p><b>Once you’ve reported it</b>, it turns into a disabled “Reported” with its reason (the states board). A recipe you reported that’s hidden is gone for you anyway.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, nothing: null, t7: 7, noop: function () {},
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

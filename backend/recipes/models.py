@@ -63,6 +63,12 @@ class Visibility(models.TextChoices):
     PRIVATE = 'private', 'Private'
 
 
+class Moderation(models.TextChoices):
+    UNREPORTED = 'unreported', 'Not reported'
+    HIDDEN = 'hidden', 'Hidden while a report is reviewed'
+    RESTORED = 'restored', 'Restored by staff'
+
+
 class RecipeQuerySet(models.QuerySet['Recipe']):
     def alphabetical(self) -> RecipeQuerySet:
         # id breaks ties, so the recipe added first comes first when two titles match.
@@ -217,6 +223,8 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
                     original,
                     household_id=household_id,
                     slug=Recipe.objects.private_slug_for(original.title),
+                    # A new recipe, so its original's reports and staff's review of them stay with the original.
+                    moderation=Moderation.UNREPORTED,
                     **made_by_copier(original),
                 )
                 for original in originals
@@ -251,11 +259,23 @@ class RecipeQuerySet(models.QuerySet['Recipe']):
         return self.filter(visibility=Visibility.PRIVATE)
 
     def visible_to(self, user: User | AnonymousUser) -> RecipeQuerySet:
-        """Public recipes, and the recipes of the user's household when they're signed in to one."""
-        household_id = user.household_id if user.is_authenticated else None
-        if household_id is None:
-            return self.public()
-        return self.filter(Q(visibility=Visibility.PUBLIC) | Q(household_id=household_id))
+        """Public recipes, and the recipes of the user's household when they're signed in to one. A recipe hidden while
+        a report is reviewed is its author's alone."""
+        if not user.is_authenticated:
+            return self.public().exclude(moderation=Moderation.HIDDEN)
+        shown = ~Q(moderation=Moderation.HIDDEN) | Q(created_by=user)
+        if user.household_id is None:
+            return self.public().filter(shown)
+        return self.filter(Q(visibility=Visibility.PUBLIC) | Q(household_id=user.household_id)).filter(shown)
+
+    def reportable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
+        """The recipes an account may report: the public household recipes it can see, other households' only."""
+        if not user.is_authenticated:
+            return self.none()
+        reportable = self.visible_to(user).public().filter(household__isnull=False)
+        if user.household_id is None:
+            return reportable
+        return reportable.exclude(household_id=user.household_id)
 
     def editable_by(self, user: User | AnonymousUser) -> RecipeQuerySet:
         """The recipes an account may edit: its household's private recipes, whoever wrote them, and the public ones
@@ -310,6 +330,14 @@ class Recipe(models.Model):
         choices=Visibility.choices,
         default=Visibility.PRIVATE,
         help_text='A catalogue recipe is always public; a household recipe is private until its author publishes it.',
+    )
+    moderation = models.CharField(
+        max_length=10,
+        choices=Moderation.choices,
+        default=Moderation.UNREPORTED,
+        editable=False,
+        help_text="A recipe's first report hides it from everyone but its author until staff review it. Once staff "
+        'restore it, later reports reach staff without hiding it.',
     )
     adapted_from = models.ForeignKey(
         'self',
@@ -494,6 +522,42 @@ class ShareLink(models.Model):
 
     def __str__(self) -> str:
         return f'Share link to {self.recipe_id}'
+
+
+class ReportReason(models.TextChoices):
+    SPAM = 'spam', 'Spam'
+    OFFENSIVE = 'offensive', 'Offensive'
+    COPIED = 'copied', 'Copied without credit'
+    OTHER = 'other', 'Something else'
+
+
+REPORT_NOTE_MAX_LENGTH = 500
+
+
+class Report(models.Model):
+    """Someone flagging another household's public recipe for staff to review."""
+
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='reports')
+    reporter = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        # The report stays for staff when its reporter deletes their account, naming no one.
+        on_delete=models.SET_NULL,
+        related_name='reports_made',
+    )
+    reason = models.CharField(max_length=10, choices=ReportReason.choices)
+    note = models.CharField(max_length=REPORT_NOTE_MAX_LENGTH, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at', 'id']
+        constraints = [
+            models.UniqueConstraint(fields=['recipe', 'reporter'], name='report_one_per_reporter'),
+        ]
+
+    def __str__(self) -> str:
+        return f'Report of {self.recipe_id}: {self.get_reason_display()}'
 
 
 class IngredientStatus(models.TextChoices):

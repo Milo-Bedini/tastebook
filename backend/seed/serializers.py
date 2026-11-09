@@ -67,6 +67,20 @@ class SeedMemberSerializer(serializers.Serializer):
         default=list,
         help_text="Titles of this member's own private recipes they share by link once every recipe is made private.",
     )
+    restored = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text="Titles of this member's own public recipes that staff have restored, as if after an earlier report, "
+        "once every share is made and before anyone's reports, so a report leaves them up.",
+    )
+    reports = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        max_length=20,
+        default=list,
+        help_text="Titles of other households' public recipes this member reports as spam, last of all, as saves name "
+        'them. The first report of a recipe that is not restored hides it from everyone but its author.',
+    )
 
 
 class SeedHouseholdSerializer(serializers.Serializer):

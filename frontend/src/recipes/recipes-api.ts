@@ -13,6 +13,7 @@ import type { RecipeFilters } from './recipe-filters';
 
 type Recipe = components['schemas']['Recipe'];
 type Visibility = components['schemas']['Visibility'];
+type NewReport = components['schemas']['NewReport'];
 
 export type RecipeQuery = { searchTerm: string; filters: RecipeFilters };
 
@@ -282,6 +283,78 @@ export const useShareLinkGone = (slug: string) => {
   const kind = useLatestAnswer(shareLinkKey(slug));
   return kind === 'gone' || kind === 'refused';
 };
+
+export type RecipeReporting =
+  // Hidden: the first report hid the recipe; otherwise staff restored it before, and it stays up.
+  | { kind: 'reported'; hidden: boolean }
+  // The API's own words: reported already, or a reason or note it won't take.
+  | { kind: 'refused'; message: string }
+  | { kind: 'signed-out' }
+  | { kind: 'gone' };
+
+// DRF refuses a report as {"non_field_errors": ["…"]}, or under the field it refuses.
+const reportMessage = (body: unknown): string | undefined => {
+  if (typeof body !== 'object' || body === null) {
+    return undefined;
+  }
+  const [message] = Object.values(body).flatMap((messages: unknown) => (Array.isArray(messages) ? messages : []));
+  return typeof message === 'string' ? message : undefined;
+};
+
+const reportKey = (slug: string) => ['recipes', slug, 'report'];
+
+export const useReportRecipe = (slug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: reportKey(slug),
+    mutationFn: async (report: NewReport): Promise<RecipeReporting> => {
+      const { data, error, response } = await api.POST('/api/recipes/{slug}/report/', {
+        params: { path: { slug } },
+        body: report
+      });
+      if (data !== undefined) {
+        return { kind: 'reported', hidden: data.hidden };
+      }
+      const message = response.status === 400 ? reportMessage(error) : undefined;
+      if (message !== undefined) {
+        return { kind: 'refused', message };
+      }
+      // Signed out: the page asks the session again.
+      if (response.status === 403) {
+        return { kind: 'signed-out' };
+      }
+      // Deleted, made private or hidden by another report since the page opened.
+      if (response.status === 404) {
+        return { kind: 'gone' };
+      }
+      throw new Error(`Reporting a recipe failed with ${response.status}`);
+    },
+    onSuccess: async (result) => {
+      if (result.kind === 'signed-out') {
+        return;
+      }
+      if (result.kind === 'reported' && result.hidden) {
+        // Removed rather than set to null, so the page still on screen doesn't say "Recipe not found" before it
+        // navigates away; the lists it's gone from ask again.
+        queryClient.removeQueries({ queryKey: ['recipes', slug], exact: true });
+        await queryClient.invalidateQueries({
+          queryKey: ['recipes'],
+          predicate: ({ queryKey }) => queryKey[1] !== slug
+        });
+        return;
+      }
+      if (result.kind === 'reported') {
+        queryClient.setQueryData<Recipe>(['recipes', slug], (recipe) => recipe && { ...recipe, reported: true });
+        return;
+      }
+      // Refused, the page shows whether it's reported; gone, the page and the lists show it's gone.
+      await queryClient.invalidateQueries({ queryKey: result.kind === 'gone' ? ['recipes'] : ['recipes', slug] });
+    }
+  });
+};
+
+// Whether the latest report of the recipe found it gone, which takes the page, and the focused button, away.
+export const useReportGone = (slug: string) => useLatestAnswer(reportKey(slug)) === 'gone';
 
 // A share link's recipe, or null for a link that's off or never was.
 export const useSharedRecipe = (token: string) =>

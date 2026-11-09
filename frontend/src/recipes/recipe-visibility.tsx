@@ -10,10 +10,15 @@ import { useSetVisibility } from './recipes-api';
 type Recipe = components['schemas']['Recipe'];
 type Visibility = components['schemas']['Visibility'];
 
-// What disables the switch, if anything: a request running, or a gap that keeps the recipe from going public.
+// What disables the switch, if anything: a request running, a report being reviewed, or a gap that keeps the recipe
+// from going public.
 const disabledReasonOf = (recipe: Recipe, saving: boolean) => {
   if (saving) {
     return 'Saving…';
+  }
+  // Held public while a report is open, so it can't slip out of review and back in.
+  if (recipe.hidden_for_review) {
+    return 'You can change this once staff have reviewed the report.';
   }
   // A public recipe can always go private, whatever it lacks.
   if (recipe.visibility === 'private' && publishingGaps(recipe).length > 0) {

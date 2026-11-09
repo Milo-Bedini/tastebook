@@ -141,6 +141,10 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
         post('/api/recipes/no-such-recipe/copy/'),
         post('/api/recipes/{recipe}/copy/'),
     ),
+    'api/recipes/<slug:slug>/report/': (
+        post('/api/recipes/no-such-recipe/report/', {'reason': 'spam'}),
+        post('/api/recipes/{recipe}/report/', {'reason': 'spam'}),
+    ),
     'api/recipes/<slug:slug>/share-link/': (
         put('/api/recipes/no-such-recipe/share-link/', {}),
         put('/api/recipes/{recipe}/share-link/', {}),

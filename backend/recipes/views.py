@@ -20,6 +20,7 @@ from recipes.serializers import (
     IngredientOptionSerializer,
     NewIngredientSerializer,
     NewRecipeSerializer,
+    NewReportSerializer,
     PhotoUploadSerializer,
     RecipeChangesSerializer,
     RecipeFiltersSerializer,
@@ -28,6 +29,7 @@ from recipes.serializers import (
     RecipeSerializer,
     RecipeSummarySerializer,
     RecipeVisibilitySerializer,
+    ReportOutcomeSerializer,
     SharedRecipeSerializer,
 )
 from recipes.services import (
@@ -37,6 +39,7 @@ from recipes.services import (
     copy_recipe,
     delete_recipe,
     edit_recipe,
+    report_recipe,
     set_visibility,
     shared_recipe,
     turn_off_share_link,
@@ -358,6 +361,43 @@ class RecipeCopyView(APIView):
         copy = copy_recipe(original, request.user)
         made = _detail_queryset(request.user).get(pk=copy.pk)
         return Response(RecipeSerializer(made, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+
+class RecipeReportView(APIView):
+    permission_classes = []
+
+    @extend_schema(
+        operation_id='recipes_report_create',
+        request=NewReportSerializer,
+        responses={
+            201: ReportOutcomeSerializer,
+            400: OpenApiResponse(
+                description="The reason isn't one a report takes, the note is over 500 characters, or the account "
+                'has reported this recipe already.'
+            ),
+            403: OpenApiResponse(description='Signed out.'),
+            404: OpenApiResponse(
+                description="No recipe has this slug that the account may report: there's none, it's private, a "
+                "catalogue recipe or its own household's, or a report hides it."
+            ),
+        },
+        description="Reports another household's public recipe to staff, once per account. The first report hides it "
+        'from everyone but its author until staff review it; once staff have restored it, later reports leave it up.',
+    )
+    def post(self, request: Request, slug: str) -> Response:
+        # Refused before the lookup, so a signed-out answer says nothing about the slug.
+        if not request.user.is_authenticated:
+            raise PermissionDenied
+        recipe = get_object_or_404(Recipe.objects.reportable_by(request.user), slug=slug)
+        given = NewReportSerializer(data=request.data)
+        given.is_valid(raise_exception=True)
+        try:
+            hidden = report_recipe(
+                recipe, request.user, given.validated_data['reason'], given.validated_data.get('note', '')
+            )
+        except DjangoValidationError as error:
+            raise _refusals(error) from error
+        return Response(ReportOutcomeSerializer({'hidden': hidden}).data, status=status.HTTP_201_CREATED)
 
 
 class CuisineListView(ListAPIView):

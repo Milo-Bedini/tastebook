@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The author’s hidden recipe</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px;box-sizing:border-box}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 48px;display:flex;flex-direction:column;gap:24px}
+.page h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400;overflow-wrap:break-word}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.body{display:flex;flex-direction:column;gap:32px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro p{margin:0}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:12px}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.bn p{margin:0}
+.after{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);border-top:1px dashed var(--color-line);padding-top:12px;margin:0}
+.cards{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}
+.cards li{position:relative;display:flex;flex-direction:column;min-width:0}
+.hid{display:flex;width:fit-content;align-items:center;gap:4px;margin:0 0 4px;font-size:13px;line-height:17px;font-weight:700;color:var(--color-ink)}
+.hid svg{width:14px;height:14px;flex-shrink:0}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.side{display:flex;flex-direction:column;gap:16px;width:420px;padding-top:27px}
+.side p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.side p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1760px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-129 · phone, 390 px · signed in as Sam, the author, while a report is open</span>
+    <h1 class="ttl">The author’s hidden recipe</h1>
+    <span class="cap">Sam still sees Grandma’s curry everywhere they did, and its page says why nobody else can: “Hidden while a report is reviewed”.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col">
+      <span class="cap"><b>Its page</b> · the notice under the credit · Public held until it’s reviewed</span>
+      <div class="frame" style="height: 1500px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Sam" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button></div>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="body">
+            <x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{yes}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <p class="muted">by Sam</p>
+              <div role="status" class="bn grid grid-cols-[1.375rem_minmax(0,1fr)] gap-x-3 rounded-note border-2 bg-surface py-3.5 pr-3.5 pl-4 border-warning">
+                <x-import component-from-global-scope="Dino.icons.EyeOff" aria-hidden="true" stroke-width="{{w25}}" class="size-5.5 text-warning"></x-import>
+                <div class="flex flex-col items-start gap-1">
+                  <p class="font-extrabold">Hidden while a report is reviewed</p>
+                  <div class="text-muted">Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or delete it.</div>
+                </div>
+              </div>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="ctrls">
+                <x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}" disabled="{{yes}}" disabled-reason="You can change this once staff have reviewed the report.">Public</x-import>
+                <div class="acts">
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+                </div>
+              </div>
+            </div>
+            <p class="after">Servings, ingredients and method follow, as today.</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Sam’s recipes</b> · its card says it’s hidden; nobody else’s list shows it</span>
+      <div class="frame" style="height: 1000px">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Sam" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button></div>
+        </div></header>
+        <main class="page">
+          <h1>What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1>
+          <ul class="cards">
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Grandma’s curry" to="#" recipe-id="{{t7}}" photo="{{nothing}}" lean="left" action="{{favCurry}}"><span class="hid"><x-import component-from-global-scope="Dino.icons.EyeOff" aria-hidden="true" stroke-width="{{sw}}"></x-import>Hidden for review</span>1 hr · Easy · Indian</x-import></li>
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Chana masala" to="#" recipe-id="{{r1}}" photo="{{nothing}}" lean="right">1 hr 45 · Easy · Indian</x-import></li>
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Bibimbap" to="#" recipe-id="{{r2}}" photo="{{nothing}}" lean="left">35 min · Easy · Korean</x-import></li>
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Shakshuka" to="#" recipe-id="{{r3}}" photo="{{nothing}}" lean="right">30 min · Easy</x-import></li>
+          </ul>
+        </main>
+      </div>
+    </div>
+
+    <div class="side">
+      <p><b>The notice is a warning Banner</b> (needs a look), with Lucide EyeOff for its icon in place of the warning triangle: it’s about who can see the recipe, the same eye that marks an unavailable recipe. Banner gains an optional icon for it (its own board). It sits under “by Sam”, where a private recipe shows what it’s missing, and is a polite status.</p>
+      <p><b>The words</b> say what happened and what Sam can still do, and nothing about who reported it or why: “Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or delete it.”</p>
+      <p><b>Public is held</b> while the report is open: on, disabled, with “You can change this once staff have reviewed the report.” Making it private would let a recipe slip out of review and back in (a question for you). Edit, delete, copy and lists all work as before.</p>
+      <p><b>On Sam’s cards</b> a short line in Small Ink with the same eye, “Hidden for review”, over the meta, where a private recipe shows its mark: plain text, never a control. Search finds it for Sam alone.</p>
+      <p><b>Restored:</b> staff restore it in TAS-130; the notice goes, Public works again, and the recipe is back for everyone. Later reports go to staff without hiding it, so the notice doesn’t come back.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var h = window.React.createElement, D = window.Dino;
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, w25: 2.5, nothing: null, t7: 7, r1: 2, r2: 5, r3: 8, noop: function () {},
+      favCurry: h(D.FavouriteButton, { saved: true, onSavedChange: function () {}, label: 'Favourite Grandma’s curry' }),
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

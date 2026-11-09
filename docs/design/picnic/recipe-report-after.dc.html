@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>After a report</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px;width:390px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);box-sizing:border-box;flex-shrink:0}
+.bar{position:absolute;top:0;left:0;right:0;z-index:1;background:var(--color-ground);border-bottom:1px solid var(--color-line)}
+.in{display:flex;align-items:center;column-gap:8px;min-height:76px;padding:0 20px;box-sizing:border-box}
+.end{margin-left:auto;display:flex;align-items:center;column-gap:8px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:30px;line-height:32px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.pg{padding:100px 20px 104px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box}
+.pg h1,.h1{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400;overflow-wrap:break-word}
+.pg p{margin:0}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.rep{display:flex;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--color-line);padding-top:12px}
+.cards{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}
+.cards li{position:relative;display:flex;flex-direction:column;min-width:0}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);padding:0 6px;display:flex;align-items:center;z-index:1}
+.dock ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:4px;width:100%}
+.dock li.grow{flex-grow:1}
+.dt{height:46px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);text-decoration:none;font-family:var(--font-sans);font-size:15px;line-height:20px;font-weight:800}
+.dt.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.dt.only{width:64px}
+.toast{position:absolute;left:16px;right:16px;bottom:94px;z-index:2;min-height:56px;box-sizing:border-box;display:flex;align-items:center;gap:12px;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);color:var(--color-on-dock);padding:6px 18px;font-size:15px;line-height:20px;font-weight:800;box-shadow:var(--shadow-lift)}
+.toast svg{width:18px;height:18px;flex-shrink:0}
+.notes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1800px; height: 1400px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-129 · phone, 390 px · what the reporter and everyone else see once a report is sent</span>
+    <h1 class="ttl">After a report</h1>
+    <span class="cap">A first report hides the recipe at once, for everyone but Sam. One sent after staff have restored it reaches staff and changes nothing on screen.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col"><span class="cap"><b>Your report hid it</b> · back where Milo came from, the recipe gone</span>
+      <div class="phone">
+        <main class="pg">
+          <h1>What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1>
+          <ul class="cards">
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Chana masala" to="#" recipe-id="{{r1}}" photo="{{nothing}}" lean="left">1 hr 45 · Easy · Indian</x-import></li>
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Bibimbap" to="#" recipe-id="{{r2}}" photo="{{nothing}}" lean="right">35 min · Easy · Korean</x-import></li>
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Shakshuka" to="#" recipe-id="{{r3}}" photo="{{nothing}}" lean="left">30 min · Easy</x-import></li>
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Baklava" to="#" recipe-id="{{r4}}" photo="{{nothing}}" lean="right">2 hr · Medium · Turkish</x-import></li>
+          </ul>
+        </main>
+        <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+        <div class="toast" role="status"><x-import component-from-global-scope="Dino.icons.CircleCheck" stroke-width="{{sw}}" aria-hidden="true"></x-import>Reported Grandma’s curry. It’s hidden while staff look at it.</div>
+        <nav aria-label="Main" class="dock"><ul>
+          <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+          <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        </ul></nav>
+      </div>
+    </div>
+
+    <div class="col"><span class="cap"><b>Restored before</b> · the page stays, Report recipe turns to Reported</span>
+      <div class="phone">
+        <main class="pg">
+          <div class="intro">
+            <h1 class="h1">Grandma’s curry</h1>
+            <p class="muted">by Sam</p>
+            <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+            <p class="facts">1 hr · Easy · Indian · Main</p>
+            <div class="acts">
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+            </div>
+            <div class="rep">
+              <span style="display: inline-flex; border-radius: var(--radius-pill); outline: 3px solid var(--color-ink)"><x-import component-from-global-scope="Dino.Button" variant="ghost" disabled="{{yes}}" disabled-reason="You’ve reported this recipe. Staff have it."><x-import component-from-global-scope="Dino.icons.Flag" aria-hidden="true" stroke-width="{{sw}}"></x-import>Reported</x-import></span>
+            </div>
+          </div>
+        </main>
+        <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button></div></div></header>
+        <div class="toast" role="status"><x-import component-from-global-scope="Dino.icons.CircleCheck" stroke-width="{{sw}}" aria-hidden="true"></x-import>Reported Grandma’s curry. Staff will look at it.</div>
+        <nav aria-label="Main" class="dock"><ul>
+          <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+          <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        </ul></nav>
+      </div>
+    </div>
+
+    <div class="col"><span class="cap"><b>Anyone else at its address</b> · hidden: the page as for a recipe that’s gone</span>
+      <div class="phone">
+        <main class="pg">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <h1>Recipe not found</h1>
+          <p>This recipe doesn’t exist or has been removed.</p>
+        </main>
+        <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Priya Shah"><span aria-hidden="true">P</span></button></div></div></header>
+        <nav aria-label="Main" class="dock"><ul>
+          <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Recipes</a></li>
+          <li><a href="#" class="dt only" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+        </ul></nav>
+      </div>
+    </div>
+
+    <div class="col"><span class="cap"><b>Saved in someone’s list</b> · hidden: it holds its place as unavailable</span>
+      <div class="phone">
+        <main class="pg">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>Lists</a>
+          <h1>Sunday roasts</h1>
+          <ul class="cards">
+            <li><x-import component-from-global-scope="Dino.PolaroidCard" title="Roast chicken" to="#" recipe-id="{{r5}}" photo="{{nothing}}" lean="left" action="{{rmChicken}}">1 hr 30 · Easy</x-import></li>
+            <x-import component-from-global-scope="Dino.UnavailableRecipe" title="Grandma’s curry" action="{{rmCurry}}"></x-import>
+          </ul>
+        </main>
+        <header class="bar"><div class="in"><a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a><div class="end"><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import><button type="button" class="av" aria-label="Account for Priya Shah"><span aria-hidden="true">P</span></button></div></div></header>
+        <nav aria-label="Main" class="dock"><ul>
+          <li><a href="#" class="dt only" aria-label="Recipes"><x-import component-from-global-scope="Dino.icons.BookOpen" size="{{s22}}" stroke-width="{{sw}}" aria-hidden="true"></x-import></a></li>
+          <li class="grow"><a href="#" class="dt cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.Library" size="{{s20}}" stroke-width="{{sw}}" aria-hidden="true"></x-import>Lists</a></li>
+        </ul></nav>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>Your report hid it:</b> the sheet closes and Milo goes back where they came from (All recipes, or the list they opened it from), since the page has nothing left to show them. The toast says what happened; focus goes to the page’s heading.</p>
+    <p><b>Restored before:</b> staff have already looked once, so the recipe stays up for everyone. The sheet closes, focus goes to Reported, and the toast says only that staff will look. Nobody learns the recipe was reported before.</p>
+    <p><b>Anyone else:</b> search and lists drop it, and its address shows “Recipe not found”, exactly as for a deleted recipe, so a hidden recipe says nothing about why. That includes Sam’s household (a question for you).</p>
+    <p><b>Saved in a list:</b> it keeps its place as the unavailable recipe, as today, meta and all (“Made private or deleted”: a question for you). Once staff restore it, it’s back as a card.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var h = window.React.createElement, D = window.Dino;
+    var rm = function (t, l) { return h(D.IconButton, { icon: D.icons.X, label: 'Remove ' + t + ' from ' + l }); };
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, s20: 20, s22: 22, nothing: null, noop: function () {},
+      r1: 2, r2: 5, r3: 8, r4: 11, r5: 14,
+      rmChicken: rm('Roast chicken', 'Sunday roasts'), rmCurry: rm('Grandma’s curry', 'Sunday roasts')
+    };
+  }
+}
+</script>
+</body>
+</html>

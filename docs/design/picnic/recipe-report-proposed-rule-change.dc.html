@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Proposed rule change</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.rows{display:flex;flex-direction:column;gap:28px}
+.rule{display:grid;grid-template-columns:200px minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.rule h2{margin:0;font-size:15px;line-height:20px;font-weight:800}
+.box{background:var(--color-surface);border-radius:var(--radius-card);padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.box p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.box .k{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+del{color:var(--color-muted);text-decoration-color:var(--color-danger);text-decoration-thickness:2px}
+ins{text-decoration:underline;text-decoration-color:var(--color-mint);text-decoration-thickness:2px;text-underline-offset:3px}
+.why{margin:0;font-size:15px;line-height:22px;font-weight:600;max-width:1288px}
+.why b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 760px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-129 · docs/design.md, Components</span>
+    <h1 class="ttl">Proposed rule change</h1>
+    <span class="cap">Banner’s row says a banner shows “its icon”, meaning its tone’s; the hidden notice needs another. The boards are drawn to the change. If you’d rather not change it, the notice keeps the warning triangle and nothing else moves.</span>
+  </header>
+
+  <div class="rows">
+    <div class="rule"><h2>Banner</h2>
+      <div class="box"><span class="k">Now</span><p>A 2 px border in a status colour with its icon, on Surface: warning for an import’s gaps or what a private recipe is still missing, success for a clean import, danger for a failure. At most one action, under its text.</p></div>
+      <div class="box"><span class="k">Proposed</span><p>A 2 px border in a status colour with its icon, on Surface: warning for an import’s gaps<ins>, what a private recipe is still missing, or a recipe hidden while a report is reviewed</ins><del> or what a private recipe is still missing</del>, success for a clean import, danger for a failure. <ins>It may take its own icon in place of its tone’s, in the tone’s colour, where a more exact picture helps (EyeOff for a hidden recipe); the tone still says how much it matters.</ins> At most one action, under its text.</p></div>
+    </div>
+    <div class="rule"><h2>Radio list (new row)</h2>
+      <div class="box"><span class="k">Now</span><p>No row: one choice is a Segmented control (two to four short options) or a native select.</p></div>
+      <div class="box"><span class="k">Proposed</span><p><ins>One choice from two to six options that each need a line to explain them: a fieldset of native radios with its legend in Label, on Surface. Each row is List picker’s (at least 56 px, 14 px corners, name in Body over a hint in Small Muted) with a round 28 px box at the end: off, a 2 px Field ring; chosen, mint with an On pastel check. Its states are List picker’s; an error turns the rings Danger with why under the list. Under forced colours a chosen box is Highlight with its check in HighlightText.</ins></p></div>
+    </div>
+  </div>
+
+  <p class="why"><b>Why:</b> the hidden notice is a warning about who can see the recipe, and the triangle reads as “something’s wrong with what you wrote”. Giving Banner the icon Note already takes keeps one component for status, rather than a second panel for one notice. The radio list gives the four reasons a row each, with a line on what each covers.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

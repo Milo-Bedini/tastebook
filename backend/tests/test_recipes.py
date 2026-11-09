@@ -96,6 +96,7 @@ def test_returns_a_summary_of_each_recipe_with_its_total_time_and_difficulty() -
             'total_minutes': 40,
             'photo': None,
             'diet_tags': [],
+            'hidden_for_review': False,
         }
     ]
 
@@ -182,6 +183,7 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
         'total_minutes': 40,
         'photo': None,
         'diet_tags': [],
+        'hidden_for_review': False,
         'courses': [{'slug': 'breakfast', 'name': 'Breakfast'}, {'slug': 'main', 'name': 'Main'}],
         'prep_minutes': 10,
         'cook_minutes': 25,
@@ -206,6 +208,8 @@ def test_returns_the_whole_recipe_with_its_details() -> None:
         'save_count': None,
         'can_share': False,
         'share_token': None,
+        'can_report': False,
+        'reported': False,
     }
 
 

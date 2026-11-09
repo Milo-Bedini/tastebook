@@ -17,7 +17,7 @@ import {
 import { useSession } from '../households';
 import type { UnitSystem } from './convert';
 import { dietTagLabels, stickerTags } from './diet-tags';
-import type { OpenedFrom } from './recipe-card';
+import { openedFromList } from './recipe-card';
 import {
   canCrossDimensions,
   canShowOriginal,
@@ -28,7 +28,7 @@ import {
 import { RecipeIntro } from './recipe-intro';
 import { RecipeMethod } from './recipe-method';
 import { RecipePhotoCredit } from './recipe-photo-credit';
-import { useCopyGone, useRecipe, useShareLinkGone, useVisibilityGone } from './recipes-api';
+import { useCopyGone, useRecipe, useReportGone, useShareLinkGone, useVisibilityGone } from './recipes-api';
 
 type Recipe = components['schemas']['Recipe'];
 // What a share link shows too, which every recipe has.
@@ -228,8 +228,9 @@ const RecipeForSlug = ({ slug }: RecipeForSlugProps) => {
   const visibilityGone = useVisibilityGone(slug);
   const copyGone = useCopyGone(slug);
   const shareLinkGone = useShareLinkGone(slug);
+  const reportGone = useReportGone(slug);
   if (data === null) {
-    return <RecipeNotFound takesFocus={visibilityGone || copyGone || shareLinkGone} />;
+    return <RecipeNotFound takesFocus={visibilityGone || copyGone || shareLinkGone || reportGone} />;
   }
   // A recipe already shown stays up if a background refetch fails. It waits for the session, so a US account never
   // sees metric first.
@@ -254,21 +255,6 @@ const RecipeContent = () => {
     return <RecipeNotFound />;
   }
   return <RecipeForSlug slug={slug} />;
-};
-
-const openedFromList = (state: unknown): OpenedFrom | null => {
-  if (typeof state !== 'object' || state === null || !('openedFrom' in state)) {
-    return null;
-  }
-  const { openedFrom } = state;
-  return typeof openedFrom === 'object' &&
-    openedFrom !== null &&
-    'name' in openedFrom &&
-    typeof openedFrom.name === 'string' &&
-    'path' in openedFrom &&
-    typeof openedFrom.path === 'string'
-    ? { name: openedFrom.name, path: openedFrom.path }
-    : null;
 };
 
 // Opened from a list, the way back is to that list.

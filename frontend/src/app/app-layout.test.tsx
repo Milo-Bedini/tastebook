@@ -21,7 +21,8 @@ const appleTart: RecipeSummary = {
   difficulty: 'medium',
   total_minutes: 100,
   photo: null,
-  diet_tags: []
+  diet_tags: [],
+  hidden_for_review: false
 };
 
 // Answers only a search for "tart", so the list shows a recipe only once the search reached it.

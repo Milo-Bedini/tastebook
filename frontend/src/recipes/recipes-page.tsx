@@ -1,7 +1,7 @@
 import { Plus, SlidersHorizontal } from 'lucide-react';
 import type { RefObject } from 'react';
 import { useCallback, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useLocation, useSearchParams } from 'react-router';
 
 import type { components } from '../api/schema';
 import { Button, EmptyState, ErrorWithRetry, Loading, Page, Sheet, Squiggle } from '../dino';
@@ -160,7 +160,14 @@ const FiltersSheet = ({ filters, onChange, filterCount, result, buttonRef }: Fil
   );
 };
 
+// A recipe a report hid sends its reporter back here, and the heading takes the focus the sheet had.
+const asksForHeading = (state: unknown) =>
+  typeof state === 'object' && state !== null && 'focus' in state && state.focus === 'heading';
+
+const takeFocus = (element: HTMLElement | null) => element?.focus();
+
 export const RecipesPage = () => {
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   // The top bar's field writes q (useRecipeSearch); the list searches once the typing pauses.
   const searchTerm = toSearchTerm(useDebouncedValue(searchParams.get('q') ?? '', SEARCH_DELAY_MS));
@@ -203,7 +210,7 @@ export const RecipesPage = () => {
     <Page>
       <title>Recipes · Tastebook</title>
       <div className="flex flex-col gap-3.5">
-        <h1>
+        <h1 ref={asksForHeading(location.state) ? takeFocus : undefined} tabIndex={-1}>
           What shall we <Squiggle emphasis>cook</Squiggle> tonight?
         </h1>
         {/* For everyone: signed out, the form sends you through sign-in and back. */}

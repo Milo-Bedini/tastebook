@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { EyeOff } from 'lucide-react';
 import { expect, within } from 'storybook/test';
 
 import { Banner } from '@/dino/banner';
@@ -31,6 +32,22 @@ export const Warning = {
       borderTopLeftRadius: '20px',
       backgroundColor: 'rgb(42, 29, 71)'
     });
+  }
+} satisfies Story;
+export const WarningWithIcon = {
+  args: {
+    tone: 'warning',
+    icon: EyeOff,
+    title: 'Hidden while a report is reviewed',
+    children:
+      'Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or delete it.'
+  },
+  play: async ({ canvasElement }) => {
+    const banner = within(canvasElement).getByRole('status');
+    const icon = banner.querySelector('svg');
+    await expect(icon).toHaveClass('lucide-eye-off');
+    await expect(icon).toHaveStyle({ color: 'rgb(255, 224, 138)' });
+    await expect(banner).toHaveStyle({ borderTopColor: 'rgb(255, 224, 138)' });
   }
 } satisfies Story;
 export const Danger = {
