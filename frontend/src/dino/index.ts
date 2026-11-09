@@ -25,6 +25,7 @@ export { PhotoField, type PhotoFieldPhoto } from './photo-field';
 export { type Lean, Polaroid } from './polaroid';
 export { PolaroidCard } from './polaroid-card';
 export { PrivateMark } from './private-mark';
+export { RadioList } from './radio-list';
 export { RecipePhoto } from './recipe-photo';
 export { RemovableChip } from './removable-chip';
 export { SegmentedControl } from './segmented-control';
