@@ -2135,7 +2135,7 @@ components:
       type: object
       properties:
         reason:
-          $ref: '#/components/schemas/ReasonEnum'
+          $ref: '#/components/schemas/ReportReason'
         note:
           type: string
           description: Anything that helps staff, like where it was copied from. ''
@@ -2330,18 +2330,6 @@ components:
             has resized to 1,600 px.
       required:
       - photo
-    ReasonEnum:
-      enum:
-      - spam
-      - offensive
-      - copied
-      - other
-      type: string
-      description: |-
-        * `spam` - Spam
-        * `offensive` - Offensive
-        * `copied` - Copied without credit
-        * `other` - Something else
     Recipe:
       type: object
       properties:
@@ -2713,6 +2701,18 @@ components:
             reach staff without hiding it.
       required:
       - hidden
+    ReportReason:
+      enum:
+      - spam
+      - offensive
+      - copied
+      - other
+      type: string
+      description: |-
+        * `spam` - Spam
+        * `offensive` - Offensive
+        * `copied` - Copied without credit
+        * `other` - Something else
     SaveRecipe:
       type: object
       properties:

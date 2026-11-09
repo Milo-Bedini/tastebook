@@ -239,6 +239,7 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {
         'DietTag': 'recipes.models.DietTag',
         'InviteStatus': 'households.models.InviteStatus',
+        'ReportReason': 'recipes.models.ReportReason',
         'UnitSystem': 'households.models.UnitSystem',
         'Visibility': 'recipes.models.Visibility',
     },

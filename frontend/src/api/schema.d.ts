@@ -810,7 +810,7 @@ export interface components {
             steps?: string[];
         };
         NewReport: {
-            reason: components["schemas"]["ReasonEnum"];
+            reason: components["schemas"]["ReportReason"];
             /** @description Anything that helps staff, like where it was copied from. '' when left out. */
             note?: string;
         };
@@ -890,14 +890,6 @@ export interface components {
              */
             photo: string;
         };
-        /**
-         * @description * `spam` - Spam
-         *     * `offensive` - Offensive
-         *     * `copied` - Copied without credit
-         *     * `other` - Something else
-         * @enum {string}
-         */
-        ReasonEnum: "spam" | "offensive" | "copied" | "other";
         Recipe: {
             readonly id: number;
             readonly slug: string;
@@ -1006,6 +998,14 @@ export interface components {
             /** @description Whether the report hid the recipe from everyone but its author. False once staff have restored it after an earlier report, as later reports reach staff without hiding it. */
             readonly hidden: boolean;
         };
+        /**
+         * @description * `spam` - Spam
+         *     * `offensive` - Offensive
+         *     * `copied` - Copied without credit
+         *     * `other` - Something else
+         * @enum {string}
+         */
+        ReportReason: "spam" | "offensive" | "copied" | "other";
         SaveRecipe: {
             /** @description The slug of a recipe the account can see: a public recipe, or its household's own. */
             recipe: string;
