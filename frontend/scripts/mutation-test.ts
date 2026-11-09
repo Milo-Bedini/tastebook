@@ -1,8 +1,9 @@
 // Mutation-tests the frontend source files given, and writes a JSON summary of the mutants no test noticed.
-// Usage, from the repo root: pnpm mutation:frontend [--out summary.json] <file> ...
+// Usage, from the repo root: pnpm mutation:frontend [--out summary.json] [--max-files N] <file> ...
 // Paths are relative to where the command is run. Anything that isn't frontend source (tests, stories, generated
 // types, test helpers, styles, backend files, files since deleted) is skipped, so an empty or unrelated list does
-// nothing. Surviving mutants are findings, not failures: the command exits 0 when they survive.
+// nothing; --max-files then keeps the first N source files in the order given. Surviving mutants are findings, not
+// failures: the command exits 0 when they survive.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
@@ -24,7 +25,14 @@ const unnoticed: Record<string, Survivor['status']> = { Survived: 'survived', No
 
 // pnpm runs scripts from the package's folder, and says where it was started in INIT_CWD.
 const cwd = process.env.INIT_CWD ?? process.cwd();
-const { values, positionals } = parseArgs({ options: { out: { type: 'string' } }, allowPositionals: true });
+const { values, positionals } = parseArgs({
+  options: { out: { type: 'string' }, 'max-files': { type: 'string' } },
+  allowPositionals: true
+});
+const maxFiles = values['max-files'] === undefined ? undefined : Number(values['max-files']);
+if (maxFiles !== undefined && !(Number.isInteger(maxFiles) && maxFiles > 0)) {
+  throw new Error(`--max-files takes a whole number above 0, not ${values['max-files']}`);
+}
 
 const isSource = (path: string) => {
   const fromFrontend = relative(frontendDir, path);
@@ -37,7 +45,9 @@ const isSource = (path: string) => {
   );
 };
 
-const sources = [...new Set(positionals.map((file) => resolve(cwd, file)).filter((path) => isSource(path)))].sort();
+const sources = [...new Set(positionals.map((file) => resolve(cwd, file)).filter((path) => isSource(path)))]
+  .slice(0, maxFiles)
+  .sort();
 
 const oneLine = (text: string) => text.split(/\s+/).join(' ').trim().slice(0, 200);
 

@@ -1,11 +1,11 @@
 """Mutation-tests the backend source files given, and writes a JSON summary of the mutants no test noticed.
 
-Usage, from the repo root: pnpm mutation:backend [--out summary.json] <file> ...
+Usage, from the repo root: pnpm mutation:backend [--out summary.json] [--max-files N] <file> ...
 
 Paths are relative to where the command is run (the repo root through pnpm). Anything that isn't backend source
 (tests, migrations, the schema, data, frontend files, files since deleted) is skipped, so an empty or unrelated list
-does nothing. Surviving mutants are findings, not failures: the command exits 0 when they survive and fails only when
-mutmut itself can't run.
+does nothing; --max-files then keeps the first N source files in the order given. Surviving mutants are findings,
+not failures: the command exits 0 when they survive and fails only when mutmut itself can't run.
 """
 
 import argparse
@@ -135,10 +135,10 @@ def module_name(path: Path) -> str:
     return '.'.join(path.relative_to(BACKEND_DIR).with_suffix('').parts).removesuffix('.__init__')
 
 
-def run(files: list[Path], cwd: Path) -> Summary:
+def run(files: list[Path], cwd: Path, max_files: int | None) -> Summary:
     started = time.monotonic()
     roots = source_paths()
-    sources = sorted({file for file in files if is_source(file, roots)})
+    sources = sorted(list(dict.fromkeys(file for file in files if is_source(file, roots)))[:max_files])
     summary: Summary = {
         'files': [os.path.relpath(file, cwd) for file in sources],
         'duration_seconds': 0.0,
@@ -176,11 +176,14 @@ def run(files: list[Path], cwd: Path) -> Summary:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--out', type=Path, help='where to write the JSON summary (printed when left out)')
+    parser.add_argument('--max-files', type=int, help='mutate only the first N source files given')
     parser.add_argument('files', nargs='*', type=Path)
     args = parser.parse_args()
+    if args.max_files is not None and args.max_files < 1:
+        parser.error(f'--max-files takes a whole number above 0, not {args.max_files}')
     # pnpm runs scripts from the package's folder, and says where it was started in INIT_CWD.
     cwd = Path(os.environ.get('INIT_CWD', Path.cwd()))
-    summary = run([(cwd / file).resolve() for file in args.files], cwd)
+    summary = run([(cwd / file).resolve() for file in args.files], cwd, args.max_files)
     text = json.dumps(summary, indent=2, ensure_ascii=False) + '\n'
     if args.out:
         (cwd / args.out).write_text(text)
