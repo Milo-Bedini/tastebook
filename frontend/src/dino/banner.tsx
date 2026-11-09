@@ -17,10 +17,13 @@ type BannerProps = {
   children?: ReactNode;
   // At most one, under the text: a Dino Button, usually secondary (docs/design.md, Components).
   action?: ReactNode;
+  // In place of the tone's, where a more exact picture helps; the tone still sets its colour, border and role.
+  icon?: LucideIcon;
 };
 
-export const Banner = ({ tone, title, children, action }: BannerProps) => {
-  const { icon: Icon, role, border, text } = toneStyles[tone];
+export const Banner = ({ tone, title, children, action, icon }: BannerProps) => {
+  const { icon: toneIcon, role, border, text } = toneStyles[tone];
+  const Icon = icon ?? toneIcon;
 
   return (
     <div
@@ -30,7 +33,8 @@ export const Banner = ({ tone, title, children, action }: BannerProps) => {
         border
       )}
     >
-      <Icon aria-hidden="true" strokeWidth={2.5} className={cn('size-5.5', text)} />
+      {/* An SVG keeps its own colour under forced colours unless it's told to take its text's (CanvasText). */}
+      <Icon aria-hidden="true" strokeWidth={2.5} className={cn('size-5.5 forced-colors:text-current', text)} />
       <div className="flex flex-col items-start gap-1">
         <p className="font-extrabold">{title}</p>
         {children && <div className="text-muted">{children}</div>}
