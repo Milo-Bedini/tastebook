@@ -32,9 +32,9 @@ class SeededAccount:
 
 def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
     """Makes the described households, members, recipes, saves, lists and copies, then makes private the recipes
-    named, shares by link the ones named, restores, removes and reports the ones named, in one transaction, and
-    signs each member in. Keyed by each member's key. Raises CatalogueError for a recipe the database can't hold, or a
-    save, list, copy, change or report it can't make."""
+    named, shares by link the ones named, makes public the ones named, restores, removes and reports the ones named,
+    in one transaction, and signs each member in. Keyed by each member's key. Raises CatalogueError for a recipe the
+    database can't hold, or a save, list, copy, change or report it can't make."""
     with transaction.atomic():
         made = [pair for household in households for pair in _add_household(household)]
         # Before any recipe, so a recipe can name an ingredient another member added.
@@ -61,6 +61,9 @@ def seed(households: list[dict[str, Any]]) -> dict[str, SeededAccount]:
         for member, account in made:
             for title in member['shared']:
                 _share(_recipe_they_wrote(title, recipes[member['key']], account, 'share "{}" by link'))
+        for member, account in made:
+            for title in member['made_public']:
+                _make_public(_recipe_they_wrote(title, recipes[member['key']], account, 'make "{}" public'))
         # Before any report, as if staff had restored each after an earlier one, so the reports leave it up.
         for member, account in made:
             for title in member['restored']:
@@ -120,6 +123,13 @@ def _share(recipe: Recipe) -> None:
         turn_on_share_link(recipe)
     except ValidationError as error:
         raise CatalogueError(f'"{recipe.title}" is public, so it can\'t be shared by link.') from error
+
+
+def _make_public(recipe: Recipe) -> None:
+    try:
+        set_visibility(recipe, Visibility.PUBLIC)
+    except ValidationError as error:
+        raise CatalogueError(f'"{recipe.title}" can\'t be made public: {error.messages[0]}') from error
 
 
 def _report(account: User, recipe: Recipe) -> None:

@@ -216,9 +216,31 @@ HELD_FOR_REVIEW = 'You can change this once staff have reviewed the report.'
 REMOVED_BY_STAFF = 'Staff removed this recipe from public view after a report, so it stays private.'
 
 
+# An account's recipes made public in one day, past which each one more waits for staff to approve it.
+PUBLIC_A_DAY = 3
+
+
+def waits_for_review(recipe: Recipe) -> bool:
+    """Whether making the recipe public now would leave it waiting for review: its author has made PUBLIC_A_DAY
+    others public today, counting those waiting for review."""
+    # Today in TIME_ZONE (London), so a day runs from midnight there.
+    others = Recipe.objects.filter(created_by_id=recipe.created_by_id, published_at__date=timezone.localdate()).exclude(
+        pk=recipe.pk
+    )
+    return recipe.created_by_id is not None and others.count() >= PUBLIC_A_DAY
+
+
 def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
-    """Makes the recipe public or private. Raises ValidationError({'visibility': [...]}) when it's made public
-    while publishing_gaps() names something or staff have removed it, or made private while a report hides it."""
+    """Makes the recipe public or private. Made public once its author has made PUBLIC_A_DAY others public today,
+    it waits for review instead: it stays private until staff approve it, and making it private withdraws it. Raises
+    ValidationError({'visibility': [...]}) when it's made public while publishing_gaps() names something or staff have
+    removed it, or made private while a report hides it."""
+    if recipe.moderation == Moderation.HELD:
+        if visibility == Visibility.PRIVATE:
+            # An update, not a save, so withdrawing it as staff approve it can't undo their approval.
+            Recipe.objects.filter(pk=recipe.pk, moderation=Moderation.HELD).update(moderation=Moderation.UNREPORTED)
+            recipe.refresh_from_db(fields=['visibility', 'moderation'])
+        return recipe
     if recipe.visibility == visibility:
         return recipe
     # Going private would take the recipe out of review, and public again would bring it back unreviewed.
@@ -231,12 +253,48 @@ def set_visibility(recipe: Recipe, visibility: Visibility) -> Recipe:
         if gaps:
             raise ValidationError({'visibility': [f'Add {_together(gaps)} before making it public.']})
     with transaction.atomic():
-        recipe.visibility = visibility
-        recipe.save(update_fields=['visibility'])
-        # A public recipe is open to anyone, so its link stops, and making it private again doesn't bring it back.
         if visibility == Visibility.PUBLIC:
-            ShareLink.objects.filter(recipe=recipe).delete()
+            _publish(recipe)
+        else:
+            recipe.visibility = visibility
+            recipe.save(update_fields=['visibility'])
     return recipe
+
+
+def _publish(recipe: Recipe) -> None:
+    # The author is locked, so two of their recipes made public at once can't both be counted as the last of the day.
+    User.objects.select_for_update().filter(pk=recipe.created_by_id).first()
+    held = waits_for_review(recipe)
+    # Counted once a day, however often it's made private and public again.
+    if recipe.published_at is None or timezone.localdate(recipe.published_at) != timezone.localdate():
+        recipe.published_at = timezone.now()
+    if held:
+        recipe.moderation = Moderation.HELD
+    else:
+        recipe.visibility = Visibility.PUBLIC
+    recipe.save(update_fields=['visibility', 'moderation', 'published_at'])
+    # A public recipe is open to anyone, so its link stops, and making it private again doesn't bring it back. One
+    # waiting for review will be public, so its link stops too.
+    ShareLink.objects.filter(recipe=recipe).delete()
+
+
+def approve_recipe(recipe: Recipe) -> bool:
+    """Makes a recipe waiting for review public, as its author asked. False, changing nothing, once it's no longer
+    waiting: its author withdrew it, or staff approved it already. Raises ValidationError when it now lacks something
+    publishing_gaps() names, as its household may edit it while it waits."""
+    with transaction.atomic():
+        # Locked, so the author withdrawing it meanwhile either comes first or finds it public.
+        locked = Recipe.objects.select_for_update().get(pk=recipe.pk)
+        if locked.moderation != Moderation.HELD:
+            return False
+        gaps = publishing_gaps(locked)
+        if gaps:
+            raise ValidationError({NON_FIELD_ERRORS: [f'It needs {_together(gaps)} before it can be public.']})
+        locked.visibility = Visibility.PUBLIC
+        locked.moderation = Moderation.UNREPORTED
+        locked.save(update_fields=['visibility', 'moderation'])
+        ShareLink.objects.filter(recipe=locked).delete()
+    return True
 
 
 ALREADY_REPORTED = "You've reported this recipe already."
@@ -324,9 +382,13 @@ def tell_author_of_review(recipe: Recipe, reasons: list[str]) -> None:
 
 def turn_on_share_link(recipe: Recipe) -> ShareLink:
     """Gives the private recipe a share link, or the one it has. Raises ValidationError({'share_link': [...]}) for a
-    public recipe, which anyone can open already."""
+    public recipe, which anyone can open already, or one waiting for review, which will be public."""
     if recipe.visibility != Visibility.PRIVATE:
         raise ValidationError({'share_link': ['A public recipe is open to anyone already, so it has no share link.']})
+    if recipe.moderation == Moderation.HELD:
+        raise ValidationError(
+            {'share_link': ['This recipe will be public once staff approve it, so it has no share link.']}
+        )
     link, _ = ShareLink.objects.get_or_create(recipe=recipe)
     return link
 

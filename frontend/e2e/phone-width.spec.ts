@@ -106,10 +106,12 @@ const recipe: Recipe = {
   can_delete: false,
   can_edit: false,
   can_publish: false,
+  will_wait_for_review: false,
   save_count: null,
   can_share: false,
   share_token: null,
   hidden_for_review: false,
+  waiting_for_review: false,
   can_report: false,
   reported: false
 };
@@ -126,7 +128,8 @@ const summary: RecipeSummary = {
   total_minutes: recipe.total_minutes,
   photo: recipe.photo,
   diet_tags: recipe.diet_tags,
-  hidden_for_review: recipe.hidden_for_review
+  hidden_for_review: recipe.hidden_for_review,
+  waiting_for_review: recipe.waiting_for_review
 };
 
 // One transparent pixel stands in for every Commons thumbnail, so the specs never reach Wikimedia.

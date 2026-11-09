@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any
 
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Field, Max, Model, Q, QuerySet
 from django.forms import BaseInlineFormSet, ChoiceField, ModelForm
 from django.http import HttpRequest
@@ -10,6 +11,7 @@ from django.utils.html import format_html
 from recipes.models import (
     Cuisine,
     Equipment,
+    HeldRecipe,
     Ingredient,
     IngredientGroup,
     IngredientLine,
@@ -21,7 +23,7 @@ from recipes.models import (
     ReportedRecipe,
     Step,
 )
-from recipes.services import StaffDecision, review_reports
+from recipes.services import StaffDecision, approve_recipe, review_reports
 
 
 @admin.register(Cuisine)
@@ -226,3 +228,54 @@ class ReportedRecipeAdmin(ReadOnly, admin.ModelAdmin):
     @admin.action(description='Remove: make private for good, and tell the author')
     def remove(self, request: HttpRequest, chosen: QuerySet[ReportedRecipe]) -> None:
         self._review(request, chosen, Moderation.REMOVED)
+
+
+@admin.register(HeldRecipe)
+class HeldRecipeAdmin(ReadOnly, admin.ModelAdmin):
+    """Household recipes waiting for review, asked for first at the top. Staff read each one here, since it's private
+    to its household until they approve it, and approve it from the list."""
+
+    list_display = ('title', 'asked', 'household', 'author')
+    list_select_related = ('household', 'created_by')
+    search_fields = ('title', 'slug')
+    actions = ('approve',)
+    fieldsets = (
+        (None, {'fields': ('title', 'household', 'author', 'asked')}),
+        ('Recipe', {'fields': ('description', 'photo', 'source', 'source_url')}),
+    )
+    readonly_fields = ('author', 'photo', 'asked')
+    inlines = (IngredientGroupInline, IngredientLineInline, StepInline)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[HeldRecipe]:
+        return HeldRecipe.objects.filter(household__isnull=False, moderation=Moderation.HELD).order_by(
+            'published_at', 'id'
+        )
+
+    @admin.display(description='Asked to publish', ordering='published_at')
+    def asked(self, recipe: HeldRecipe) -> datetime | None:
+        return recipe.published_at
+
+    @admin.display(description='Author', ordering='created_by__name')
+    def author(self, recipe: HeldRecipe) -> str:
+        return '-' if recipe.created_by is None else f'{recipe.created_by.name} ({recipe.created_by.email})'
+
+    @admin.display(description='Photo')
+    def photo(self, recipe: HeldRecipe) -> str:
+        if not recipe.photo_url:
+            return '-'
+        return format_html('<img src="{}" alt="The recipe\'s photo" width="320">', recipe.photo_url)
+
+    @admin.action(description='Approve: make public, as its author asked')
+    def approve(self, request: HttpRequest, chosen: QuerySet[HeldRecipe]) -> None:
+        approved: list[str] = []
+        refused: list[str] = []
+        for recipe in chosen:
+            try:
+                if approve_recipe(recipe):
+                    approved.append(recipe.title)
+            except ValidationError as error:
+                refused.append(f'{recipe.title}: {" ".join(error.messages)}')
+        if approved:
+            self.message_user(request, f'Approved {", ".join(approved)}.')
+        for refusal in refused:
+            self.message_user(request, f"Couldn't approve {refusal}", messages.ERROR)

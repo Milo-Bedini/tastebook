@@ -46,10 +46,12 @@ const curry: Recipe = {
   can_delete: true,
   can_edit: true,
   can_publish: true,
+  will_wait_for_review: false,
   save_count: 0,
   can_share: true,
   share_token: null,
   hidden_for_review: false,
+  waiting_for_review: false,
   can_report: false,
   reported: false
 };

@@ -29,7 +29,8 @@ const appleTart: Recipe = {
   total_minutes: 100,
   photo: null,
   diet_tags: [],
-  hidden_for_review: false
+  hidden_for_review: false,
+  waiting_for_review: false
 };
 const bananaBread: Recipe = {
   id: 2,
@@ -43,7 +44,8 @@ const bananaBread: Recipe = {
   total_minutes: 75,
   photo: null,
   diet_tags: [],
-  hidden_for_review: false
+  hidden_for_review: false,
+  waiting_for_review: false
 };
 
 // Holds the next response from `path` until released, so the test can see the page while the request is in flight.
@@ -207,7 +209,8 @@ describe('RecipesPage', () => {
           total_minutes: 35,
           photo: null,
           diet_tags: [],
-          hidden_for_review: false
+          hidden_for_review: false,
+          waiting_for_review: false
         },
         {
           id: 3,
@@ -221,7 +224,8 @@ describe('RecipesPage', () => {
           total_minutes: 90,
           photo: null,
           diet_tags: [],
-          hidden_for_review: false
+          hidden_for_review: false,
+          waiting_for_review: false
         }
       ])
     );
@@ -266,7 +270,8 @@ describe('RecipesPage', () => {
             total_minutes: 25,
             photo: null,
             diet_tags: [],
-            hidden_for_review: false
+            hidden_for_review: false,
+            waiting_for_review: false
           }
         ])
       )
@@ -298,7 +303,8 @@ describe('RecipesPage', () => {
             total_minutes: null,
             photo: null,
             diet_tags: [],
-            hidden_for_review: false
+            hidden_for_review: false,
+            waiting_for_review: false
           },
           appleTart
         ])
@@ -639,7 +645,8 @@ describe('RecipesPage', () => {
           total_minutes: 35,
           photo: null,
           diet_tags: [],
-          hidden_for_review: false
+          hidden_for_review: false,
+          waiting_for_review: false
         }
       ])
     );

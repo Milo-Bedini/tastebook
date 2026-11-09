@@ -73,10 +73,12 @@ const recipes: Recipe[] = [
     can_delete: false,
     can_edit: false,
     can_publish: false,
+    will_wait_for_review: false,
     save_count: null,
     can_share: false,
     share_token: null,
     hidden_for_review: false,
+    waiting_for_review: false,
     can_report: false,
     reported: false
   },
@@ -115,10 +117,12 @@ const recipes: Recipe[] = [
     can_delete: false,
     can_edit: false,
     can_publish: false,
+    will_wait_for_review: false,
     save_count: null,
     can_share: false,
     share_token: null,
     hidden_for_review: false,
+    waiting_for_review: false,
     can_report: false,
     reported: false
   }
@@ -136,7 +140,8 @@ const toSummary = ({
   total_minutes,
   photo,
   diet_tags,
-  hidden_for_review
+  hidden_for_review,
+  waiting_for_review
 }: Recipe): RecipeSummary => ({
   id,
   slug,
@@ -149,7 +154,8 @@ const toSummary = ({
   total_minutes,
   photo,
   diet_tags,
-  hidden_for_review
+  hidden_for_review,
+  waiting_for_review
 });
 
 export const handlers = [

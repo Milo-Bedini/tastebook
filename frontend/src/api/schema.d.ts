@@ -445,7 +445,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** @description Makes a recipe of the signed-in account's household public or private. Only its author may. Asking for the visibility it already has changes nothing. */
+        /** @description Makes a recipe of the signed-in account's household public or private. Only its author may. Once they have made 3 others public today, it waits for review instead (waiting_for_review): it stays private until staff approve it, asking again changes nothing, and making it private withdraws it. Asking for the visibility it already has changes nothing. */
         put: operations["recipes_visibility_update"];
         post?: never;
         delete?: never;
@@ -724,6 +724,8 @@ export interface components {
             readonly diet_tags: components["schemas"]["DietTag"][];
             /** @description Whether a report hides this recipe from everyone but its author, who alone is sent it until staff review it. */
             readonly hidden_for_review: boolean;
+            /** @description Whether its author asked to make this recipe public after making 3 others public that day, so it stays private until staff approve it. */
+            readonly waiting_for_review: boolean;
         };
         Lists: {
             /** @description The account's household's name; null before it has one. */
@@ -905,6 +907,8 @@ export interface components {
             readonly diet_tags: components["schemas"]["DietTag"][];
             /** @description Whether a report hides this recipe from everyone but its author, who alone is sent it until staff review it. */
             readonly hidden_for_review: boolean;
+            /** @description Whether its author asked to make this recipe public after making 3 others public that day, so it stays private until staff approve it. */
+            readonly waiting_for_review: boolean;
             /** @description The recipe this is a copy of, shown as "Copied from <title>" on a private copy and "Adapted from <title> by <author>" on a public one; null for a recipe that is no copy, or when its original was deleted or the signed-in account can't see it. */
             readonly adapted_from: components["schemas"]["OriginalRecipe"] | null;
             /** @description Whether this recipe was made as a copy of another, which it stays once its original is deleted or made private: with adapted_from null, it's shown as "Adapted from a recipe that's no longer public". */
@@ -948,9 +952,11 @@ export interface components {
             readonly can_edit: boolean;
             /** @description Whether the signed-in account may make this recipe public or private: its author, while it is in their household. */
             readonly can_publish: boolean;
+            /** @description Whether making this recipe public now would leave it waiting for review, as its author has made 3 others public today; false unless the signed-in account may make it public. */
+            readonly will_wait_for_review: boolean;
             /** @description How many other accounts have saved this recipe, which its delete dialog warns of; null unless the signed-in account may delete it. */
             readonly save_count: number | null;
-            /** @description Whether the signed-in account may turn a share link to this recipe on or off: its author, while it is private and in their household. */
+            /** @description Whether the signed-in account may turn a share link to this recipe on or off: its author, while it is private, not waiting for review and in their household. */
             readonly can_share: boolean;
             /** @description The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in account may share it and the link is on. */
             readonly share_token: string | null;
@@ -990,6 +996,8 @@ export interface components {
             readonly diet_tags: components["schemas"]["DietTag"][];
             /** @description Whether a report hides this recipe from everyone but its author, who alone is sent it until staff review it. */
             readonly hidden_for_review: boolean;
+            /** @description Whether its author asked to make this recipe public after making 3 others public that day, so it stays private until staff approve it. */
+            readonly waiting_for_review: boolean;
         };
         RecipeVisibility: {
             visibility: components["schemas"]["Visibility"];
@@ -1095,6 +1103,8 @@ export interface components {
             made_private?: string[];
             /** @description Titles of this member's own private recipes they share by link once every recipe is made private. */
             shared?: string[];
+            /** @description Titles of this member's own private recipes they make public, in order, once every share is made. Each counts towards the day, so once 3 are public each one more waits for review. */
+            made_public?: string[];
             /** @description Titles of this member's own public recipes that staff have restored, as if after an earlier report, once every share is made and before anyone's reports, so a report leaves them up. */
             restored?: string[];
             /** @description Titles of this member's own recipes that staff have removed from public view, as if after an earlier report, once every restore is made: each is private, and its author can't make it public again. */
@@ -2572,7 +2582,7 @@ export interface operations {
                     "application/json": components["schemas"]["Recipe"];
                 };
             };
-            /** @description The recipe is public, so anyone can open it already. */
+            /** @description The recipe is public, so anyone can open it already, or waiting for review, so it will be. */
             400: {
                 headers: {
                     [name: string]: unknown;

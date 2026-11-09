@@ -251,6 +251,10 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
         help_text='Whether a report hides this recipe from everyone but its author, who alone is sent it until staff '
         'review it.'
     )
+    waiting_for_review = serializers.SerializerMethodField(
+        help_text=f'Whether its author asked to make this recipe public after making {services.PUBLIC_A_DAY} others '
+        'public that day, so it stays private until staff approve it.'
+    )
 
     class Meta:
         model = Recipe
@@ -267,6 +271,7 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
             'photo',
             'diet_tags',
             'hidden_for_review',
+            'waiting_for_review',
         ]
         # The API always sends these, as '' when there is none, so the schema marks them required.
         extra_kwargs = {
@@ -281,6 +286,10 @@ class RecipeSummarySerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_hidden_for_review(self, recipe: Recipe) -> bool:
         return recipe.moderation == Moderation.HIDDEN
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_waiting_for_review(self, recipe: Recipe) -> bool:
+        return recipe.moderation == Moderation.HELD
 
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_author(self, recipe: Recipe) -> str | None:
@@ -339,13 +348,17 @@ class RecipeSerializer(RecipeSummarySerializer):
         help_text='Whether the signed-in account may make this recipe public or private: its author, while it is in '
         'their household.'
     )
+    will_wait_for_review = serializers.SerializerMethodField(
+        help_text='Whether making this recipe public now would leave it waiting for review, as its author has made '
+        f'{services.PUBLIC_A_DAY} others public today; false unless the signed-in account may make it public.'
+    )
     save_count = serializers.SerializerMethodField(
         help_text='How many other accounts have saved this recipe, which its delete dialog warns of; '
         'null unless the signed-in account may delete it.'
     )
     can_share = serializers.SerializerMethodField(
         help_text='Whether the signed-in account may turn a share link to this recipe on or off: its author, while it '
-        'is private and in their household.'
+        'is private, not waiting for review and in their household.'
     )
     share_token = serializers.SerializerMethodField(
         help_text="The token of the recipe's share link, which /shared/<token> opens; null unless the signed-in "
@@ -385,6 +398,7 @@ class RecipeSerializer(RecipeSummarySerializer):
             'can_delete',
             'can_edit',
             'can_publish',
+            'will_wait_for_review',
             'save_count',
             'can_share',
             'share_token',
@@ -444,6 +458,12 @@ class RecipeSerializer(RecipeSummarySerializer):
     def get_can_publish(self, recipe: Recipe) -> bool:
         return Recipe.objects.publishable_by(self.context['request'].user).filter(pk=recipe.pk).exists()
 
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_will_wait_for_review(self, recipe: Recipe) -> bool:
+        if recipe.visibility != Visibility.PRIVATE or recipe.moderation in {Moderation.HELD, Moderation.REMOVED}:
+            return False
+        return self.get_can_publish(recipe) and services.waits_for_review(recipe)
+
     @extend_schema_field(serializers.IntegerField(allow_null=True))
     def get_save_count(self, recipe: Recipe) -> int | None:
         user = self.context['request'].user
@@ -453,7 +473,9 @@ class RecipeSerializer(RecipeSummarySerializer):
 
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_can_share(self, recipe: Recipe) -> bool:
-        return recipe.visibility == Visibility.PRIVATE and self.get_can_publish(recipe)
+        # One waiting for review will be public.
+        waiting = recipe.moderation == Moderation.HELD
+        return recipe.visibility == Visibility.PRIVATE and not waiting and self.get_can_publish(recipe)
 
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_share_token(self, recipe: Recipe) -> str | None:

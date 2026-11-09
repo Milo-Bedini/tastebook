@@ -50,6 +50,10 @@ class ListedRecipeSerializer(serializers.ModelSerializer):
         help_text='Whether a report hides this recipe from everyone but its author, who alone is sent it until staff '
         'review it.'
     )
+    waiting_for_review = serializers.SerializerMethodField(
+        help_text='Whether its author asked to make this recipe public after making '
+        f'{recipe_services.PUBLIC_A_DAY} others public that day, so it stays private until staff approve it.'
+    )
 
     class Meta:
         model = Recipe
@@ -66,6 +70,7 @@ class ListedRecipeSerializer(serializers.ModelSerializer):
             'photo',
             'diet_tags',
             'hidden_for_review',
+            'waiting_for_review',
         ]
         extra_kwargs = {
             'description': {'required': True, 'allow_blank': True},
@@ -79,6 +84,10 @@ class ListedRecipeSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.BooleanField())
     def get_hidden_for_review(self, recipe: Recipe) -> bool:
         return recipe.moderation == Moderation.HIDDEN
+
+    @extend_schema_field(serializers.BooleanField())
+    def get_waiting_for_review(self, recipe: Recipe) -> bool:
+        return recipe.moderation == Moderation.HELD
 
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_author(self, recipe: Recipe) -> str | None:
