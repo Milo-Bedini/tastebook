@@ -22,6 +22,23 @@ export interface paths {
         patch: operations["current_account_partial_update"];
         trace?: never;
     };
+    "/api/account/download/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Everything the signed-in account has, in the Tastebook format's version 1, as a file to save: its details, its household's private recipes and the recipes it wrote there, and every list it sees, with saved recipes as their addresses. */
+        get: operations["account_download_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/courses/": {
         parameters: {
             query?: never;
@@ -553,6 +570,100 @@ export interface components {
          * @enum {string}
          */
         DifficultyEnum: "easy" | "medium" | "hard";
+        Download: {
+            /** @description Always "tastebook". */
+            readonly format: string;
+            /** @description Always 1 for this shape. */
+            readonly version: number;
+            /** Format: date-time */
+            readonly exported_at: string;
+            readonly account: components["schemas"]["DownloadedAccount"];
+            /** @description The household's private recipes and the recipes the account wrote there, by title. */
+            readonly recipes: components["schemas"]["DownloadedRecipe"][];
+            /** @description Favourites, then the account's own lists by name, then its household's by name. */
+            readonly lists: components["schemas"]["DownloadedList"][];
+        };
+        DownloadedAccount: {
+            readonly name: string;
+            /** Format: email */
+            readonly email: string;
+            readonly unit_system: components["schemas"]["UnitSystem"];
+            /** @description The account's household's name; null before it has one. */
+            readonly household_name: string | null;
+        };
+        DownloadedGroup: {
+            readonly name: string;
+            readonly lines: components["schemas"]["DownloadedLine"][];
+        };
+        DownloadedLine: {
+            /** Format: double */
+            readonly amount: number | null;
+            /** Format: double */
+            readonly amount_max: number | null;
+            /** @description One of Tastebook's units, or "" for none, as in "2 eggs". */
+            readonly unit: string;
+            /** @description The ingredient's name. */
+            readonly ingredient: string;
+            readonly note: string;
+            readonly optional: boolean;
+            readonly original_text: string;
+        };
+        DownloadedList: {
+            readonly name: string;
+            /**
+             * @description personal: only its owner sees it. household: everyone in the household sees and changes it.
+             *
+             *     * `personal` - Just you
+             *     * `household` - Household
+             */
+            readonly scope: components["schemas"]["ScopeEnum"];
+            /** @description Newest saved first. */
+            readonly saved_recipes: components["schemas"]["DownloadedSave"][];
+        };
+        DownloadedRecipe: {
+            /**
+             * Format: uri
+             * @description The recipe's page in Tastebook.
+             */
+            readonly address: string;
+            readonly title: string;
+            readonly description: string;
+            readonly cuisines: string[];
+            readonly courses: string[];
+            /** @description easy, medium, hard, or "" when not given. */
+            readonly difficulty: string;
+            readonly prep_minutes: number | null;
+            readonly cook_minutes: number | null;
+            readonly extra_minutes: number;
+            readonly extra_label: string;
+            readonly servings: number | null;
+            readonly yield_amount: number | null;
+            readonly yield_unit: string;
+            readonly equipment: string[];
+            readonly one_pot: boolean;
+            readonly source: string;
+            readonly source_url: string;
+            /** @description The photo's address, or "" for none. */
+            readonly photo_url: string;
+            readonly photo_author: string;
+            readonly photo_licence: string;
+            readonly photo_source_url: string;
+            /** @description The lines above every group. */
+            readonly ingredient_lines: components["schemas"]["DownloadedLine"][];
+            readonly ingredient_groups: components["schemas"]["DownloadedGroup"][];
+            readonly steps: string[];
+        };
+        DownloadedSave: {
+            /** @description The title the recipe had when it was saved. */
+            readonly title: string;
+            /** Format: date-time */
+            readonly saved_at: string;
+            /**
+             * Format: uri
+             * @description The recipe's page in Tastebook; null once the recipe is unavailable: its author made it private or deleted it.
+             */
+            readonly address: string | null;
+        };
         Equipment: {
             slug: string;
             name: string;
@@ -1280,6 +1391,32 @@ export interface operations {
                 content?: never;
             };
             /** @description No response body */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    account_download_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Download"];
+                };
+            };
+            /** @description Signed out. */
             403: {
                 headers: {
                     [name: string]: unknown;

@@ -16,6 +16,7 @@ from households.views import (
     SignUpView,
     VerifyEmailCodeView,
 )
+from recipe_collections.views import DownloadView
 from recipes.views import (
     CourseListView,
     CuisineListView,
@@ -29,6 +30,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/health/', include('health.urls')),
     path('api/account/', CurrentAccountView.as_view(), name='current-account'),
+    path('api/account/download/', DownloadView.as_view(), name='account-download'),
     path('api/household/', HouseholdView.as_view(), name='household'),
     path('api/household/invite/', InviteView.as_view(), name='household-invite'),
     path('api/household/leave/', LeaveHouseholdView.as_view(), name='household-leave'),

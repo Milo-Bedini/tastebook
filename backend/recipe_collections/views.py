@@ -2,15 +2,18 @@ from collections.abc import Callable
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from recipe_collections.models import RecipeList, Scope
 from recipe_collections.serializers import (
+    DownloadSerializer,
     ListNameSerializer,
     ListsSerializer,
     NewListSerializer,
@@ -23,6 +26,7 @@ from recipe_collections.serializers import (
 )
 from recipe_collections.services import (
     delete_list,
+    download_for,
     list_of,
     lists_holding,
     lists_of,
@@ -293,3 +297,23 @@ class RestoreSavedView(APIView):
         except DjangoValidationError as error:
             raise _refused(error) from error
         return Response(SavedRecipeSerializer(saved).data, status=status.HTTP_201_CREATED)
+
+
+class DownloadView(APIView):
+    permission_classes = []
+    # A file, so never the browsable API's page, whatever the browser accepts.
+    renderer_classes = [JSONRenderer]
+
+    @extend_schema(
+        operation_id='account_download_retrieve',
+        responses={200: DownloadSerializer, 403: SIGNED_OUT},
+        description="Everything the signed-in account has, in the Tastebook format's version 1, as a file to save: its "
+        "details, its household's private recipes and the recipes it wrote there, and every list it sees, with "
+        'saved recipes as their addresses.',
+    )
+    def get(self, request: Request) -> Response:
+        _refuse_signed_out(request)
+        download = download_for(request.user)
+        body = DownloadSerializer(download, context={'request': request}).data
+        filename = f'tastebook-{timezone.localdate(download.exported_at).isoformat()}.json'
+        return Response(body, headers={'Content-Disposition': f'attachment; filename="{filename}"'})

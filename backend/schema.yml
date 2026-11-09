@@ -54,6 +54,27 @@ paths:
           description: No response body
         '403':
           description: No response body
+  /api/account/download/:
+    get:
+      operationId: account_download_retrieve
+      description: 'Everything the signed-in account has, in the Tastebook format''s
+        version 1, as a file to save: its details, its household''s private recipes
+        and the recipes it wrote there, and every list it sees, with saved recipes
+        as their addresses.'
+      tags:
+      - account
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Download'
+          description: ''
+        '403':
+          description: Signed out.
   /api/courses/:
     get:
       operationId: courses_list
@@ -1454,6 +1475,298 @@ components:
         * `easy` - Easy
         * `medium` - Medium
         * `hard` - Hard
+    Download:
+      type: object
+      properties:
+        format:
+          type: string
+          readOnly: true
+          description: Always "tastebook".
+        version:
+          type: integer
+          readOnly: true
+          description: Always 1 for this shape.
+        exported_at:
+          type: string
+          format: date-time
+          readOnly: true
+        account:
+          allOf:
+          - $ref: '#/components/schemas/DownloadedAccount'
+          readOnly: true
+        recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DownloadedRecipe'
+          readOnly: true
+          description: The household's private recipes and the recipes the account
+            wrote there, by title.
+        lists:
+          type: array
+          items:
+            $ref: '#/components/schemas/DownloadedList'
+          readOnly: true
+          description: Favourites, then the account's own lists by name, then its
+            household's by name.
+      required:
+      - account
+      - exported_at
+      - format
+      - lists
+      - recipes
+      - version
+    DownloadedAccount:
+      type: object
+      properties:
+        name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        unit_system:
+          allOf:
+          - $ref: '#/components/schemas/UnitSystem'
+          readOnly: true
+        household_name:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The account's household's name; null before it has one.
+      required:
+      - email
+      - household_name
+      - name
+      - unit_system
+    DownloadedGroup:
+      type: object
+      properties:
+        name:
+          type: string
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/DownloadedLine'
+          readOnly: true
+      required:
+      - lines
+      - name
+    DownloadedLine:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          maximum: 100000
+          minimum: -100000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          readOnly: true
+          nullable: true
+        amount_max:
+          type: number
+          format: double
+          maximum: 100000
+          minimum: -100000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          readOnly: true
+          nullable: true
+        unit:
+          type: string
+          readOnly: true
+          description: One of Tastebook's units, or "" for none, as in "2 eggs".
+        ingredient:
+          type: string
+          description: The ingredient's name.
+          readOnly: true
+        note:
+          type: string
+          readOnly: true
+        optional:
+          type: boolean
+          readOnly: true
+        original_text:
+          type: string
+          readOnly: true
+      required:
+      - amount
+      - amount_max
+      - ingredient
+      - note
+      - optional
+      - original_text
+      - unit
+    DownloadedList:
+      type: object
+      properties:
+        name:
+          type: string
+          readOnly: true
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          readOnly: true
+          description: |-
+            personal: only its owner sees it. household: everyone in the household sees and changes it.
+
+            * `personal` - Just you
+            * `household` - Household
+        saved_recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DownloadedSave'
+          readOnly: true
+          description: Newest saved first.
+      required:
+      - name
+      - saved_recipes
+      - scope
+    DownloadedRecipe:
+      type: object
+      properties:
+        address:
+          type: string
+          format: uri
+          readOnly: true
+          description: The recipe's page in Tastebook.
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        cuisines:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        courses:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        difficulty:
+          type: string
+          readOnly: true
+          description: easy, medium, hard, or "" when not given.
+        prep_minutes:
+          type: integer
+          readOnly: true
+          nullable: true
+        cook_minutes:
+          type: integer
+          readOnly: true
+          nullable: true
+        extra_minutes:
+          type: integer
+          readOnly: true
+        extra_label:
+          type: string
+          readOnly: true
+        servings:
+          type: integer
+          readOnly: true
+          nullable: true
+        yield_amount:
+          type: integer
+          readOnly: true
+          nullable: true
+        yield_unit:
+          type: string
+          readOnly: true
+        equipment:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        one_pot:
+          type: boolean
+          readOnly: true
+        source:
+          type: string
+          readOnly: true
+        source_url:
+          type: string
+          readOnly: true
+        photo_url:
+          type: string
+          readOnly: true
+          description: The photo's address, or "" for none.
+        photo_author:
+          type: string
+          readOnly: true
+        photo_licence:
+          type: string
+          readOnly: true
+        photo_source_url:
+          type: string
+          readOnly: true
+        ingredient_lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/DownloadedLine'
+          readOnly: true
+          description: The lines above every group.
+        ingredient_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/DownloadedGroup'
+          readOnly: true
+        steps:
+          type: array
+          items:
+            type: string
+          readOnly: true
+      required:
+      - address
+      - cook_minutes
+      - courses
+      - cuisines
+      - description
+      - difficulty
+      - equipment
+      - extra_label
+      - extra_minutes
+      - ingredient_groups
+      - ingredient_lines
+      - one_pot
+      - photo_author
+      - photo_licence
+      - photo_source_url
+      - photo_url
+      - prep_minutes
+      - servings
+      - source
+      - source_url
+      - steps
+      - title
+      - yield_amount
+      - yield_unit
+    DownloadedSave:
+      type: object
+      properties:
+        title:
+          type: string
+          readOnly: true
+          description: The title the recipe had when it was saved.
+        saved_at:
+          type: string
+          format: date-time
+          readOnly: true
+        address:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+          description: 'The recipe''s page in Tastebook; null once the recipe is unavailable:
+            its author made it private or deleted it.'
+      required:
+      - address
+      - saved_at
+      - title
     Equipment:
       type: object
       properties:
