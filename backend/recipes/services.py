@@ -4,6 +4,7 @@ import smtplib
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from functools import partial
 from pathlib import Path
@@ -12,9 +13,11 @@ from typing import Any, Literal
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.core.mail import send_mail
+from django.core.mail import send_mail, send_mass_mail
 from django.db import IntegrityError, models, transaction
+from django.db.models import Count, Max
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -35,6 +38,7 @@ from recipes.models import (
     Report,
     ReportReason,
     ShareLink,
+    StaffEmail,
     Step,
     Visibility,
 )
@@ -382,6 +386,56 @@ def tell_author_of_review(recipe: Recipe, reasons: list[str]) -> None:
     except smtplib.SMTPException, OSError:
         # The exception carries the address, so it stays out of the log; the decision stands either way.
         logger.error("Couldn't send the report review email")
+
+
+def email_staff_what_waits() -> int:
+    """Emails each staff account every recipe with reports awaiting review and every recipe waiting for review, once
+    something has joined them since the last email, and at most once in a clock hour. Returns how many accounts it
+    emailed: 0 when nothing new waits, nobody is staff or this hour has had its email. Raises SMTPException or OSError
+    when the email can't be sent, which leaves it to the next run."""
+    checked_at = timezone.now()
+    reports = Report.objects.filter(reviewed_at__isnull=True, recipe__household__isnull=False)
+    held = Recipe.objects.filter(household__isnull=False, moderation=Moderation.HELD)
+    with transaction.atomic():
+        # Locked, so two runs at once can't both send.
+        last, _ = StaffEmail.objects.select_for_update().get_or_create(pk=1)
+        if last.sent_at is not None and _hour_of(last.sent_at) == _hour_of(checked_at):
+            return 0
+        joined = [
+            reports.aggregate(newest=Max('created_at'))['newest'],
+            held.aggregate(newest=Max('published_at'))['newest'],
+        ]
+        newest = max((when for when in joined if when is not None), default=None)
+        if newest is None or (last.sent_at is not None and newest <= last.sent_at):
+            return 0
+        staff = list(User.objects.filter(is_staff=True, is_active=True).values_list('email', flat=True))
+        if not staff:
+            return 0
+        context = {
+            # Counts only the reports awaiting review, as the filter comes before the count.
+            'reported': list(
+                Recipe.objects.filter(reports__in=reports)
+                .annotate(awaiting=Count('reports'))
+                .order_by('title', 'id')
+                .values('title', 'awaiting')
+            ),
+            'held': list(held.order_by('published_at', 'id').values('title', 'published_at')),
+            'reported_url': settings.SITE_URL + reverse('admin:recipes_reportedrecipe_changelist'),
+            'held_url': settings.SITE_URL + reverse('admin:recipes_heldrecipe_changelist'),
+        }
+        # As allauth does, so nothing in the context can break the header.
+        subject = ' '.join(render_to_string('recipes/email/waiting_for_staff_subject.txt', context).splitlines())
+        message = render_to_string('recipes/email/waiting_for_staff_message.txt', context)
+        # One email each, so no account sees the others' addresses.
+        send_mass_mail([(subject.strip(), message, None, [email]) for email in staff])
+        # When the check began, so anything that joined while it ran counts as new next time.
+        last.sent_at = checked_at
+        last.save(update_fields=['sent_at'])
+    return len(staff)
+
+
+def _hour_of(moment: datetime) -> datetime:
+    return moment.replace(minute=0, second=0, microsecond=0)
 
 
 def turn_on_share_link(recipe: Recipe) -> ShareLink:

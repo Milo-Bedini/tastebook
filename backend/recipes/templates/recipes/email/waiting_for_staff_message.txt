@@ -1,0 +1,16 @@
+{% autoescape off %}Hi,
+
+Something new is waiting for staff on Tastebook. This lists everything waiting now.
+{% if reported %}
+Reported recipes, with their reports awaiting review:
+{% for recipe in reported %}- {{ recipe.title }}: {{ recipe.awaiting }} report{{ recipe.awaiting|pluralize }}
+{% endfor %}
+Restore or remove them at {{ reported_url }}
+{% endif %}{% if held %}
+Recipes waiting for review, asked for first at the top:
+{% for recipe in held %}- {{ recipe.title }}: asked to publish {{ recipe.published_at|date:"j M, H:i" }}
+{% endfor %}
+Approve them at {{ held_url }}
+{% endif %}
+You'll get at most one of these an hour, and only when something new is waiting.
+{% endautoescape %}
