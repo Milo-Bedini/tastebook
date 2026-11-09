@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Report a recipe, laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);color:var(--color-ink);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:1280px;height:900px;box-sizing:border-box}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:auto minmax(0,1fr) 360px auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:24px;padding:0 32px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font-serif);font-size:34px;line-height:36px;font-style:italic;color:var(--color-ink);text-decoration:none}
+.tabs{list-style:none;margin:0;padding:0;display:flex;gap:8px}
+.tab{display:inline-flex;align-items:center;height:44px;box-sizing:border-box;padding:0 18px;border:2px solid transparent;border-radius:var(--radius-pill);font-size:15px;line-height:20px;font-weight:800;color:var(--color-ink);text-decoration:none}
+.tab.cur{background:var(--color-peach);color:var(--color-on-pastel)}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:32px 32px 48px;display:flex;flex-direction:column;gap:24px}
+.back{display:inline-flex;min-height:44px;align-items:center;gap:4px;align-self:flex-start;font-size:15px;line-height:20px;font-weight:800;text-decoration:none;color:var(--color-ink)}
+.back svg{width:18px;height:18px}
+.cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:64px;align-items:start}
+.cols .ph{padding:8px 24px 0}
+.intro{display:flex;flex-direction:column;gap:16px}
+.intro h1{margin:0}
+.intro p{margin:0}
+.bn p{margin:0}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:12px}
+.muted{color:var(--color-muted)}
+.facts{color:var(--color-muted);font-variant-numeric:tabular-nums}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.sw{max-width:400px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.rep{display:flex;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--color-line);padding-top:12px}
+.scrim{position:absolute;inset:0;background:var(--color-scrim);z-index:2}
+.sheet{position:absolute;left:50%;bottom:0;width:576px;margin-left:-288px;z-index:3;box-sizing:border-box;background:var(--color-surface);border:2px solid transparent;border-bottom:0;border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:6px 24px 28px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lift)}
+.grab{align-self:center;width:40px;height:5px;border-radius:var(--radius-pill);background:var(--color-field)}
+.shd{margin-top:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.shd div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.st{margin:0;font-family:var(--font-serif);font-style:italic;font-size:34px;line-height:36px;font-weight:400}
+.sdesc{margin:0;font-size:16px;line-height:24px;font-weight:600;color:var(--color-muted)}
+.sbody{display:flex;flex-direction:column;gap:20px;margin:0}
+.fs{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fs legend{padding:0 0 6px;font-size:15px;line-height:20px;font-weight:800}
+.rrow{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 8px 6px 12px;box-sizing:border-box;border-radius:var(--radius-row);cursor:pointer}
+.rrow input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.rrow .nm{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.rrow .nm b{font-size:16px;line-height:24px;font-weight:600}
+.rrow .nm span{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.dot{width:28px;height:28px;flex-shrink:0;box-sizing:border-box;border:2px solid var(--color-field);border-radius:var(--radius-pill);display:grid;place-items:center;color:var(--color-on-pastel)}
+.dot.on{background:var(--color-mint);border-color:transparent}
+.dot svg{width:18px;height:18px}
+.rrow.hv{background:var(--color-line)}
+.fld{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:15px;line-height:20px;font-weight:800}
+.help{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.sacts{display:flex;justify-content:flex-end}
+.boards{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 2712px; height: 1360px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 32px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-129 · laptop, 1280 px</span>
+    <h1 class="ttl">Report a recipe, laptop</h1>
+    <span class="cap">Report recipe and the notice belong to the intro, so both sit in the right-hand column. The sheet is the same sheet, centred and 576 px wide, as design.md’s Sheet is from tablets up. Tablets follow the phone’s layout with the sheet centred.</span>
+  </header>
+
+  <div class="boards">
+
+    <div class="col"><span class="cap"><b>Milo reports it</b> · the pointer on Offensive · nothing chosen yet</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <nav aria-label="Main"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Lists</a></li></ul></nav>
+          <x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Milo Bedini"><span aria-hidden="true">M</span></button>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="cols">
+            <div class="ph"><x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import></div>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{no}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <p class="muted">by Sam</p>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="acts">
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+              </div>
+              <div class="rep"><x-import component-from-global-scope="Dino.Button" variant="ghost"><x-import component-from-global-scope="Dino.icons.Flag" aria-hidden="true" stroke-width="{{sw}}"></x-import>Report recipe</x-import></div>
+            </div>
+          </div>
+        </main>
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="l-t" aria-describedby="l-d">
+          <span class="grab" aria-hidden="true"></span>
+          <div class="shd"><div><h2 id="l-t" class="st">Report recipe</h2><p id="l-d" class="sdesc">Grandma’s curry, by Sam</p></div><x-import component-from-global-scope="Dino.IconButton" icon="{{icons.X}}" label="Close"></x-import></div>
+          <form class="sbody" novalidate>
+            <fieldset class="fs"><legend>What’s wrong with it?</legend>
+              <label class="rrow"><input type="radio" name="l-why"><span class="nm"><b>Spam</b><span>Adverts, links, or not a recipe</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow hv"><input type="radio" name="l-why"><span class="nm"><b>Offensive</b><span>Hateful, violent or explicit</span></span><span class="dot" aria-hidden="true" style="border-color: var(--color-ink)"></span></label>
+              <label class="rrow"><input type="radio" name="l-why"><span class="nm"><b>Copied without credit</b><span>Someone else’s recipe, passed off as theirs</span></span><span class="dot" aria-hidden="true"></span></label>
+              <label class="rrow"><input type="radio" name="l-why"><span class="nm"><b>Something else</b><span>Say what in the note</span></span><span class="dot" aria-hidden="true"></span></label>
+            </fieldset>
+            <div class="fld"><label for="l-note" class="lbl">Note</label><x-import component-from-global-scope="Dino.TextArea" id="l-note" max-length="{{t500}}" default-value="" aria-describedby="l-nhelp"></x-import><p id="l-nhelp" class="help">Optional. Anything that helps staff, like where it was copied from.</p></div>
+            <div class="sacts"><x-import component-from-global-scope="Dino.Button" type="submit">Send report</x-import></div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div class="col"><span class="cap"><b>Sam, its author</b> · the notice under the credit, Public held</span>
+      <div class="frame">
+        <header class="bar"><div class="in">
+          <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+          <nav aria-label="Main"><ul class="tabs"><li><a href="#" class="tab cur" aria-current="page">Recipes</a></li><li><a href="#" class="tab">Lists</a></li></ul></nav>
+          <x-import component-from-global-scope="Dino.SearchInput" value="" on-value-change="{{noop}}" placeholder="Search recipes" aria-label="Search recipes"></x-import>
+          <button type="button" class="av" aria-label="Account for Sam"><span aria-hidden="true">S</span></button>
+        </div></header>
+        <main class="page">
+          <a href="#" class="back"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" stroke-width="{{sw}}"></x-import>All recipes</a>
+          <div class="cols">
+            <div class="ph"><x-import component-from-global-scope="Dino.Polaroid" frame="large" lean="left" tape="{{yes}}"><x-import component-from-global-scope="Dino.RecipePhoto" shape="hero" photo="{{nothing}}" recipe-id="{{t7}}" alt="" eager="{{yes}}"></x-import></x-import></div>
+            <div class="intro">
+              <div class="trow"><h1><x-import component-from-global-scope="Dino.Squiggle">Grandma’s</x-import> curry</h1><x-import component-from-global-scope="Dino.FavouriteButton" saved="{{yes}}" on-saved-change="{{noop}}" label="Favourite"></x-import></div>
+              <p class="muted">by Sam</p>
+              <div role="status" class="bn grid grid-cols-[1.375rem_minmax(0,1fr)] gap-x-3 rounded-note border-2 bg-surface py-3.5 pr-3.5 pl-4 border-warning">
+                <x-import component-from-global-scope="Dino.icons.EyeOff" aria-hidden="true" stroke-width="{{w25}}" class="size-5.5 text-warning"></x-import>
+                <div class="flex flex-col items-start gap-1">
+                  <p class="font-extrabold">Hidden while a report is reviewed</p>
+                  <div class="text-muted">Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or delete it.</div>
+                </div>
+              </div>
+              <p class="muted">Sam’s grandma’s Sunday curry, slow and mild. Better the next day.</p>
+              <p class="facts">1 hr · Easy · Indian · Main</p>
+              <x-import component-from-global-scope="Dino.TimeBlobs" times="{{both}}"></x-import>
+              <div class="ctrls">
+                <div class="sw"><x-import component-from-global-scope="Dino.Switch" checked="{{yes}}" on-checked-change="{{noop}}" disabled="{{yes}}" disabled-reason="You can change this once staff have reviewed the report.">Public</x-import></div>
+                <div class="acts">
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ListPlus" aria-hidden="true" stroke-width="{{sw}}"></x-import>Save to list</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Pencil" aria-hidden="true" stroke-width="{{sw}}"></x-import>Edit recipe</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Copy" aria-hidden="true" stroke-width="{{sw}}"></x-import>Make a copy</x-import>
+                  <x-import component-from-global-scope="Dino.Button" variant="secondary">Delete recipe</x-import>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <p><b>The sheet at laptop width:</b> centred, at most 576 px, still sliding up from the foot over the scrim, with the same rows, note and Send report. Hover fills a reason’s row with Line and turns its ring Ink, as on the radio list’s board.</p>
+    <p><b>The notice</b> runs the width of the intro column, as a private recipe’s “What’s missing” does; the Public row stops at 400 px, as on the publish board. Ingredients and method follow below, as today.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2712,"height":1360}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      icons: window.Dino.icons, yes: true, no: false, sw: 2.25, w25: 2.5, t500: 500, nothing: null, t7: 7, noop: function () {},
+      both: [{ label: 'Prep', value: '20 min' }, { label: 'Cook', value: '40 min' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

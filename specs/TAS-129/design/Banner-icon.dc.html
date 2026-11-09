@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Banner with its own icon</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 40px}
+.tile{display:flex;flex-direction:column;gap:10px}
+.bn p{margin:0}
+.gaps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:2px;list-style:disc}
+.fcm{background:Canvas;color:CanvasText;border-color:CanvasText}
+.fcm .t2{color:CanvasText}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 40px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 820px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 36px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">Dino · changed · first use: the author’s hidden recipe (TAS-129)</span>
+    <h1 class="ttl">Banner with its own icon</h1>
+    <span class="cap">Banner takes an optional <code>icon</code> that replaces its tone’s. The tone still sets the border, the icon’s colour and the role, so a warning stays a warning; only the picture says more exactly what it’s about.</span>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><span class="cap"><b>Warning, as today</b> · its triangle</span>
+      <x-import component-from-global-scope="Dino.Banner" tone="warning" title="What’s missing"><ul class="gaps"><li>No method yet</li><li>No cook time yet</li></ul></x-import></div>
+
+    <div class="tile"><span class="cap"><b>Warning with <code>icon={EyeOff}</code></b> · the hidden recipe’s notice</span>
+      <div role="status" class="bn grid grid-cols-[1.375rem_minmax(0,1fr)] gap-x-3 rounded-note border-2 bg-surface py-3.5 pr-3.5 pl-4 border-warning">
+        <x-import component-from-global-scope="Dino.icons.EyeOff" aria-hidden="true" stroke-width="{{w25}}" class="size-5.5 text-warning"></x-import>
+        <div class="flex flex-col items-start gap-1">
+          <p class="font-extrabold">Hidden while a report is reviewed</p>
+          <div class="text-muted">Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or delete it.</div>
+        </div>
+      </div></div>
+
+    <div class="tile"><span class="cap"><b>Forced colours</b> · border and icon in CanvasText, as every banner</span>
+      <div role="status" class="bn fcm grid grid-cols-[1.375rem_minmax(0,1fr)] gap-x-3 rounded-note border-2 py-3.5 pr-3.5 pl-4">
+        <x-import component-from-global-scope="Dino.icons.EyeOff" aria-hidden="true" stroke-width="{{w25}}" class="size-5.5"></x-import>
+        <div class="flex flex-col items-start gap-1">
+          <p class="font-extrabold">Hidden while a report is reviewed</p>
+          <div class="t2">Someone reported this recipe, so only you can see it until staff have looked at it. You can still edit or delete it.</div>
+        </div>
+      </div></div>
+
+    <div class="tile"><span class="cap"><b>Success, unchanged</b></span>
+      <x-import component-from-global-scope="Dino.Banner" tone="success" title="Imported cleanly">Every ingredient matched.</x-import></div>
+    <div class="tile"><span class="cap"><b>Danger, unchanged</b></span>
+      <x-import component-from-global-scope="Dino.Banner" tone="danger" title="Couldn’t import that page">Check the web address, then try again.</x-import></div>
+    <div class="tile"><span class="cap"><b>With an action</b> · still at most one, under its text</span>
+      <div role="status" class="bn grid grid-cols-[1.375rem_minmax(0,1fr)] gap-x-3 rounded-note border-2 bg-surface py-3.5 pr-3.5 pl-4 border-warning">
+        <x-import component-from-global-scope="Dino.icons.EyeOff" aria-hidden="true" stroke-width="{{w25}}" class="size-5.5 text-warning"></x-import>
+        <div class="flex flex-col items-start gap-1">
+          <p class="font-extrabold">Hidden while a report is reviewed</p>
+          <div class="text-muted">Only you can see it until staff have looked at it.</div>
+          <div class="mt-2"><x-import component-from-global-scope="Dino.Button" variant="secondary">Edit recipe</x-import></div>
+        </div>
+      </div></div>
+  </div>
+
+  <div class="notes">
+    <p><b>The prop:</b> <code>icon?: LucideIcon</code>, as Note already has. Left out, a banner keeps its tone’s icon, so no banner on screen today changes.</p>
+    <p><b>Why not a new tone:</b> “hidden pending review” needs a look from its author, which is what warning means; an information tone would need a colour Picnic doesn’t have. EyeOff ties it to the unavailable recipe’s eye.</p>
+    <p><b>Stories:</b> one more, <code>warning-with-icon</code>, beside the three tones, with its two screenshot baselines. The icon is decorative (<code>aria-hidden</code>): the title says it all.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { icons: window.Dino.icons, sw: 2.25, w25: 2.5 };
+  }
+}
+</script>
+</body>
+</html>
