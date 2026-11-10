@@ -44,9 +44,10 @@ test('a new test account signs in from a recipe, gives its name, signs out and s
   const account = page.getByRole('banner').getByRole('button', { name: 'Account for Sam' });
   await expect(account).toBeVisible();
 
-  // Signing out asks the recipe's lists and Favourites again before the page knows it's signed out, and is refused.
-  consoleErrors.expect(failedLoad(403, '/api/lists/favourites/'));
-  consoleErrors.expect(failedLoad(403, '/api/lists/recipes/baguette/'));
+  // Signing out asks the recipe's lists and Favourites again before the page knows it's signed out, and is refused:
+  // once each locally, and on a preview's slower network sometimes twice.
+  consoleErrors.expect(failedLoad(403, '/api/lists/favourites/'), { mayRepeat: true });
+  consoleErrors.expect(failedLoad(403, '/api/lists/recipes/baguette/'), { mayRepeat: true });
   await account.click();
   await page.getByRole('menuitem', { name: 'Sign out' }).click();
   await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible();

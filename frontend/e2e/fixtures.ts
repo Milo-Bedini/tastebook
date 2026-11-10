@@ -96,19 +96,27 @@ const watchConsole = (context: BrowserContext, errors: string[], baseURL: string
   });
 };
 
-// Each expected error matches one logged; what's left on either side fails the test.
-const unmatched = (logged: string[], expected: string[]) =>
-  logged.reduce(
-    ({ unexpected, missing }, error) =>
-      missing.includes(error)
-        ? { unexpected, missing: missing.toSpliced(missing.indexOf(error), 1) }
-        : { unexpected: [...unexpected, error], missing },
-    { unexpected: [] as string[], missing: expected }
+type ExpectedError = { error: string; mayRepeat: boolean };
+
+// Each expected error matches one logged, or every one logged when it may repeat; what's left on either side fails the
+// test.
+const unmatched = (logged: string[], expected: ExpectedError[]) => {
+  const repeating = new Set(expected.filter(({ mayRepeat }) => mayRepeat).map(({ error }) => error));
+  return logged.reduce(
+    ({ unexpected, missing }, error) => {
+      if (missing.includes(error)) {
+        return { unexpected, missing: missing.toSpliced(missing.indexOf(error), 1) };
+      }
+      return repeating.has(error) ? { unexpected, missing } : { unexpected: [...unexpected, error], missing };
+    },
+    { unexpected: [] as string[], missing: expected.map(({ error }) => error) }
   );
+};
 
 type ConsoleErrors = {
   // An error the test's pages will log once, as a console error or an uncaught error; the test fails if they don't.
-  expect: (error: string) => void;
+  // With mayRepeat, they log it at least once: for an error the app repeats or not depending on how fast the network is.
+  expect: (error: string, options?: { mayRepeat?: boolean }) => void;
   // Watches another context's pages too; the test's own and the seed's are watched already.
   watch: (context: BrowserContext) => void;
 };
@@ -143,10 +151,10 @@ export const test = base.extend<{ accessibility: Accessibility; consoleErrors: C
   consoleErrors: [
     async ({ context, baseURL }, use, testInfo) => {
       const logged: string[] = [];
-      const expected: string[] = [];
+      const expected: ExpectedError[] = [];
       const watch = (on: BrowserContext): void => watchConsole(on, logged, baseURL);
       watch(context);
-      await use({ expect: (error) => expected.push(error), watch });
+      await use({ expect: (error, { mayRepeat = false } = {}) => expected.push({ error, mayRepeat }), watch });
 
       // A test that already failed may not have reached the errors it expected.
       if (testInfo.status !== 'passed') {

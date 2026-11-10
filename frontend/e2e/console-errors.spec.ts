@@ -43,3 +43,27 @@ test('a console error the test didn’t expect fails it', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await page.evaluate(() => console.error('A stray error'));
 });
+
+test('an error expected to maybe repeat passes however often it is logged, but must be logged', async ({
+  page,
+  consoleErrors
+}) => {
+  consoleErrors.expect('A repeated error (at /)', { mayRepeat: true });
+  consoleErrors.expect('A single error (at /)', { mayRepeat: true });
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.evaluate(() => {
+    console.error('A repeated error');
+    console.error('A repeated error');
+    console.error('A single error');
+  });
+});
+
+test('an error expected to maybe repeat that never comes fails the test', async ({ page, consoleErrors }) => {
+  test.fail();
+  consoleErrors.expect('A repeated error (at /)', { mayRepeat: true });
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+});
