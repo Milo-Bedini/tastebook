@@ -1,7 +1,7 @@
 import type { APIRequestContext, APIResponse } from '@playwright/test';
-// No page opens here, so ./fixtures' axe check has nothing to scan.
-import { expect, test } from '@playwright/test';
 
+// No page opens here, so the fixtures' axe check has nothing to scan, but their request gets past a preview's sign-in.
+import { expect, test } from './fixtures.ts';
 import { newTestAccountEmail, readSignInCode } from './test-accounts.ts';
 
 const AUTH = '/api/_allauth/browser/v1/auth';

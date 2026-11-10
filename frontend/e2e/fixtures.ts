@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import type { BrowserContext, ConsoleMessage, Page } from '@playwright/test';
+import type { APIRequestContext, BrowserContext, ConsoleMessage, Page } from '@playwright/test';
 import { test as base, expect } from '@playwright/test';
 
 import type { components } from '../src/api/schema.js';
@@ -26,6 +26,20 @@ const scan = async (page: Page): Promise<void> => {
     .disableRules(isForcedColours ? ['color-contrast'] : [])
     .analyze();
   expect(violations.map(describeViolation), `WCAG 2.2 A or AA violations on ${page.url()}`).toEqual([]);
+};
+
+// Set by the preview checks workflow, whose specs run against a Vercel preview.
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+// Gets past a preview's Vercel sign-in with the bypass cookie, which, unlike the bypass header sent with every request,
+// stays on the preview: a cross-origin photo's CORS preflight refuses the header, and the photo never loads. The
+// cookie is shared by the browser context the request belongs to.
+const passPreviewSignIn = async (request: APIRequestContext, baseURL: string | undefined): Promise<void> => {
+  if (bypassSecret && baseURL) {
+    await request.get(baseURL, {
+      headers: { 'x-vercel-protection-bypass': bypassSecret, 'x-vercel-set-bypass-cookie': 'true' }
+    });
+  }
 };
 
 const wasNavigated = (page: Page): boolean => page.url() !== 'about:blank';
@@ -117,6 +131,14 @@ export type SeededAccount = Omit<components['schemas']['SeededAccount'], 'sessio
 type Seeding = <const Key extends string>(households: SeedHouseholdOf<Key>[]) => Promise<Record<Key, SeededAccount>>;
 
 export const test = base.extend<{ accessibility: Accessibility; consoleErrors: ConsoleErrors; seed: Seeding }>({
+  context: async ({ context, baseURL }, use) => {
+    await passPreviewSignIn(context.request, baseURL);
+    await use(context);
+  },
+  request: async ({ request, baseURL }, use) => {
+    await passPreviewSignIn(request, baseURL);
+    await use(request);
+  },
   // A console error or an uncaught error on any page the test opened fails it, unless the test expected it.
   consoleErrors: [
     async ({ context, baseURL }, use, testInfo) => {
@@ -149,7 +171,7 @@ export const test = base.extend<{ accessibility: Accessibility; consoleErrors: C
     { auto: true }
   ],
   // Each account opens signed in, in a browser context of its own; the test's own page stays signed out.
-  seed: async ({ browser, request, baseURL, extraHTTPHeaders, consoleErrors }, use, testInfo) => {
+  seed: async ({ browser, request, baseURL, consoleErrors }, use, testInfo) => {
     if (!baseURL) {
       throw new Error('The seed needs a baseURL to set its session cookies on');
     }
@@ -158,8 +180,9 @@ export const test = base.extend<{ accessibility: Accessibility; consoleErrors: C
       const { session_cookie, accounts } = await seedAccounts(request, { households });
       const opened = await Promise.all(
         Object.entries(accounts).map(async ([key, { session, ...account }]) => {
-          const context = await browser.newContext({ baseURL, extraHTTPHeaders, reducedMotion: 'reduce' });
+          const context = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
           contexts.push(context);
+          await passPreviewSignIn(context.request, baseURL);
           consoleErrors.watch(context);
           // Given the address rather than a domain, so the cookie is secure on a preview's HTTPS.
           await context.addCookies([{ name: session_cookie, value: session, url: baseURL }]);
