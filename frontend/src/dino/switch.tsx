@@ -52,7 +52,9 @@ export const Switch = ({ children, checked, onCheckedChange, description, disabl
             'relative h-8 w-13 shrink-0 rounded-pill border-2 transition focus-visible:outline-none',
             disabled
               ? 'cursor-not-allowed border-field border-dashed bg-surface forced-colors:border-[GrayText]'
-              : 'cursor-pointer group-active:scale-94',
+              : // A system colour, as Chrome's forced colours otherwise keeps painting the hover border once transitions
+                // are off under reduced motion.
+                'cursor-pointer group-active:scale-94 forced-colors:border-[CanvasText]',
             !disabled && !checked && 'border-field group-hover:border-ink group-active:border-ink group-active:bg-line',
             // On, the border turns transparent rather than going, so forced colours still draws the track.
             !disabled && checked && 'border-transparent bg-mint group-hover:bg-mint-hover group-active:bg-mint-pressed'
