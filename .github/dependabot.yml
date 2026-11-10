@@ -50,6 +50,7 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+        update-types: [minor, patch]
     ignore:
       # The factory's own reusable workflow follows its main branch on purpose.
       - dependency-name: milobedini/mb-factory
