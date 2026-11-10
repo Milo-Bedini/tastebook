@@ -1,10 +1,14 @@
-import { expect, test } from './fixtures.ts';
+import { expect, failedLoad, test } from './fixtures.ts';
 import { unfinishedRecipe } from './setups.ts';
 
 // Chromium adds a space around the squiggle, which is inline-block.
 const EDITED_HEADING = /^Grandma's +lamb +curry$/;
 
-test('a member edits a recipe another member wrote, and only the household can', async ({ seed, accessibility }) => {
+test('a member edits a recipe another member wrote, and only the household can', async ({
+  seed,
+  accessibility,
+  consoleErrors
+}) => {
   const { sam, ben, cy } = await seed(unfinishedRecipe);
   const address = `/recipes/${sam.recipes[0]?.slug}`;
 
@@ -45,6 +49,7 @@ test('a member edits a recipe another member wrote, and only the household can',
   await sam.page.goto(address);
   await expect(sam.page.getByRole('heading', { level: 1, name: EDITED_HEADING })).toBeVisible();
 
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await cy.page.goto(`${address}/edit`);
   await expect(cy.page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
   await expect(cy.page.getByRole('textbox', { name: 'Title' })).toHaveCount(0);

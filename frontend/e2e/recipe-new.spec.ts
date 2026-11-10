@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures.ts';
+import { expect, failedLoad, test } from './fixtures.ts';
 import { soleCook, unfinishedRecipe } from './setups.ts';
 
 // Chromium adds a space around the squiggle, which is inline-block.
@@ -12,7 +12,12 @@ test('signed out, "Add a recipe" asks to sign in first', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible();
 });
 
-test('a cook adds a private recipe that only their household finds', async ({ page, seed, accessibility }) => {
+test('a cook adds a private recipe that only their household finds', async ({
+  page,
+  seed,
+  accessibility,
+  consoleErrors
+}) => {
   const { sam } = await seed(soleCook);
   await sam.page.goto('/recipes');
   await sam.page.getByRole('link', { name: 'Add a recipe' }).click();
@@ -40,6 +45,7 @@ test('a cook adds a private recipe that only their household finds', async ({ pa
   await accessibility.check(sam.page);
 
   // Someone signed out neither opens nor finds it.
+  consoleErrors.expect(failedLoad(404, `/api${new URL(address).pathname}/`));
   await page.goto(address);
   await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
   await page.goto('/recipes?q=Grandma');
@@ -47,7 +53,7 @@ test('a cook adds a private recipe that only their household finds', async ({ pa
   await expect(page.locator(`a[href="${new URL(address).pathname}"]`)).toHaveCount(0);
 });
 
-test('only the household sees what a private recipe is missing', async ({ seed, accessibility }) => {
+test('only the household sees what a private recipe is missing', async ({ seed, accessibility, consoleErrors }) => {
   const { sam, ben, cy } = await seed(unfinishedRecipe);
   const address = `/recipes/${sam.recipes[0]?.slug}`;
 
@@ -60,6 +66,7 @@ test('only the household sees what a private recipe is missing', async ({ seed, 
   await expect(ben.page.getByText('No servings yet')).toBeVisible();
   await accessibility.check(ben.page);
 
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await cy.page.goto(address);
   await expect(cy.page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 });

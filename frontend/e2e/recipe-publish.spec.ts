@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures.ts';
+import { expect, failedLoad, test } from './fixtures.ts';
 import { publishedRecipe } from './setups.ts';
 
 // Chromium adds a space around the squiggle, which is inline-block.
@@ -6,7 +6,8 @@ const HEADING = /^Grandma's +curry$/;
 
 test('the author makes their recipe public, everyone finds it credited, and it goes private again', async ({
   seed,
-  accessibility
+  accessibility,
+  consoleErrors
 }) => {
   const { sam, ben, cy } = await seed(publishedRecipe);
   const address = `/recipes/${sam.recipes[0]?.slug}`;
@@ -50,6 +51,7 @@ test('the author makes their recipe public, everyone finds it credited, and it g
   await expect(publicSwitch).not.toBeChecked();
   await expect(sam.page.getByText('Private', { exact: true })).toBeVisible();
 
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await cy.page.reload();
   await expect(cy.page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 });

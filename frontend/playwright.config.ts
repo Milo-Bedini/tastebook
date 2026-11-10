@@ -2,17 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 const isCi = Boolean(process.env.CI);
 // Set by the preview checks workflow: the specs run against a Vercel preview instead of a local stack.
+// The fixtures in e2e/fixtures.ts get past its Vercel sign-in.
 const previewUrl = process.env.PREVIEW_URL;
-const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-
-// Gets past the preview's Vercel sign-in without turning protection off, and keeps the Vercel toolbar out of the page.
-const previewHeaders = bypassSecret
-  ? {
-      'x-vercel-protection-bypass': bypassSecret,
-      'x-vercel-set-bypass-cookie': 'true',
-      'x-vercel-skip-toolbar': '1'
-    }
-  : undefined;
 
 export default defineConfig({
   testDir: './e2e',
@@ -25,7 +16,6 @@ export default defineConfig({
     : 'list',
   use: {
     baseURL: previewUrl ?? 'http://localhost:5173',
-    extraHTTPHeaders: previewHeaders,
     // A trace records request headers, so on a preview it would carry the bypass secret into the uploaded report.
     trace: previewUrl ? 'off' : 'retain-on-failure',
     // picnic.css then collapses transitions, so axe never reads a colour mid-transition.
