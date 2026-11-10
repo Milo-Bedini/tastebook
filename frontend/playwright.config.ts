@@ -28,7 +28,10 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: 'uv run python manage.py runserver 8000',
+          // The seed needs every table, and previews always have the catalogue, so the specs must pass with its recipes
+          // in the database, not only without.
+          command:
+            'uv run python manage.py migrate --noinput && uv run python manage.py load_catalogue && uv run python manage.py runserver 8000',
           cwd: '../backend',
           // A made-up store, so a recipe takes the photo e2e/recipe-photo.spec.ts answers its upload with; nothing
           // reaches the real one.
