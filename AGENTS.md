@@ -49,7 +49,7 @@ What the product does and won't do is in the Linear team's Vision document; each
 
 **Workflows (`.github/workflows/`)**
 
-- CI's **Workflows** job checks these with `pnpm lint:workflows`: zizmor (its exceptions, each with its reason, in `.github/zizmor.yml`) and `tools/workflows`, which fails on a secret in a workflow's or job's `env`.
+- CI's **Workflows** job checks these with `pnpm lint:workflows`: zizmor (its exceptions, each with its reason, in `.github/zizmor.yml`) and `tools/workflows`, which fails on a secret in a workflow's, job's or job container's `env`.
 - [n] add a repository secret that can do more than get past previews' sign-in. A workflow triggered by `deployment_status` (or `pull_request_target`) runs a fork's code with the repository's secrets; a high-value secret goes in an environment limited to `main`, like `factory`. zizmor refuses `pull_request_target` and template injection; which secret a workflow holds is checked in review.
 - [a] give a secret only to the steps that use it, in their own `env`, never the job's or the workflow's. `tools/workflows` enforces it.
 - [n] run repo or dependency code (`pnpm install`, a build, tests, a repo script) in a job that holds a write token. It can reach the token through `$GITHUB_ENV`, `$GITHUB_PATH` or `.git/hooks` whatever `persist-credentials` says; render in a read-only job, pass the result as an artefact and let the writing job run only git and gh. zizmor refuses a checkout without `persist-credentials: false`; the job split is checked in review.
