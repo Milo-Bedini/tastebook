@@ -96,6 +96,9 @@ export const DidntSave = {
     await expect(checkbox).toHaveAccessibleDescription(
       '7 recipes Couldn’t save it to Weeknight dinners. Check your connection, then tick it again.'
     );
+    await expect(within(canvasElement).getByRole('alert')).toHaveTextContent(
+      'Couldn’t save it to Weeknight dinners. Check your connection, then tick it again.'
+    );
   }
 } satisfies Story;
 export const LongName = {
