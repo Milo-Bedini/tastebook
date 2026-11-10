@@ -23,4 +23,4 @@ if (found.length > 0) {
   console.log(found.join('\n'));
   process.exit(1);
 }
-console.log(`No secrets in a workflow's or job's env (${files.length} workflows).`);
+console.log(`No secrets in a workflow's, job's or job container's env (${files.length} workflows).`);

@@ -2,9 +2,12 @@ import { parse } from 'yaml';
 
 type Env = Record<string, unknown> | string | null | undefined;
 
+// A job's container is an image name or an object; only the object form has an env.
+type Container = { env?: Env } | string | null;
+
 type Workflow = {
   env?: Env;
-  jobs?: Record<string, { env?: Env } | null>;
+  jobs?: Record<string, { env?: Env; container?: Container } | null>;
 };
 
 const EXPRESSION = /\$\{\{([\s\S]*?)\}\}/g;
@@ -26,11 +29,15 @@ const envReadingSecrets = (env: Env, path: string): string[] => {
     .map(([name]) => `${path}.${name}`);
 };
 
-// The workflow's and each job's env reach every step, so a secret there reaches code that doesn't need it.
+// The workflow's env, each job's env and each job container's env reach every step, so a secret there reaches code
+// that doesn't need it. A service container's env doesn't reach the steps.
 export const secretsOutsideSteps = (source: string): string[] => {
   const workflow = (parse(source) ?? {}) as Workflow;
   return [
     ...envReadingSecrets(workflow.env, 'env'),
-    ...Object.entries(workflow.jobs ?? {}).flatMap(([id, job]) => envReadingSecrets(job?.env, `jobs.${id}.env`))
+    ...Object.entries(workflow.jobs ?? {}).flatMap(([id, job]) => [
+      ...envReadingSecrets(job?.env, `jobs.${id}.env`),
+      ...(typeof job?.container === 'object' ? envReadingSecrets(job.container?.env, `jobs.${id}.container.env`) : [])
+    ])
   ];
 };
