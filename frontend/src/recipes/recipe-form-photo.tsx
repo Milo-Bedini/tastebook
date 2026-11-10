@@ -7,6 +7,8 @@ import { useMediaQuery } from './use-media-query';
 
 const MB = 1024 * 1024;
 const MAX_PHOTO_BYTES = 10 * MB;
+// Vercel refuses a request over 4.5 MB (4,500,000 bytes), so a photo sent leaves room for the rest of the request.
+const MAX_SENT_BYTES = 4_400_000;
 // The longest side a photo is sent at (docs/architecture.md, Photos).
 const LONGEST_SIDE = 1600;
 
@@ -26,6 +28,7 @@ const fileKinds: Record<string, string> = {
 };
 
 export const COULDNT_UPLOAD = "Couldn't upload the photo. Check your connection, then try again.";
+const TOO_BIG_TO_UPLOAD = 'That photo is too big to upload. Choose a smaller one, or a JPEG of it.';
 export const COULDNT_UPLOAD_WHILE_SAVING =
   "Couldn't upload the photo, so the recipe isn't saved yet. Try again, or remove the photo and save without it.";
 
@@ -56,7 +59,7 @@ const drawable = async (file: File) => {
 };
 
 // The photo at most 1,600 px on its longest side, turned as its camera held it. A photo the browser can't draw (a
-// HEIC in most browsers) goes as it is, and Tastebook makes it smaller.
+// HEIC in most browsers) goes as it is, and Tastebook makes it smaller, if it's small enough to send.
 export const resizePhoto = async (file: File): Promise<Blob> => {
   const bitmap = await drawable(file);
   if (bitmap === undefined) {
@@ -102,6 +105,12 @@ export const usePhotoUpload = (onStored: (photo: StoredPhoto) => void) => {
       );
     try {
       const photo = await resizePhoto(file);
+      if (photo === file && file.size > MAX_SENT_BYTES) {
+        return fail(
+          file,
+          `That photo is ${(file.size / MB).toFixed(1)} MB and this browser can't make it smaller, so it's too big to upload. Choose one under 4 MB, or a JPEG of it.`
+        );
+      }
       const name = photo === file ? file.name : `${file.name.replace(/\.[^.]*$/, '')}.${photo.type.split('/')[1]}`;
       const result = await uploadPhoto.mutateAsync({ photo, name, onProgress, signal });
       if (signal.aborted) {
@@ -114,6 +123,9 @@ export const usePhotoUpload = (onStored: (photo: StoredPhoto) => void) => {
       }
       if (result.kind === 'refused') {
         return fail(file, result.message);
+      }
+      if (result.kind === 'too-big') {
+        return fail(file, TOO_BIG_TO_UPLOAD);
       }
       // Signed out meanwhile: the session's answer sends a visitor to sign-in.
       await checkSession();

@@ -128,6 +128,8 @@ export type PhotoUploading =
   | { kind: 'stored'; photo: StoredPhoto }
   // Tastebook refused the file, saying why.
   | { kind: 'refused'; message: string }
+  // Larger than Vercel takes in a request (docs/architecture.md, Photos).
+  | { kind: 'too-big' }
   | { kind: 'signed-out' };
 
 type PhotoToUpload = {
@@ -166,6 +168,8 @@ const sendPhoto = ({ photo, name, onProgress, signal }: PhotoToUpload) =>
         resolve({ kind: 'refused', message: refusal });
       } else if (request.status === 403) {
         resolve({ kind: 'signed-out' });
+      } else if (request.status === 413) {
+        resolve({ kind: 'too-big' });
       } else {
         reject(new Error(`Uploading a photo failed with ${request.status}`));
       }

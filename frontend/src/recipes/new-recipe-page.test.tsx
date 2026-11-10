@@ -539,6 +539,37 @@ describe('NewRecipePage', () => {
       expect(uploads).toEqual(['IMG_0412.HEIC']);
     });
 
+    it("refuses a photo the browser can't make smaller that is too big to send, and sends a smaller one", async () => {
+      answerAdding();
+      const uploads = answerUploads(stores('AbCdEfGhIjKlMnOpQrStUv'));
+      await openForm();
+
+      // jsdom can't draw a photo, as Chrome and Firefox can't draw a HEIC.
+      await choose(photoOf('IMG_0412.heic', 'image/heic', 6 * 1024 * 1024));
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(
+        "That photo is 6.0 MB and this browser can't make it smaller, so it's too big to upload. Choose one under 4 MB, or a JPEG of it."
+      );
+      expect(uploads).toEqual([]);
+
+      await choose(photoOf('IMG_0413.heic', 'image/heic', 4 * 1024 * 1024));
+
+      expect(await within(field()).findByRole('img', { name: 'The photo for this recipe' })).toBeInTheDocument();
+      expect(uploads).toEqual(['IMG_0413.heic']);
+    });
+
+    it('says the photo is too big when the upload is too large for Tastebook to take', async () => {
+      answerAdding();
+      answerUploads(() => new HttpResponse(null, { status: 413 }));
+      await openForm();
+
+      await choose(photoOf('curry.jpg'));
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(
+        'That photo is too big to upload. Choose a smaller one, or a JPEG of it.'
+      );
+    });
+
     it("shows Tastebook's refusal of an upload, and tries again with the same photo", async () => {
       answerAdding();
       const uploads = answerUploads(
