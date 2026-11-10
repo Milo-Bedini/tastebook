@@ -99,6 +99,8 @@ const SavedRecipes = ({ list, focusAt, onRemove }: SavedRecipesProps) => {
     onRemove(index);
     void removal(saved);
   };
+  // After the bottom card goes, the card now at the bottom takes focus.
+  const focusIndex = focusAt === null ? null : Math.min(focusAt, list.saved_recipes.length - 1);
   return (
     <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
       {list.saved_recipes.map((saved, index) => (
@@ -107,7 +109,7 @@ const SavedRecipes = ({ list, focusAt, onRemove }: SavedRecipesProps) => {
           saved={saved}
           list={list}
           index={index}
-          takesFocus={focusAt === index}
+          takesFocus={focusIndex === index}
           onRemove={remove}
         />
       ))}
