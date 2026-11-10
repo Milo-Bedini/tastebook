@@ -37,10 +37,16 @@ export const UNBRANCHED: Unbranched[] = [
   { hook: 'useCancelInvite', status: 403, reason: SIGNED_OUT },
   { hook: 'useJoinHousehold', status: 403, reason: SIGNED_OUT },
   { hook: 'useSaveRecipe', status: 400, reason: NOT_SENT },
-  { hook: 'useSaveTo', status: 400, reason: NOT_SENT }
+  { hook: 'useSaveTo', status: 400, reason: NOT_SENT },
+  {
+    hook: 'useUploadPhoto',
+    status: 503,
+    reason: "the photo store is down or isn't set up, so the field's connection message and its Try again are right"
+  }
 ];
 
-// A hook's request is `api.<METHOD>('<path>'`, in the hook or in a module-level helper it calls. Its source is the
+// A hook's request is `api.<METHOD>('<path>'`, or an XMLHttpRequest's `.open('<METHOD>', `${apiBaseUrl}<path>`` (sent
+// that way for its upload progress), in the hook or in a module-level helper it calls or hands on. Its source is the
 // hook's declaration with the helper's, so a status is matched per hook, not per file.
 type Call = { hook: string; method: string; path: string; source: string };
 
@@ -48,7 +54,10 @@ type Declaration = { name: string; source: string };
 
 const DECLARATION = /^(?:export )?const (\w+)/gm;
 
-const CALL = /api\.(POST|PUT|PATCH|DELETE)\(\s*'([^']+)'/g;
+const CALLS = [
+  /api\.(POST|PUT|PATCH|DELETE)\(\s*'([^']+)'/g,
+  /\.open\(\s*'(POST|PUT|PATCH|DELETE)',\s*`\$\{apiBaseUrl\}([^`$]+)`/g
+];
 
 const declarationsIn = (source: string): Declaration[] => {
   const starts = [...source.matchAll(DECLARATION)];
@@ -63,13 +72,14 @@ const declarationsIn = (source: string): Declaration[] => {
 
 const isHook = (name: string): boolean => /^use[A-Z]/.test(name);
 
-// The hooks that make a declaration's requests: itself, or the hooks in its file that call it.
+// The hooks that make a declaration's requests: itself, or the hooks in its file that call it or hand it on (as
+// `mutationFn: sendPhoto`).
 const callersOf = (declaration: Declaration, declarations: Declaration[]): Declaration[] => {
   if (isHook(declaration.name)) {
     return [declaration];
   }
   const callers = declarations.filter(
-    ({ name, source }) => isHook(name) && new RegExp(`\\b${declaration.name}\\(`).test(source)
+    ({ name, source }) => isHook(name) && new RegExp(`\\b${declaration.name}\\b`).test(source)
   );
   return callers.length > 0 ? callers : [declaration];
 };
@@ -77,7 +87,7 @@ const callersOf = (declaration: Declaration, declarations: Declaration[]): Decla
 const callsIn = (source: string): Call[] => {
   const declarations = declarationsIn(source);
   return declarations.flatMap((declaration) =>
-    [...declaration.source.matchAll(CALL)].flatMap(([, method = '', path = '']) =>
+    CALLS.flatMap((call) => [...declaration.source.matchAll(call)]).flatMap(([, method = '', path = '']) =>
       callersOf(declaration, declarations).map((caller) => ({
         hook: caller.name,
         method,
