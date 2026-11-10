@@ -125,6 +125,19 @@ def test_recipes_made_public_on_an_earlier_day_dont_count(clock: Clock) -> None:
 
 
 @pytest.mark.django_db
+def test_a_recipe_made_public_on_an_earlier_day_still_waits_after_a_days_3rd(clock: Clock) -> None:
+    milo, slugs = milos_recipes(4)
+    publish(milo, slugs[0])
+    clock.now += timedelta(days=1)
+    for slug in slugs[1:]:
+        publish(milo, slug)
+    publish(milo, slugs[0], 'private')
+
+    assert answered(publish(milo, slugs[0])) == (200, 'private', True)
+    assert state_of(slugs[0]) == ('private', 'held')
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     ('fourth_at', 'expected'),
     [
