@@ -1978,11 +1978,11 @@ describe('Crediting a copy', () => {
     ['public', 'public'],
     ['private', 'private']
   ])(
-    "says a %s copy is adapted from a recipe that's no longer public once its original can't be seen",
+    "says a %s copy is adapted from a recipe that isn't public once its original can't be seen",
     async (_, visibility) => {
       openCopy({ ...ourCopy, visibility, adapted_from: null });
 
-      expect(await screen.findByText("Adapted from a recipe that's no longer public")).toBeInTheDocument();
+      expect(await screen.findByText("Adapted from a recipe that isn't public")).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Shakshuka' })).not.toBeInTheDocument();
       expect(screen.queryByText(/Copied from/)).not.toBeInTheDocument();
     }

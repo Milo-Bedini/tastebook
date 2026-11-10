@@ -65,6 +65,6 @@ test('a cook publishes their copy as an adaptation, credited until its original 
   await expect(sam.page.getByText("Nana's dal is private again")).toBeVisible();
 
   await page.goto(adaptation);
-  await expect(page.getByText("Adapted from a recipe that's no longer public")).toBeVisible();
+  await expect(page.getByText("Adapted from a recipe that isn't public")).toBeVisible();
   await expect(page.getByRole('link', { name: "Nana's dal" })).toHaveCount(0);
 });

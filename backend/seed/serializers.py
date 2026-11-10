@@ -59,7 +59,7 @@ class SeedMemberSerializer(serializers.Serializer):
         max_length=20,
         default=list,
         help_text="Titles of this member's own public recipes they make private once every copy is made, so a copy of "
-        "one is adapted from a recipe that's no longer public.",
+        "one is adapted from a recipe that isn't public.",
     )
     shared = serializers.ListField(
         child=serializers.CharField(max_length=200),
