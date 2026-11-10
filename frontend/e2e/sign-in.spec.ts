@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { expect, failedLoad, test } from './fixtures.ts';
+import { expect, test } from './fixtures.ts';
 import { newTestAccountEmail, readSignInCode } from './test-accounts.ts';
 
 type Accessibility = { check: () => Promise<void> };
@@ -30,24 +30,29 @@ const giveName = async (page: Page, accessibility: Accessibility, name: string):
 
 test('a new test account signs in from a recipe, gives its name, signs out and signs in again', async ({
   page,
-  accessibility,
-  consoleErrors
+  accessibility
 }) => {
   const email = newTestAccountEmail();
   await page.goto('/recipes/baguette');
   await expect(page.getByRole('heading', { level: 1, name: 'Baguette' })).toBeVisible();
 
   await signInFromTheBar(page, accessibility, email);
+  // On a preview, the recipe's lists can still be loading when someone signs out straight after giving their name, and
+  // a request answered after signing out is refused. Holding them until the sign-out is answered makes that certain.
+  const signedOut = page.waitForResponse(
+    (response) => response.url().endsWith('/auth/session') && response.request().method() === 'DELETE'
+  );
+  await page.route('**/api/lists/**', async (route) => {
+    await signedOut;
+    // Signing out cancels them first, so there's nothing left to send on.
+    await route.continue().catch(() => undefined);
+  });
   await giveName(page, accessibility, 'Sam');
 
   await expect(page).toHaveURL(/\/recipes\/baguette$/);
   const account = page.getByRole('banner').getByRole('button', { name: 'Account for Sam' });
   await expect(account).toBeVisible();
 
-  // Signing out asks the recipe's lists and Favourites again before the page knows it's signed out, and is refused:
-  // once each locally, and on a preview's slower network sometimes twice.
-  consoleErrors.expect(failedLoad(403, '/api/lists/favourites/'), { mayRepeat: true });
-  consoleErrors.expect(failedLoad(403, '/api/lists/recipes/baguette/'), { mayRepeat: true });
   await account.click();
   await page.getByRole('menuitem', { name: 'Sign out' }).click();
   await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible();

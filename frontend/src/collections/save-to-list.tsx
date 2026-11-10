@@ -3,7 +3,7 @@ import { type MouseEvent, type ReactNode, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { Button, ErrorWithRetry, ListPicker, ListPickerRow, Sheet, Spinner } from '../dino';
-import { useSession } from '../households';
+import { useSession, useSignedInOnly } from '../households';
 import type { FavouriteTarget } from '../recipes';
 import {
   type ListAddress,
@@ -47,7 +47,7 @@ const joined = (parts: ReactNode[]) =>
 // Names each list that holds the recipe, in the sheet's order, Favourites included: three at most, then how many more.
 export const SavedIn = ({ recipe }: SaveToListProps) => {
   const { account } = useSession();
-  const { data } = useRecipeLists(recipe.slug, { enabled: Boolean(account) });
+  const { data } = useRecipeLists(recipe.slug, { enabled: useSignedInOnly() });
   const holding = account ? (data?.lists ?? []).filter(({ saved_id }) => saved_id !== null) : [];
   if (holding.length === 0) {
     return null;

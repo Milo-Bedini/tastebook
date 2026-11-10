@@ -548,6 +548,74 @@ describe('RecipePage', () => {
     expect(screen.queryByRole('heading', { name: "Grandma's curry" })).not.toBeInTheDocument();
   });
 
+  it("stops asking for the account's Favourites and the recipe's lists once it signs out", async () => {
+    const signOuts: string[] = [];
+    const asked: string[] = [];
+    // Signed out, the API refuses both; signed in, the default handlers answer.
+    const askSignedInOnly = ({ request }: { request: Request }) => {
+      asked.push(`${signOuts.length > 0 ? 'signed out' : 'signed in'}: ${new URL(request.url).pathname}`);
+      return signOuts.length > 0 ? new HttpResponse(null, { status: 403 }) : undefined;
+    };
+    server.use(
+      http.get('/api/account/', () =>
+        HttpResponse.json<CurrentAccount>({
+          account: signOuts.length > 0 ? null : { email: 'sam@example.com', name: 'Sam', unit_system: 'metric' }
+        })
+      ),
+      http.delete('/api/_allauth/browser/v1/auth/session', ({ request }) => {
+        signOuts.push(new URL(request.url).pathname);
+        return HttpResponse.json(
+          { status: 401, data: { flows: [] }, meta: { is_authenticated: false } },
+          { status: 401 }
+        );
+      }),
+      http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>(shakshuka)),
+      http.get('/api/lists/favourites/', askSignedInOnly),
+      http.get('/api/lists/recipes/:slug/', askSignedInOnly)
+    );
+    const { queryClient } = renderRoute('/recipes/shakshuka');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Account for Sam' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
+
+    expect(await within(screen.getByRole('banner')).findByRole('link', { name: 'Sign in' })).toBeInTheDocument();
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(asked.toSorted()).toEqual(['signed in: /api/lists/favourites/', 'signed in: /api/lists/recipes/shakshuka/']);
+  });
+
+  it("asks for the recipe's lists again when signing out fails while they're loading", async () => {
+    const signOut = { ask: () => {} };
+    const signOutAsked = new Promise<void>((resolve) => {
+      signOut.ask = resolve;
+    });
+    server.use(
+      http.get('/api/account/', () =>
+        HttpResponse.json<CurrentAccount>({ account: { email: 'sam@example.com', name: 'Sam', unit_system: 'metric' } })
+      ),
+      http.delete('/api/_allauth/browser/v1/auth/session', () => {
+        signOut.ask();
+        return new HttpResponse(null, { status: 500 });
+      }),
+      http.get('/api/recipes/:slug/', () => HttpResponse.json<Recipe>(shakshuka)),
+      http.get('/api/lists/recipes/:slug/', async () => {
+        await signOutAsked;
+        return HttpResponse.json({
+          household_name: null,
+          lists: [{ slug: 'favourites', name: 'Favourites', scope: 'personal', recipe_count: 1, saved_id: 3 }]
+        });
+      })
+    );
+    renderRoute('/recipes/shakshuka');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shakshuka' })).toBeInTheDocument();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Account for Sam' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
+
+    expect(await screen.findByText("Couldn't sign out. Check your connection and try again.")).toBeInTheDocument();
+    expect(await screen.findByText(/^Saved in/)).toHaveTextContent('Saved in Favourites.');
+  });
+
   it('puts the squiggle under the longest word of the name', async () => {
     server.use(
       http.get('/api/recipes/:slug/', () =>
@@ -1555,6 +1623,24 @@ describe('Making a recipe public', () => {
     expect(screen.getByText('Private')).toBeVisible();
     expect(screen.queryByText('by Sam')).not.toBeInTheDocument();
     expect(publicSwitch()).toHaveFocus();
+  });
+
+  it('makes a public recipe private even with something missing', async () => {
+    const shown = { recipe: { ...publicCurry, steps: [] } };
+    const sent = answerPublishing(shown, () => {
+      shown.recipe = { ...curry, steps: [] };
+      return HttpResponse.json<Recipe>(shown.recipe);
+    });
+    await openCurry();
+    expect(publicSwitch()).toBeChecked();
+    expect(publicSwitch()).not.toHaveAttribute('aria-disabled');
+
+    await userEvent.click(publicSwitch());
+
+    expect(await screen.findByText("Grandma's curry is private again")).toBeInTheDocument();
+    expect(sent).toEqual([{ visibility: 'private' }]);
+    expect(publicSwitch()).not.toBeChecked();
+    expect(await screen.findByText('No method yet')).toBeInTheDocument();
   });
 
   it.each<[string, Partial<Recipe>, string | null]>([

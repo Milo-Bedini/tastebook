@@ -56,19 +56,22 @@ export const useLists = () =>
     }
   });
 
-const getList = async ({ scope, slug }: ListAddress) => {
-  const params = { params: { path: { slug } } };
+const getList = async ({ scope, slug }: ListAddress, signal: AbortSignal) => {
+  const params = { params: { path: { slug } }, signal };
   return scope === 'household'
     ? api.GET('/api/lists/household/{slug}/', params)
     : api.GET('/api/lists/{slug}/', params);
 };
 
+type Enabled = { enabled?: boolean | (() => boolean) };
+
 // Null once the list has gone: deleted, renamed or never there.
-export const useList = (address: ListAddress, { enabled = true }: { enabled?: boolean } = {}) =>
+export const useList = (address: ListAddress, { enabled = true }: Enabled = {}) =>
   useQuery({
     queryKey: listKey(address),
-    queryFn: async (): Promise<SavedList | null> => {
-      const { data, response } = await getList(address);
+    // Signing out cancels it, so a request sent signed in isn't answered, and refused, after the session ends.
+    queryFn: async ({ signal }): Promise<SavedList | null> => {
+      const { data, response } = await getList(address, signal);
       if (data !== undefined) {
         return data;
       }
@@ -81,7 +84,7 @@ export const useList = (address: ListAddress, { enabled = true }: { enabled?: bo
   });
 
 // Only signed in: signed out there are no lists, and every heart shows unsaved.
-export const useFavourites = ({ enabled = true }: { enabled?: boolean } = {}) => useList(FAVOURITES, { enabled });
+export const useFavourites = ({ enabled = true }: Enabled = {}) => useList(FAVOURITES, { enabled });
 
 const newestFirst = (a: SavedRecipe, b: SavedRecipe) =>
   b.saved_at === a.saved_at ? b.id - a.id : b.saved_at.localeCompare(a.saved_at);
@@ -131,11 +134,14 @@ export const useSaveRecipe = () => {
 };
 
 // Every list you see, with the ones that hold the recipe: for its page's sheet and its "Saved in" line.
-export const useRecipeLists = (recipeSlug: string, { enabled = true }: { enabled?: boolean } = {}) =>
+export const useRecipeLists = (recipeSlug: string, { enabled = true }: Enabled = {}) =>
   useQuery({
     queryKey: recipeListsKey(recipeSlug),
-    queryFn: async () => {
-      const { data, error } = await api.GET('/api/lists/recipes/{slug}/', { params: { path: { slug: recipeSlug } } });
+    queryFn: async ({ signal }) => {
+      const { data, error } = await api.GET('/api/lists/recipes/{slug}/', {
+        params: { path: { slug: recipeSlug } },
+        signal
+      });
       if (error || !data) {
         throw new Error("Getting a recipe's lists failed");
       }

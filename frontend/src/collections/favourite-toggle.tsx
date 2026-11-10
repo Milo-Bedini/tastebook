@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext } from 'react';
 
 import { FavouriteButton } from '../dino';
-import { useSession } from '../households';
+import { useSession, useSignedInOnly } from '../households';
 import type { FavouriteTarget } from '../recipes';
 import { type SavedRecipe, useFavourites, usePendingSaves } from './lists-api';
 import { useHeart } from './use-heart';
@@ -22,7 +22,7 @@ const HeartsContext = createContext<HeartsState | null>(null);
 // cards would otherwise set each up hundreds of times.
 export const Hearts = ({ children }: { children: ReactNode }) => {
   const { account } = useSession();
-  const favourites = useFavourites({ enabled: Boolean(account) });
+  const favourites = useFavourites({ enabled: useSignedInOnly() });
   const { saving, unsaving } = usePendingSaves();
   const heart = useHeart();
   const savedByRecipe = new Map(

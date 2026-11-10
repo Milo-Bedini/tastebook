@@ -1,4 +1,4 @@
-import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type Query, type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '../api/client';
 import { type Account, signOut } from './auth-api';
@@ -21,16 +21,33 @@ export const useSession = () => {
   return { account: data, isPending, isError, errorUpdatedAt, refetch };
 };
 
-// What every other area fetched depends on who's signed in (a household's private recipes), so it's fetched again.
+// The `enabled` of a query only someone signed in may make. Signing out resets every query before the page re-renders
+// signed out, so it reads the session again when the query would be fetched; the account the page rendered with is
+// what makes the query fetch once someone signs in.
+export const useSignedInOnly = () => {
+  const { account } = useSession();
+  const queryClient = useQueryClient();
+  return () => Boolean(account) && Boolean(queryClient.getQueryData<Account | null>(SESSION_KEY));
+};
+
+// What every other area fetched depends on who's signed in (a household's private recipes).
+const signedInData = { predicate: ({ queryKey }: Query) => queryKey[0] !== 'households' };
+
+// Each is fetched again for whoever is signed in now.
 export const forgetSignedInData = (queryClient: QueryClient) => {
   forgetHousehold(queryClient);
-  return queryClient.resetQueries({ predicate: ({ queryKey }) => queryKey[0] !== 'households' });
+  return queryClient.resetQueries(signedInData);
 };
 
 export const useSignOut = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: signOut,
+    // A request still on its way would be answered after the session ends, and refused: one whose query takes the
+    // signal is dropped first.
+    onMutate: () => queryClient.cancelQueries(signedInData),
+    // Cancelling put back what they had before; those that had nothing are asked again.
+    onError: () => queryClient.refetchQueries({ ...signedInData, type: 'active', stale: true }),
     // allauth's signed-in user has no name, so a sign out that left someone signed in asks the account again.
     onSuccess: async (result) => {
       if (result.kind === 'signed-in') {
