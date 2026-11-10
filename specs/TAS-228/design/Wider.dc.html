@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Tablet and laptop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.url{font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:17px;color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0}
+.frame.foot{display:flex;flex-direction:column;justify-content:flex-end}
+.cards{list-style:none;margin:0;padding:0;display:grid}
+.cards.three{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:24px;row-gap:32px}
+.cards.four{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:36px;row-gap:44px}
+.pager{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:16px;align-items:center}
+.pager .at{grid-column:2;grid-row:1;margin:0;font-size:15px;line-height:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.pager .prev{grid-column:1;grid-row:1;justify-self:start}
+.pager .next{grid-column:3;grid-row:1;justify-self:end}
+.sheet{position:absolute;left:0;right:0;bottom:0;box-sizing:border-box;border:2px solid transparent;border-bottom:0;border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;background:var(--color-surface);box-shadow:var(--shadow-lift);padding:12px 20px 24px;display:flex;flex-direction:column;gap:16px}
+.grab{align-self:center;width:40px;height:5px;border-radius:var(--radius-pill);background:var(--color-field)}
+.sheet h2{margin:0;font-family:var(--font-serif);font-size:34px;line-height:36px;font-weight:400;font-style:italic}
+.scrim{position:absolute;inset:0;background:var(--color-scrim)}
+.legend{margin:0;font-size:15px;line-height:20px;font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.row{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1720px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-228 · /recipes · Variant A · tablet 768 px and laptop 1288 px, each scrolled to the foot of page 2 of 6 · and the filter sheet’s button</span>
+    <h1 class="ttl">Tablet and laptop</h1>
+    <span class="cap">With 420 px of room or more, Pagination is one row: Previous at the start, “Page 2 of 6” in the middle, Next at the end. 24 a page fills whole rows of 2, 3 and 4, so every page but the last ends on a full row.</span>
+  </header>
+
+  <div class="col">
+    <span class="cap"><b>Laptop, 1288 px</b> · the list’s column, beside the filters’ 260 px column (scrolled past) · <span class="url">/recipes?page=2</span></span>
+    <div class="frame foot" style="width: 1288px; height: 560px">
+      <div style="padding: 0 32px 48px; display: grid; grid-template-columns: 260px minmax(0, 1fr); column-gap: 48px; align-items: end">
+        <div></div>
+        <div style="display: flex; flex-direction: column; gap: 44px">
+          <ul class="cards four">
+            <sc-for list="{{four}}" as="r" hint-placeholder-count="4">
+              <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{no}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+            </sc-for>
+          </ul>
+          <nav aria-label="Pages" class="pager">
+            <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+            <p class="at">Page 2 of 6</p>
+            <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <span class="cap"><b>Tablet, 768 px</b> · three a row; no dock from 640 px, so 48 px under the pager</span>
+      <div class="frame foot" style="width: 768px; height: 560px">
+        <div style="padding: 0 32px 48px; display: flex; flex-direction: column; gap: 32px">
+          <ul class="cards three">
+            <sc-for list="{{three}}" as="r" hint-placeholder-count="3">
+              <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{no}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+            </sc-for>
+          </ul>
+          <nav aria-label="Pages" class="pager">
+            <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+            <p class="at">Page 2 of 6</p>
+            <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>The filter sheet</b> · phone, Vegetarian on</span>
+      <div class="frame" style="width: 390px; height: 560px">
+        <div class="scrim"></div>
+        <div class="sheet" role="dialog" aria-labelledby="w-st">
+          <span class="grab"></span>
+          <h2 id="w-st">Filters</h2>
+          <p class="legend">Diet</p>
+          <div class="chips">
+            <x-import component-from-global-scope="Dino.FilterChip" pressed="{{yes}}" on-pressed-change="{{noop}}">Vegetarian</x-import>
+            <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">Vegan</x-import>
+            <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">Gluten-free</x-import>
+          </div>
+          <p class="legend">Time</p>
+          <div class="chips">
+            <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">Under 30 min</x-import>
+            <x-import component-from-global-scope="Dino.FilterChip" pressed="{{no}}" on-pressed-change="{{noop}}">Under 1 hour</x-import>
+          </div>
+          <x-import component-from-global-scope="Dino.Button" class-name="w-full">Show 52 recipes</x-import>
+        </div>
+      </div>
+      <span class="cap" style="max-width: 390px">Counts every vegetarian recipe (the response’s <span class="url">count</span>), not the 24 on the page it goes back to. The filters shown are a sample of the panel.</span>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p><b>The pager stays in the list’s column</b> on a laptop, centred under the list it pages, never under the filters. From tablet up it sits 44 px under the last row on a laptop and 32 px on a tablet, the grids’ own row gaps, and 48 px clear of the page’s foot.</p>
+    <p><b>The range line at every width.</b> Above the list, the count reads “25–48 of 137 recipes” on a tablet and a laptop as on a phone; only its place in the header changes, as today.</p>
+    <p><b>The same order everywhere:</b> Previous, “Page 2 of 6”, Next, so focus and a screen reader meet them in that order at every width; only the layout changes, at 420 px of room, never the content.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var D = window.Dino, h = window.React.createElement, noop = function () {};
+    var make = function (list) {
+      return list.map(function (r, i) {
+        return { id: r[0], title: r[1], meta: r[2], lean: i % 2 === 0 ? 'left' : 'right',
+          action: h(D.FavouriteButton, { saved: r[3] === true, onSavedChange: noop, label: 'Favourite ' + r[1] }) };
+      });
+    };
+    return {
+      nil: null, yes: true, no: false, noop: noop,
+      four: make([[45, 'Mushroom stroganoff', '30 min · Easy · Russian'], [46, 'Dal makhani', '2 h · Medium · Indian', true], [47, 'Pea and mint risotto', '40 min · Easy · Italian'], [48, 'Black bean chilli', '1 h 10 · Easy · Mexican']]),
+      three: make([[46, 'Dal makhani', '2 h · Medium · Indian', true], [47, 'Pea and mint risotto', '40 min · Easy · Italian'], [48, 'Black bean chilli', '1 h 10 · Easy · Mexican']])
+    };
+  }
+}
+</script>
+</body>
+</html>
