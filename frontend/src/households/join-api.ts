@@ -6,7 +6,7 @@ import { HOUSEHOLD_KEY, type Household } from './household-api';
 
 export type JoinInvite = components['schemas']['JoinInvite'];
 
-// Under HOUSEHOLD_KEY: what an invite shows depends on who's signed in, so forgetHousehold drops it with the rest.
+// Under HOUSEHOLD_KEY: what an invite shows depends on who's signed in, so signing out or in drops it with the rest.
 export const inviteKey = (token: string) => [...HOUSEHOLD_KEY, 'invite', token];
 
 export type InviteLookup = { kind: 'found'; invite: JoinInvite } | { kind: 'unknown' };
