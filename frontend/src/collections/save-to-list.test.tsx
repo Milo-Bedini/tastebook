@@ -72,6 +72,15 @@ const answerLists = (
 ) => {
   const state = { lists, nextId: 40 };
   const sent: string[] = [];
+  const save = (scope: string, list: string) => {
+    const id = state.nextId++;
+    state.lists = state.lists.map((found) =>
+      found.scope === scope && found.slug === list
+        ? { ...found, saved_id: id, recipe_count: found.recipe_count + 1 }
+        : found
+    );
+    return HttpResponse.json<SavedRecipe>(savedRecipe(id), { status: 201 });
+  };
   server.use(
     http.get('/api/lists/recipes/apple-tart/', () =>
       HttpResponse.json<RecipeLists>({ household_name: householdName, lists: state.lists })
@@ -94,13 +103,12 @@ const answerLists = (
       if (answered !== undefined) {
         return answered;
       }
-      const id = state.nextId++;
-      state.lists = state.lists.map((found) =>
-        found.scope === scope && found.slug === list
-          ? { ...found, saved_id: id, recipe_count: found.recipe_count + 1 }
-          : found
-      );
-      return HttpResponse.json<SavedRecipe>(savedRecipe(id), { status: 201 });
+      return save(scope, list);
+    }),
+    // The heart saves to Favourites.
+    http.post('/api/lists/favourites/saved/', () => {
+      sent.push('POST favourites');
+      return save('personal', 'favourites');
     }),
     http.delete('/api/lists/saved/:id/', async ({ params }) => {
       sent.push(`DELETE ${params.id}`);
@@ -220,6 +228,25 @@ describe('the "Saved in" line', () => {
         .queryAllByRole('link')
         .map((link) => link.getAttribute('href'))
     ).toEqual(hrefs);
+  });
+
+  it('follows the Favourites heart, without the sheet', async () => {
+    signedIn();
+    const sent = answerLists([place('personal', 'Favourites', 0, null)]);
+    const { queryClient } = await openRecipe();
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(savedInLine()).not.toBeInTheDocument();
+    const heart = screen.getByRole('button', { name: 'Favourite' });
+
+    await userEvent.click(heart);
+
+    await waitFor(() => expect(savedInLine()).toHaveTextContent('Saved in Favourites.'));
+
+    await userEvent.click(heart);
+
+    await waitFor(() => expect(savedInLine()).not.toBeInTheDocument());
+    expect(sent).toEqual(['POST favourites', 'DELETE 40']);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('is left out signed out, though Save to list is there', async () => {
