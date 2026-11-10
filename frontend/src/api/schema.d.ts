@@ -812,6 +812,8 @@ export interface components {
             household: components["schemas"]["InvitedHousehold"] | null;
             /** @description How many private recipes the viewer wrote in their household and would take a copy of by joining. 0 when the link offers them no household to join. */
             recipes_to_copy: number;
+            /** @description How many household lists joining would delete: their household's, when they're its only member, as it is deleted once they leave. 0 when others stay in it, or when the link offers them no household to join. */
+            lists_to_delete: number;
         };
         ListCover: {
             readonly id: number;

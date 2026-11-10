@@ -46,6 +46,7 @@ from households.models import (
 )
 from households.signals import (
     account_deleting,
+    counting_household_lists,
     counting_public_recipes_in,
     counting_recipes_to_copy,
     counting_recipes_to_delete,
@@ -288,11 +289,20 @@ class InviteSeen:
     is_member: bool
     household: InvitedHousehold | None
     recipes_to_copy: int
+    lists_to_delete: int
 
 
 def recipes_to_copy(account: User) -> int:
     """How many private recipes the account would take with it into another household."""
     return sum(count for _, count in counting_recipes_to_copy.send(sender=User, account=account))
+
+
+def lists_to_delete(account: User) -> int:
+    """How many lists moving out would delete with the household it leaves: its household's, when nobody else is in
+    it (settle_emptied_household). Lists stay with a household others are still in."""
+    if account.household_id is None or others_in_household(account) > 0:
+        return 0
+    return sum(count for _, count in counting_household_lists.send(sender=Household, household_id=account.household_id))
 
 
 def invite_seen_by(token: str, viewer: User | None) -> InviteSeen:
@@ -307,9 +317,15 @@ def invite_seen_by(token: str, viewer: User | None) -> InviteSeen:
         if shows_household
         else None
     )
-    # Only someone the link offers a household to is told what joining would copy.
-    copies = recipes_to_copy(viewer) if viewer is not None and household is not None and not is_member else 0
-    return InviteSeen(status=status, is_member=is_member, household=household, recipes_to_copy=copies)
+    # Only someone the link offers a household to is told what joining would copy and delete.
+    offered = viewer is not None and household is not None and not is_member
+    return InviteSeen(
+        status=status,
+        is_member=is_member,
+        household=household,
+        recipes_to_copy=recipes_to_copy(viewer) if offered else 0,
+        lists_to_delete=lists_to_delete(viewer) if offered else 0,
+    )
 
 
 def join_household(account: User, token: str) -> User:

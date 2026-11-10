@@ -90,6 +90,14 @@ const whatHappensTo = (yours: Household) => {
   return `You'll leave ${yours.name}. ${names.format(others.map((member) => member.name))} ${others.length === 1 ? 'stays' : 'stay'} in it.`;
 };
 
+// Lists stay with a household others are still in, so the invite counts them only when you're its last member.
+const whatGoesWithIt = (listsToDelete: number) => {
+  if (listsToDelete === 0) {
+    return '';
+  }
+  return ` Its ${listsToDelete} ${listsToDelete === 1 ? 'list' : 'lists'} will be deleted with it.`;
+};
+
 const whatComesWithYou = (recipesToCopy: number, household: InvitedHousehold) => {
   if (recipesToCopy === 0) {
     return '';
@@ -100,26 +108,33 @@ const whatComesWithYou = (recipesToCopy: number, household: InvitedHousehold) =>
 type JoinDialogProps = {
   household: InvitedHousehold;
   recipesToCopy: number;
+  listsToDelete: number;
   yours: Household;
   joining: boolean;
   onJoin: () => void;
 };
 
-const JoinDialog = ({ household, recipesToCopy, yours, joining, onJoin }: JoinDialogProps) => (
+const JoinDialog = ({ household, recipesToCopy, listsToDelete, yours, joining, onJoin }: JoinDialogProps) => (
   <ConfirmDialog
     trigger={<Button>Join household</Button>}
     pending={joining}
     pendingLabel="Joining…"
     title={`Join ${household.name}?`}
-    description={whatHappensTo(yours) + whatComesWithYou(recipesToCopy, household)}
+    description={whatHappensTo(yours) + whatGoesWithIt(listsToDelete) + whatComesWithYou(recipesToCopy, household)}
     confirmLabel="Join household"
     onConfirm={onJoin}
   />
 );
 
-type JoinOfferProps = { household: InvitedHousehold; recipesToCopy: number; token: string; onDead: () => void };
+type JoinOfferProps = {
+  household: InvitedHousehold;
+  recipesToCopy: number;
+  listsToDelete: number;
+  token: string;
+  onDead: () => void;
+};
 
-const JoinOffer = ({ household, recipesToCopy, token, onDead }: JoinOfferProps) => {
+const JoinOffer = ({ household, recipesToCopy, listsToDelete, token, onDead }: JoinOfferProps) => {
   const { household: yours, errorUpdatedAt, refetch } = useHousehold();
   const joinHousehold = useJoinHousehold(token);
   const navigate = useNavigate();
@@ -175,6 +190,7 @@ const JoinOffer = ({ household, recipesToCopy, token, onDead }: JoinOfferProps) 
         <JoinDialog
           household={household}
           recipesToCopy={recipesToCopy}
+          listsToDelete={listsToDelete}
           yours={yours}
           joining={joinHousehold.isPending}
           onJoin={join}
@@ -216,6 +232,7 @@ const InviteDetails = ({ token, signedIn }: { token: string; signedIn: boolean }
     <JoinOffer
       household={invite.household}
       recipesToCopy={invite.recipes_to_copy}
+      listsToDelete={invite.lists_to_delete}
       token={token}
       onDead={() => setWentDead(true)}
     />
