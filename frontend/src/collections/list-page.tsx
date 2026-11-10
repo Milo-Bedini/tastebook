@@ -265,7 +265,7 @@ const GoneBody = ({ scope }: { scope: Scope }) => {
   if (scope === 'personal') {
     return <>It's been renamed or deleted.</>;
   }
-  return <>Someone in {data?.household_name ?? 'your household'} deleted it.</>;
+  return <>Someone in {data?.household_name ?? 'your household'} renamed or deleted it.</>;
 };
 
 // In ErrorWithRetry's place, with the way back instead of a retry: there's nothing to try again.
