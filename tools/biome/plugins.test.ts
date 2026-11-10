@@ -313,19 +313,29 @@ const fixtures: Fixture[] = [
       `import { api } from '@/api/client';`,
       ``,
       `vi.mock('@/recipes/api');`,
+      `vi.mock(import('@/recipes/api'));`,
+      `vi.mock(import('../api/client'), () => ({}));`,
       `vi.spyOn(globalThis, 'fetch');`,
       `vi.stubGlobal('fetch', vi.fn());`,
       `vi.spyOn(api, 'GET');`,
       `globalThis.fetch = vi.fn();`,
       ''
     ].join('\n'),
-    reports: [message.ownModule, message.fetch, message.fetch, message.fetch, message.fetch]
+    reports: [
+      message.ownModule,
+      message.ownModule,
+      message.ownModule,
+      message.fetch,
+      message.fetch,
+      message.fetch,
+      message.fetch
+    ]
   },
   {
     plugin: 'no-mocking-own-code',
     what: 'a test mocking an outside package',
     path: 'frontend/src/recipes/mocking-good.test.tsx',
-    source: `import { vi } from 'vitest';\n\nvi.mock('sonner');\n`,
+    source: `import { vi } from 'vitest';\n\nvi.mock('sonner');\nvi.mock(import('sonner'));\n`,
     reports: []
   },
   {
