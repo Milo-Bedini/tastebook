@@ -113,7 +113,7 @@ backend/
   config/           settings, root URLs
   <app>/            one Django app per domain area (health/ is the example)
   seed/             test-only endpoint that makes signed-in test accounts, households and recipes (POST /api/test-accounts/seed/); not an area: it calls every area's services.py and nothing imports it
-  mutation_check/   code with known mutants, for the mutation workflow's check that the harness tells a noticed mutant from an unnoticed one
+  mutation_check/   code with known mutants, and harness.py, which checks their summary, for the mutation workflow's check that the harness tells a noticed mutant from an unnoticed one
   tests/            pytest suites
   schema.yml        generated OpenAPI schema (committed)
 tools/openapi/      generates frontend/src/api/schema.d.ts

@@ -131,17 +131,7 @@ jobs:
           # A harness that counts every mutant as killed (as when mutants' runs shared one test database) or every
           # mutant as survived would make the real run's summary meaningless, so it's checked on known mutants first.
           pnpm mutation:backend --out mutation-check.json "$KNOWN_MUTANTS"
-          expected=$(grep -n '# unnoticed$' "$KNOWN_MUTANTS" | cut -d: -f1 | jq -sc 'unique')
-          reported=$(jq -c --arg file "$KNOWN_MUTANTS" \
-            '[.survivors[] | select(.file == $file and .status == "survived") | .line]' mutation-check.json)
-          if [ "$reported" != "$expected" ]; then
-            echo "::error::$KNOWN_MUTANTS's unnoticed mutants should be reported survived on lines $expected, not $reported: the harness counts mutants no test noticed as killed, or the reverse."
-            exit 1
-          fi
-          if ! jq -e '.mutants > (.survivors | length)' mutation-check.json > /dev/null; then
-            echo "::error::No mutant of $KNOWN_MUTANTS was reported killed, though its tests notice all but those marked unnoticed."
-            exit 1
-          fi
+          uv run --project backend python backend/mutation_check/harness.py mutation-check.json "$KNOWN_MUTANTS"
       - name: Mutation-test the changed files
         env:
           CHANGED_FILES: ${{ needs.changes.outputs.files }}
