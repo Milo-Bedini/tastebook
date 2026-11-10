@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+  # GitHub's merge queue builds each queued PR on top of main and the PRs ahead of it, and waits for these checks.
+  merge_group:
   push:
     branches: [main]
 
