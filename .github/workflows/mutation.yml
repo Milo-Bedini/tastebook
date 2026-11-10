@@ -133,7 +133,7 @@ jobs:
           pnpm mutation:backend --out mutation-check.json "$KNOWN_MUTANTS"
           expected=$(grep -n '# unnoticed$' "$KNOWN_MUTANTS" | cut -d: -f1 | jq -sc 'unique')
           reported=$(jq -c --arg file "$KNOWN_MUTANTS" \
-            '[.survivors[] | select(.file == $file and .status == "survived") | .line] | unique' mutation-check.json)
+            '[.survivors[] | select(.file == $file and .status == "survived") | .line]' mutation-check.json)
           if [ "$reported" != "$expected" ]; then
             echo "::error::$KNOWN_MUTANTS's unnoticed mutants should be reported survived on lines $expected, not $reported: the harness counts mutants no test noticed as killed, or the reverse."
             exit 1
