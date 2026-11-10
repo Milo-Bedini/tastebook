@@ -197,6 +197,37 @@ export const CouldntUpload = {
   }
 } satisfies Story;
 
+// Sending the same file again can only fail again, so Choose another takes Try again's place.
+export const TooBigToSend = {
+  args: {
+    photo: { status: 'failed', retryable: false },
+    error: 'That photo is too big to upload. Choose a smaller one, or a JPEG of it.'
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(getField(canvasElement));
+    await expect(canvas.getByRole('alert')).toHaveTextContent('That photo is too big to upload.');
+    const opened = watchPicker(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Choose another' }));
+    await expect(opened).toHaveBeenCalledOnce();
+    await expect(canvas.queryByRole('button', { name: 'Try again' })).toBeNull();
+    await expect(canvas.queryByRole('button', { name: 'Remove photo' })).toBeNull();
+  }
+} satisfies Story;
+
+export const TooBigToSendOnSave = {
+  args: {
+    photo: { status: 'failed', whileSaving: true, retryable: false },
+    error: 'That photo is too big to upload. Choose a smaller one, or a JPEG of it.'
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(getField(canvasElement));
+    await userEvent.click(canvas.getByRole('button', { name: 'Remove photo' }));
+    await expect(args.onRemove).toHaveBeenCalledOnce();
+    await expect(canvas.getByRole('button', { name: 'Choose another' })).toBeVisible();
+    await expect(canvas.queryByRole('button', { name: 'Try again' })).toBeNull();
+  }
+} satisfies Story;
+
 export const SaveWhileUploading = {
   args: { photo: { status: 'uploading', file: photoFile, progress: 85 }, help: undefined },
   render: (args) => (

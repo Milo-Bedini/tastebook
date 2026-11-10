@@ -25,7 +25,8 @@ export type PhotoFieldPhoto =
   // progress is how far the upload has got, from 0 to 100.
   | { status: 'uploading'; file: File; progress: number }
   // whileSaving: it failed while the form waited to save, so the way on is removing the photo, not choosing another.
-  | { status: 'failed'; whileSaving?: boolean };
+  // retryable: false when trying the same file again can only fail again, so Choose another takes Try again's place.
+  | { status: 'failed'; whileSaving?: boolean; retryable?: boolean };
 
 type PhotoFieldProps = {
   label: string;
@@ -238,17 +239,25 @@ export const PhotoField = ({
           onDropFile={onChoose}
         >
           <div className="flex flex-wrap justify-center gap-2">
-            <Button ref={takeFocus} variant="secondary" onClick={onRetry}>
-              Try again
-            </Button>
+            {photo.retryable === false ? (
+              <Button ref={takeFocus} variant="secondary" onClick={choose}>
+                Choose another
+              </Button>
+            ) : (
+              <Button ref={takeFocus} variant="secondary" onClick={onRetry}>
+                Try again
+              </Button>
+            )}
             {photo.whileSaving ? (
               <Button variant="ghost" onClick={onRemove}>
                 Remove photo
               </Button>
             ) : (
-              <Button variant="ghost" onClick={choose}>
-                Choose another
-              </Button>
+              photo.retryable !== false && (
+                <Button variant="ghost" onClick={choose}>
+                  Choose another
+                </Button>
+              )
             )}
           </div>
         </DropBox>
