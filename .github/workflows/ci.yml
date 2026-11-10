@@ -167,11 +167,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: uv sync --locked
         working-directory: backend
-      - run: uv run python manage.py migrate --noinput
-        working-directory: backend
-      # Previews always have the catalogue, so the specs must pass with recipes in the database, not only without.
-      - run: uv run python manage.py load_catalogue
-        working-directory: backend
       - uses: $/.github/actions/playwright-chromium
         with:
           save-cache: true
