@@ -475,7 +475,7 @@ describe('AccountPage', () => {
       expect(reopened.after).not.toContain(SAMS_PRIVATE);
     });
 
-    it("shows the next account its own numbers after signing out, never the last one's", async () => {
+    it("forgets the last account's numbers on signing out and shows the next account its own", async () => {
       const AUTH = '/api/_allauth/browser/v1/auth';
       const JO: Account = { email: 'jo@example.com', name: 'Jo', unit_system: 'metric' };
       const state: { signedInAs: Account | null } = { signedInAs: SAM };
@@ -508,9 +508,10 @@ describe('AccountPage', () => {
           });
         })
       );
-      renderRoute('/account');
+      const { queryClient } = renderRoute('/account');
       expect(lines(await openDialog())).toContain(SAMS_PRIVATE);
       await closeDialog();
+      expect(queryClient.getQueryData(['households', 'account-deletion'])).toEqual(WITH_JO);
 
       await userEvent.click(screen.getByRole('button', { name: 'Account for Sam' }));
       await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
@@ -519,6 +520,7 @@ describe('AccountPage', () => {
       await userEvent.type(await screen.findByRole('textbox', { name: 'Code' }), '123456');
       await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
       expect(await screen.findByRole('textbox', { name: 'Your name' })).toHaveValue('Jo');
+      expect(queryClient.getQueryData(['households', 'account-deletion'])).toBeUndefined();
 
       const reopened = await reopenWith({
         private_recipes: 0,

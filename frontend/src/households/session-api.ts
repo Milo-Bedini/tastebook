@@ -2,7 +2,6 @@ import { type Query, type QueryClient, useMutation, useQuery, useQueryClient } f
 
 import { api } from '../api/client';
 import { type Account, signOut } from './auth-api';
-import { forgetHousehold } from './household-api';
 
 export const SESSION_KEY = ['households', 'session'];
 
@@ -33,9 +32,15 @@ export const useSignedInOnly = () => {
 // What every other area fetched depends on who's signed in (a household's private recipes).
 const signedInData = { predicate: ({ queryKey }: Query) => queryKey[0] !== 'households' };
 
+// Everything else under 'households' belongs to whoever was signed in (the household, the account-deletion numbers),
+// so it goes without being listed; the session is the callers' to set or ask again.
+const signedInHouseholdsData = {
+  predicate: ({ queryKey }: Query) => queryKey[0] === 'households' && queryKey[1] !== SESSION_KEY[1]
+};
+
 // Each is fetched again for whoever is signed in now.
 export const forgetSignedInData = (queryClient: QueryClient) => {
-  forgetHousehold(queryClient);
+  queryClient.removeQueries(signedInHouseholdsData);
   return queryClient.resetQueries(signedInData);
 };
 

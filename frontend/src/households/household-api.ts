@@ -1,4 +1,4 @@
-import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '../api/client';
 import type { components } from '../api/schema';
@@ -8,9 +8,6 @@ export type Household = components['schemas']['Household'];
 export type Member = components['schemas']['Member'];
 
 export const HOUSEHOLD_KEY = ['households', 'household'];
-
-// The household belongs to whoever is signed in, so it goes whenever the session changes hands.
-export const forgetHousehold = (queryClient: QueryClient) => queryClient.removeQueries({ queryKey: HOUSEHOLD_KEY });
 
 export const HOUSEHOLD_NAME_MAX_LENGTH = 100;
 
