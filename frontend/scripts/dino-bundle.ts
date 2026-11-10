@@ -229,7 +229,7 @@ const tokens = {
   timing: { note: 'Motion. Nothing moves on its own except a running timer and a spinner.', tokens: timing },
   meta: {
     source: 'github',
-    repo: 'milobedini/tastebook',
+    repo: 'Milo-Bedini/tastebook',
     ref,
     package: 'frontend',
     paths: { tokens: ['frontend/src/dino/picnic.css'], fonts: ['frontend/src/main.tsx'], docs: ['docs/design.md'] },
