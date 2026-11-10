@@ -171,6 +171,20 @@ describe('AppLayout', () => {
     expect(signOuts).toEqual([SESSION]);
   });
 
+  // docs/design.md: the dock comes after the top bar in the page's order, so focus meets it before the page.
+  it('puts the dock between the top bar and the page when signed in', async () => {
+    answerSignedIn();
+    renderRoute('/recipes');
+
+    const banner = screen.getByRole('banner');
+    await within(banner).findByRole('button', { name: 'Account for Sam' });
+    const dock = screen.getAllByRole('navigation', { name: 'Main' }).find((nav) => !banner.contains(nav));
+
+    expect(dock).toBeDefined();
+    expect(banner.compareDocumentPosition(dock as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(dock?.compareDocumentPosition(screen.getByRole('main'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it('names the account menu after the account', async () => {
     answerSignedIn();
     renderRoute('/recipes');
