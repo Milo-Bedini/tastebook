@@ -394,7 +394,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Stores a photo for a household's recipe and gives its address, which a recipe's photo_url takes. Its address is unguessable but not secret: anyone who has it can see the photo. 403 when signed out or for an account with no household yet. */
+        /** @description Stores a photo for a household's recipe and gives its address, which a recipe's photo_url takes. Its address is unguessable but not secret: anyone who has it can see the photo. 403 when signed out or for an account with no household yet. 413 from the platform (Vercel) when the request body is over 4.5 MB. */
         post: operations["photos_create"];
         delete?: never;
         options?: never;
@@ -2551,6 +2551,13 @@ export interface operations {
             };
             /** @description Signed out, or the account has no household yet. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sent by the platform, not this view: Vercel refuses a request body over 4.5 MB before Django sees it. */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
