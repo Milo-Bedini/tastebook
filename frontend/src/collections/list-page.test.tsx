@@ -410,8 +410,8 @@ describe('a list of your own or the household’s', () => {
 
   it.each<[string, SavedList, string]>([
     ['your own', weeknightDinners, "It's been renamed or deleted."],
-    ['the household’s', sundayRoasts, 'Someone in The Bedinis deleted it.']
-  ])('says when %s list has gone', async (_, list, said) => {
+    ['the household’s', sundayRoasts, 'Someone in The Bedinis renamed or deleted it.']
+  ])('says when %s list has gone from the address you had open', async (_, list, said) => {
     signedIn();
     const shown = answerList(list);
     shown.list = null;
