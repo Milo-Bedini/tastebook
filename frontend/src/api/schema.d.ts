@@ -1072,7 +1072,7 @@ export interface components {
             readonly waiting_for_review: boolean;
             /** @description The recipe this is a copy of, shown as "Copied from <title>" on a private copy and "Adapted from <title> by <author>" on a public one; null for a recipe that is no copy, or when its original was deleted or the signed-in account can't see it. */
             readonly adapted_from: components["schemas"]["OriginalRecipe"] | null;
-            /** @description Whether this recipe was made as a copy of another, which it stays once its original is deleted or made private: with adapted_from null, it's shown as "Adapted from a recipe that's no longer public". */
+            /** @description Whether this recipe was made as a copy of another, which it stays once its original is deleted or made private: with adapted_from null, it's shown as "Adapted from a recipe that isn't public". */
             readonly is_copy: boolean;
             readonly courses: components["schemas"]["Course"][];
             prep_minutes: number | null;
@@ -1260,7 +1260,7 @@ export interface components {
             lists?: components["schemas"]["SeedList"][];
             /** @description Titles of the recipes this member makes a copy of, once every list is made, as saves name them. Each copy is listed after the member's own recipes. */
             copies?: string[];
-            /** @description Titles of this member's own public recipes they make private once every copy is made, so a copy of one is adapted from a recipe that's no longer public. */
+            /** @description Titles of this member's own public recipes they make private once every copy is made, so a copy of one is adapted from a recipe that isn't public. */
             made_private?: string[];
             /** @description Titles of this member's own private recipes they share by link once every recipe is made private. */
             shared?: string[];

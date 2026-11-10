@@ -321,7 +321,7 @@ class RecipeSerializer(RecipeSummarySerializer):
     is_copy = serializers.BooleanField(
         read_only=True,
         help_text='Whether this recipe was made as a copy of another, which it stays once its original is deleted or '
-        'made private: with adapted_from null, it\'s shown as "Adapted from a recipe that\'s no longer public".',
+        'made private: with adapted_from null, it\'s shown as "Adapted from a recipe that isn\'t public".',
     )
     original_source = serializers.CharField(
         read_only=True,
