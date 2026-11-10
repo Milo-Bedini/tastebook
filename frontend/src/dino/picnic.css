@@ -180,7 +180,9 @@
   ::after {
     /* biome-ignore lint/complexity/noImportantStyles: reduced motion has to beat every component's own timing */
     animation-duration: 0.01ms !important;
+    /* Zero, not 0.01ms: every element transitions `all` by default, so a short one makes inherited colours change a
+       frame after their parent's background, which axe catches as poor contrast. Nothing waits on transitionend. */
     /* biome-ignore lint/complexity/noImportantStyles: reduced motion has to beat every component's own timing */
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
   }
 }
