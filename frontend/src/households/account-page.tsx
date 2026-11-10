@@ -187,11 +187,15 @@ const DeleteAccount = ({ email }: { email: string }) => {
   const [codeStep, setCodeStep] = useState<CodeStep>();
   const [sendError, setSendError] = useState<string>();
   const codeRef = useRef<HTMLInputElement>(null);
-  const { deletion, errorUpdatedAt, refetch } = useAccountDeletion(open);
+  const { deletion, errorUpdatedAt, refetch, forget } = useAccountDeletion(open);
   const sendCode = useSendDeletionCode();
   const deleteAccount = useDeleteAccount();
 
   const changeOpen = (isOpen: boolean) => {
+    // Forgotten as it opens rather than as it closes, so the numbers stay while it fades out.
+    if (isOpen) {
+      forget();
+    }
     setOpen(isOpen);
     setCodeStep(undefined);
     setSendError(undefined);

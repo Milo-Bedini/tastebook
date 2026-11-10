@@ -435,6 +435,103 @@ describe('AccountPage', () => {
       expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
     });
 
+    // Opens the dialog while the next numbers are held, and says what it shows before they come and after.
+    const reopenWith = async (next: AccountDeletion) => {
+      const { gate, released } = holdUntilReleased();
+      server.use(
+        http.get(DELETION, async () => {
+          await released;
+          return HttpResponse.json<AccountDeletion>(next);
+        })
+      );
+      const dialog = await openDialog();
+      const whileWaiting = dialog.textContent;
+      gate.release();
+      await within(dialog).findByRole('button', { name: 'Send code' });
+      return { whileWaiting, after: lines(dialog) };
+    };
+
+    const closeDialog = async () => {
+      await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancel' }));
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    };
+
+    const SAMS_PRIVATE =
+      'The 12 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.';
+
+    it('checks the numbers again each time it opens, never showing the last ones while it does', async () => {
+      answerDeletion();
+      renderRoute('/account');
+      expect(lines(await openDialog())).toContain(SAMS_PRIVATE);
+      await closeDialog();
+
+      const reopened = await reopenWith({ ...WITH_JO, private_recipes: 13 });
+
+      expect(reopened.whileWaiting).toContain('Checking what deleting removes…');
+      expect(reopened.whileWaiting).not.toContain('12 private recipes');
+      expect(reopened.after).toContain(
+        'The 13 private recipes you wrote will be deleted. Leave your household first if you want it to keep them.'
+      );
+      expect(reopened.after).not.toContain(SAMS_PRIVATE);
+    });
+
+    it("shows the next account its own numbers after signing out, never the last one's", async () => {
+      const AUTH = '/api/_allauth/browser/v1/auth';
+      const JO: Account = { email: 'jo@example.com', name: 'Jo', unit_system: 'metric' };
+      const state: { signedInAs: Account | null } = { signedInAs: SAM };
+      answerDeletion();
+      server.use(
+        http.get(ACCOUNT, () => HttpResponse.json<CurrentAccount>({ account: state.signedInAs })),
+        http.delete(`${AUTH}/session`, () => {
+          state.signedInAs = null;
+          return HttpResponse.json(
+            { status: 401, data: { flows: [] }, meta: { is_authenticated: false } },
+            { status: 401 }
+          );
+        }),
+        http.post(`${AUTH}/code/request`, () =>
+          HttpResponse.json(
+            {
+              status: 401,
+              data: { flows: [{ id: 'login_by_code', is_pending: true }] },
+              meta: { is_authenticated: false }
+            },
+            { status: 401 }
+          )
+        ),
+        http.post(`${AUTH}/code/confirm`, () => {
+          state.signedInAs = JO;
+          return HttpResponse.json({
+            status: 200,
+            data: { user: { email: JO.email }, methods: [] },
+            meta: { is_authenticated: true }
+          });
+        })
+      );
+      renderRoute('/account');
+      expect(lines(await openDialog())).toContain(SAMS_PRIVATE);
+      await closeDialog();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Account for Sam' }));
+      await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
+      await userEvent.type(await screen.findByRole('textbox', { name: 'Email address' }), JO.email);
+      await userEvent.click(screen.getByRole('button', { name: 'Send code' }));
+      await userEvent.type(await screen.findByRole('textbox', { name: 'Code' }), '123456');
+      await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+      expect(await screen.findByRole('textbox', { name: 'Your name' })).toHaveValue('Jo');
+
+      const reopened = await reopenWith({
+        private_recipes: 0,
+        public_recipes: 0,
+        others_in_household: 0,
+        is_staff: false
+      });
+
+      expect(reopened.whileWaiting).toContain('Checking what deleting removes…');
+      expect(reopened.whileWaiting).not.toContain('12 private recipes');
+      expect(reopened.after).toEqual([ON_EVERYONE, BACKUPS]);
+    });
+
     it.each<[string, Partial<AccountDeletion>, string[]]>([
       [
         'the last member, with 1 private recipe',

@@ -20,8 +20,10 @@ const retryAfter = (response: Response): number | undefined => {
   return Number.isInteger(seconds) && seconds > 0 ? seconds : undefined;
 };
 
-// What deleting the account would delete and keep, fetched only once the dialog asking is open.
+// What deleting the account would delete and keep, fetched only once the dialog asking is open. `forget` drops the
+// last answer, so opening again (after recipes changed, or as someone else) never shows numbers from before.
 export const useAccountDeletion = (open: boolean) => {
+  const queryClient = useQueryClient();
   const { data, errorUpdatedAt, refetch } = useQuery({
     queryKey: DELETION_KEY,
     queryFn: async (): Promise<AccountDeletion> => {
@@ -33,7 +35,8 @@ export const useAccountDeletion = (open: boolean) => {
     },
     enabled: open
   });
-  return { deletion: data, errorUpdatedAt, refetch };
+  const forget = () => queryClient.removeQueries({ queryKey: DELETION_KEY });
+  return { deletion: data, errorUpdatedAt, refetch, forget };
 };
 
 export const useSendDeletionCode = () => {
