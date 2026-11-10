@@ -67,3 +67,11 @@ test('an error expected to maybe repeat that never comes fails the test', async 
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
+
+test('an expected error that never comes fails the test', async ({ page, consoleErrors }) => {
+  test.fail();
+  consoleErrors.expect('A single error (at /)');
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+});
