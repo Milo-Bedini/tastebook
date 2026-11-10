@@ -21,34 +21,31 @@ export const Dock = ({ tabs }: DockProps) => {
   }
 
   return (
-    <>
-      {/* Keeps the page's last 104 px clear of the dock (62 px, 20 px under it and 22 px of air), so its foot scrolls
-          out from under it. */}
-      <div aria-hidden="true" className="h-26 pb-[env(safe-area-inset-bottom)] sm:hidden" />
-      <nav
-        aria-label="Main"
-        className="fixed right-[max(--spacing(5),env(safe-area-inset-right))] bottom-[calc(--spacing(5)+env(safe-area-inset-bottom))] left-[max(--spacing(5),env(safe-area-inset-left))] flex h-15.5 items-center rounded-pill border-2 border-transparent bg-dock px-1.5 shadow-lift sm:hidden"
-      >
-        <ul className="m-0 flex w-full list-none items-center gap-1 p-0">
-          {tabs.map(({ to, label, icon: Icon }) => (
-            // The current tab's item takes the rest of the row, so its pill can hold its name.
-            <li key={to} className="has-[[aria-current=page]]:grow">
-              <NavLink to={to} className={({ isActive }) => cn(tab, isActive ? currentTab : otherTab)}>
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      aria-hidden="true"
-                      strokeWidth={2.25}
-                      className={cn('shrink-0', isActive ? 'size-5' : 'size-5.5')}
-                    />
-                    <span className={cn(!isActive && 'sr-only')}>{label}</span>
-                  </>
-                )}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </>
+    <nav
+      aria-label="Main"
+      // Page keeps its foot clear of the dock while this is in the document.
+      data-slot="dock"
+      className="fixed right-[max(--spacing(5),env(safe-area-inset-right))] bottom-[calc(--spacing(5)+env(safe-area-inset-bottom))] left-[max(--spacing(5),env(safe-area-inset-left))] flex h-15.5 items-center rounded-pill border-2 border-transparent bg-dock px-1.5 shadow-lift sm:hidden"
+    >
+      <ul className="m-0 flex w-full list-none items-center gap-1 p-0">
+        {tabs.map(({ to, label, icon: Icon }) => (
+          // The current tab's item takes the rest of the row, so its pill can hold its name.
+          <li key={to} className="has-[[aria-current=page]]:grow">
+            <NavLink to={to} className={({ isActive }) => cn(tab, isActive ? currentTab : otherTab)}>
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    aria-hidden="true"
+                    strokeWidth={2.25}
+                    className={cn('shrink-0', isActive ? 'size-5' : 'size-5.5')}
+                  />
+                  <span className={cn(!isActive && 'sr-only')}>{label}</span>
+                </>
+              )}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 };

@@ -61,8 +61,8 @@ export const AppLayout = () => {
           account={account}
           tabs={tabs}
         />
-        <Outlet />
         <Dock tabs={tabs} />
+        <Outlet />
         <SaveOnReturn />
         <Toaster aboveDock={tabs.length > 0} />
       </SaveToListSlot>
