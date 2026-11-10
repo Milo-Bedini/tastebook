@@ -19,6 +19,9 @@ const PATHS: Paths = {
   '/api/recipes/{slug}/': {
     patch: { responses: { '200': {}, '404': {} } },
     delete: { responses: { '204': {}, '404': {} } }
+  },
+  '/api/photos/': {
+    post: { responses: { '201': {}, '400': {}, '403': {}, '503': {} } }
   }
 };
 
@@ -49,6 +52,20 @@ export const useRemoveRecipe = (slug: string) => useMutation({ mutationFn: async
     return { kind: 'gone' };
   }
 } });`;
+// Sent with XMLHttpRequest for its progress, by a helper the hook hands to useMutation without calling it.
+const UPLOAD = `const sendPhoto = () => new Promise((resolve, reject) => {
+  const request = new XMLHttpRequest();
+  request.open('POST', \`\${apiBaseUrl}/api/photos/\`);
+  request.addEventListener('load', () => {
+    if (request.status === 400) {
+      resolve({ kind: 'refused' });
+    } else {
+      reject(new Error(\`Uploading a photo failed with \${request.status}\`));
+    }
+  });
+});
+
+export const useUploadPhoto = () => useMutation({ mutationFn: sendPhoto });`;
 const LIST = `export const useRecipes = () => useQuery({ queryFn: () => api.GET('/api/recipes/') });`;
 
 describe('missingAnswers', () => {
@@ -79,6 +96,12 @@ describe('missingAnswers', () => {
       [`${ADD}\n${REMOVE}`],
       ['POST /api/recipes/ 400', 'POST /api/recipes/ 403'],
       ['DELETE /api/recipes/{slug}/ 404 (useRemoveRecipe)']
+    ],
+    [
+      'an XMLHttpRequest makes the request',
+      [UPLOAD],
+      ['POST /api/photos/ 403'],
+      ['POST /api/photos/ 400 (useUploadPhoto)', 'POST /api/photos/ 503 (useUploadPhoto)']
     ],
     ['only a query calls the endpoint', [LIST], [], []],
     ['no source calls the endpoint', [], [], []]
@@ -136,6 +159,12 @@ describe('unhandledAnswers', () => {
       ['PATCH /api/recipes/{slug}/ 404 (useRetitleRecipe)']
     ],
     ['the hook branches on what its helper requested', [REMOVE], [], []],
+    [
+      'an XMLHttpRequest makes the request',
+      [UPLOAD],
+      [],
+      ['POST /api/photos/ 403 (useUploadPhoto)', 'POST /api/photos/ 503 (useUploadPhoto)']
+    ],
     ['only a query calls the endpoint', [LIST], [], []]
   ])('lists what is unhandled when %s', (_, sources, unbranched, unhandled) => {
     expect(
@@ -173,6 +202,15 @@ describe('staleUnbranched', () => {
       [SAVE_403_THROWS],
       [{ hook: 'useSaveRecipe', status: 409, ...REASON }],
       ['useSaveRecipe 409']
+    ],
+    [
+      'the XMLHttpRequest branches on one listed status',
+      [UPLOAD],
+      [
+        { hook: 'useUploadPhoto', status: 400, ...REASON },
+        { hook: 'useUploadPhoto', status: 503, ...REASON }
+      ],
+      ['useUploadPhoto 400']
     ],
     ['no source has the listed hook', [], [{ hook: 'useSaveRecipe', status: 403, ...REASON }], ['useSaveRecipe 403']]
   ])('lists the stale entries when %s', (_, sources, unbranched, stale) => {
