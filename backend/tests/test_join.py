@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from households.models import Household, User
+from recipe_collections.models import RecipeList
 from tests.test_accounts import BrowserClient
 from tests.test_household import (
     HOUSEHOLD,
@@ -25,6 +26,10 @@ def lookup(browser: BrowserClient, token: str) -> HttpResponse:
 
 def join_through(browser: BrowserClient, token: str) -> HttpResponse:
     return browser.client.post(f'/api/invites/{token}/join/', **browser.csrf_header())
+
+
+def make_list(browser: BrowserClient, name: str, scope: str) -> None:
+    browser.client.post('/api/lists/', {'name': name, 'scope': scope}, format='json', **browser.csrf_header())
 
 
 def account_id(email: str) -> int:
@@ -76,6 +81,7 @@ def test_a_live_link_shows_someone_signed_in_the_household_and_its_members() -> 
                 ],
             },
             'recipes_to_copy': 0,
+            'lists_to_delete': 0,
         },
     )
 
@@ -91,7 +97,7 @@ def test_signed_out_a_link_shows_only_its_status(monkeypatch: pytest.MonkeyPatch
 
     assert (response.status_code, response.json()) == (
         200,
-        {'status': status, 'is_member': False, 'household': None, 'recipes_to_copy': 0},
+        {'status': status, 'is_member': False, 'household': None, 'recipes_to_copy': 0, 'lists_to_delete': 0},
     )
 
 
@@ -106,7 +112,7 @@ def test_a_dead_link_shows_someone_signed_in_only_its_status(monkeypatch: pytest
 
     assert (response.status_code, response.json()) == (
         200,
-        {'status': status, 'is_member': False, 'household': None, 'recipes_to_copy': 0},
+        {'status': status, 'is_member': False, 'household': None, 'recipes_to_copy': 0, 'lists_to_delete': 0},
     )
 
 
@@ -215,4 +221,37 @@ def test_a_removed_member_finds_the_link_cancelled() -> None:
         'is_member': False,
         'household': None,
         'recipes_to_copy': 0,
+        'lists_to_delete': 0,
     }
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ('ann_stays', 'household_lists', 'deleted'),
+    [
+        pytest.param(False, 2, 2, id='only member'),
+        pytest.param(False, 1, 1, id='only member, one list'),
+        pytest.param(False, 0, 0, id='only member, no lists'),
+        pytest.param(True, 2, 0, id='Ann stays with the lists'),
+    ],
+)
+def test_a_link_says_how_many_lists_joining_would_delete(ann_stays: bool, household_lists: int, deleted: int) -> None:
+    milo = signed_up('milo@example.com', 'Milo')
+    if ann_stays:
+        signed_up('ann@example.com', 'Ann')
+        join('ann@example.com', 'milo@example.com')
+    for number in range(household_lists):
+        make_list(milo, f'Bakes {number}', 'household')
+    # His own lists come with him.
+    make_list(milo, 'Weeknights', 'personal')
+    jo = signed_up('jo@example.com', 'Jo')
+    token = make_link(jo).json()['invite']['token']
+
+    assert lookup(milo, token).json()['lists_to_delete'] == deleted
+    assert lookup(jo, token).json()['lists_to_delete'] == 0
+    assert lookup(BrowserClient(), token).json()['lists_to_delete'] == 0
+
+    old = household_id_of('milo@example.com')
+    join_through(milo, token)
+
+    assert RecipeList.objects.filter(household_id=old).count() == household_lists - deleted

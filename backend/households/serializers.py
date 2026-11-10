@@ -65,6 +65,10 @@ class JoinInviteSerializer(serializers.Serializer):
         help_text='How many private recipes the viewer wrote in their household and would take a copy of by joining. '
         '0 when the link offers them no household to join.'
     )
+    lists_to_delete = serializers.IntegerField(
+        help_text="How many household lists joining would delete: their household's, when they're its only member, as "
+        'it is deleted once they leave. 0 when others stay in it, or when the link offers them no household to join.'
+    )
 
 
 class AccountDeletionSerializer(serializers.Serializer):

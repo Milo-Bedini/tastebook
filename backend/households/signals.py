@@ -10,6 +10,10 @@ member_moved = Signal()
 # Sent with `account` to learn how many private recipes it would take with it if it moved now; answered with a count.
 counting_recipes_to_copy = Signal()
 
+# Sent with `household_id` to learn how many lists the household holds, which emptying it would delete; answered with a
+# count.
+counting_household_lists = Signal()
+
 # Sent with `account`, which has a household, and `last`, whether it's that household's last member, to learn how many
 # private recipes deleting it now would delete; answered with a count.
 counting_recipes_to_delete = Signal()

@@ -25,7 +25,8 @@ const LIVE: JoinInvite = {
   status: 'live',
   is_member: false,
   household: { name: 'The Bedinis', members: [ANN, JO] },
-  recipes_to_copy: 0
+  recipes_to_copy: 0,
+  lists_to_delete: 0
 };
 
 const MILOS: Household = { id: 11, name: "Milo's household", members: [MILO], invite: null };
@@ -87,7 +88,7 @@ describe('JoinPage', () => {
   });
 
   it('shows someone signed out only that the link works, and Sign in to join', async () => {
-    answerLookup({ status: 'live', is_member: false, household: null, recipes_to_copy: 0 });
+    answerLookup({ status: 'live', is_member: false, household: null, recipes_to_copy: 0, lists_to_delete: 0 });
     renderRoute('/join/tok-123');
 
     expect(
@@ -116,7 +117,13 @@ describe('JoinPage', () => {
       http.get(LOOKUP, () =>
         status === 'unknown'
           ? new HttpResponse(null, { status: 404 })
-          : HttpResponse.json<JoinInvite>({ status, is_member: false, household: null, recipes_to_copy: 0 })
+          : HttpResponse.json<JoinInvite>({
+              status,
+              is_member: false,
+              household: null,
+              recipes_to_copy: 0,
+              lists_to_delete: 0
+            })
       )
     );
     renderRoute('/join/tok-123');
@@ -131,7 +138,8 @@ describe('JoinPage', () => {
       status: 'expired',
       is_member: true,
       household: { name: 'The Bedinis', members: [MILO, ANN] },
-      recipes_to_copy: 0
+      recipes_to_copy: 0,
+      lists_to_delete: 0
     });
     renderRoute('/join/tok-123');
 
@@ -178,6 +186,30 @@ describe('JoinPage', () => {
     answerSignedIn();
     answerLookup({ ...LIVE, recipes_to_copy: count });
     answerJoin({ ...MILOS, members: [MILO, KIM] });
+    renderRoute('/join/tok-123');
+
+    await userEvent.click(await joinButton());
+
+    expect(await screen.findByRole('alertdialog', { name: 'Join The Bedinis?' })).toHaveAccessibleDescription(
+      description
+    );
+  });
+
+  it.each([
+    [
+      1,
+      0,
+      "You'll leave Milo's household. You're its only member, so it will be deleted. Its 1 list will be deleted with it."
+    ],
+    [
+      3,
+      2,
+      "You'll leave Milo's household. You're its only member, so it will be deleted. Its 3 lists will be deleted with it. Your 2 private recipes will be copied into The Bedinis."
+    ]
+  ])('says the %i lists of the household you leave empty will be deleted', async (lists, recipes, description) => {
+    answerSignedIn();
+    answerLookup({ ...LIVE, lists_to_delete: lists, recipes_to_copy: recipes });
+    answerJoin();
     renderRoute('/join/tok-123');
 
     await userEvent.click(await joinButton());
@@ -235,7 +267,13 @@ describe('JoinPage', () => {
     answerJoin();
     server.use(
       http.post(JOIN, () => {
-        state.invite = { status: 'cancelled', is_member: false, household: null, recipes_to_copy: 0 };
+        state.invite = {
+          status: 'cancelled',
+          is_member: false,
+          household: null,
+          recipes_to_copy: 0,
+          lists_to_delete: 0
+        };
         return new HttpResponse(null, { status });
       })
     );
