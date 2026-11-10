@@ -109,7 +109,7 @@ def test_a_saved_recipe_is_shown_as_the_recipe_list_shows_it() -> None:
     browser = jo()
     save(browser, slug)
 
-    listed = browser.client.get(RECIPES, {'q': 'curry'}).json()
+    listed = browser.client.get(RECIPES, {'q': 'curry'}).json()['results']
     saved = browser.client.get(FAVOURITES).json()['saved_recipes']
 
     assert saved[0]['recipe'] == listed[0]

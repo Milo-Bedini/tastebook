@@ -102,8 +102,18 @@ def recipe_json(slug: str) -> dict[str, Any]:
     return response.json()
 
 
+# Every page of the list, as the catalogue holds more recipes than one page.
+def every_summary(params: dict[str, str] | None = None) -> list[dict[str, Any]]:
+    page = APIClient().get(reverse('recipe-list'), params).json()
+    found = page['results']
+    while page['next'] is not None:
+        page = APIClient().get(page['next']).json()
+        found += page['results']
+    return found
+
+
 def titles(q: str = '') -> list[str]:
-    return [recipe['title'] for recipe in APIClient().get(reverse('recipe-list'), {'q': q}).json()]
+    return [recipe['title'] for recipe in every_summary({'q': q})]
 
 
 # What a reader of the recipe page sees of each feature the seed has to cover.
@@ -432,7 +442,7 @@ def test_the_repos_recipes_are_found_by_their_ingredients_us_names(q: str, expec
 
 
 def wikibooks_recipes() -> list[dict[str, Any]]:
-    summaries = APIClient().get(reverse('recipe-list')).json()
+    summaries = every_summary()
     return [
         recipe
         for recipe in map(recipe_json, (summary['slug'] for summary in summaries))
@@ -456,7 +466,7 @@ def test_no_recipe_in_the_repos_catalogue_measures_in_cups_ounces_or_pounds() ->
 
     units = {
         line['unit']
-        for summary in APIClient().get(reverse('recipe-list')).json()
+        for summary in every_summary()
         for recipe in [recipe_json(summary['slug'])]
         for line in [
             *recipe['ingredient_lines'],
@@ -485,7 +495,7 @@ def test_the_repos_recipes_use_uk_words_in_titles_steps_and_notes() -> None:
 
     copy = [
         (recipe['slug'], text)
-        for summary in APIClient().get(reverse('recipe-list')).json()
+        for summary in every_summary()
         for recipe in [recipe_json(summary['slug'])]
         for text in [
             *([] if recipe['title'] in NAMED_WITH_A_US_WORD else [recipe['title']]),
@@ -520,7 +530,7 @@ def test_the_repos_recipes_round_converted_grams_and_millilitres_as_the_spec_say
 
     lines = [
         (recipe['slug'], line)
-        for summary in APIClient().get(reverse('recipe-list')).json()
+        for summary in every_summary()
         for recipe in [recipe_json(summary['slug'])]
         for line in [
             *recipe['ingredient_lines'],
@@ -548,7 +558,7 @@ def test_every_ingredient_the_filter_offers_is_used_by_a_recipe_in_the_repos_cat
 
     used = {
         line['ingredient']['name']
-        for summary in APIClient().get(reverse('recipe-list')).json()
+        for summary in every_summary()
         for recipe in [recipe_json(summary['slug'])]
         for line in [
             *recipe['ingredient_lines'],
@@ -564,7 +574,7 @@ def test_every_ingredient_the_filter_offers_is_used_by_a_recipe_in_the_repos_cat
 def test_every_photo_in_the_repos_catalogue_has_a_licence_that_allows_reuse() -> None:
     call_command('load_catalogue')
 
-    photos = [summary['photo'] for summary in APIClient().get(reverse('recipe-list')).json() if summary['photo']]
+    photos = [summary['photo'] for summary in every_summary() if summary['photo']]
     assert photos != []
     allowed = re.compile(r'^(Public domain|CC0 1\.0|CC BY(-SA)? \d\.\d( [a-z]{2,3})?)$')
     assert [photo['credit']['licence'] for photo in photos if not allowed.match(photo['credit']['licence'])] == []

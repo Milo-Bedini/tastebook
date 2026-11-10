@@ -119,6 +119,8 @@
 
   /* docs/design.md, States › Loading: a loading region shows only after half a second. */
   --animate-reveal: reveal 0s 500ms both;
+  /* What the loading line replaces stays until then: the same step, hiding at half a second. */
+  --animate-conceal: reveal 0s 500ms both reverse;
   @keyframes reveal {
     from {
       visibility: hidden;

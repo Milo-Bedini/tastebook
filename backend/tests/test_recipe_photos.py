@@ -240,7 +240,9 @@ def test_a_recipe_keeps_an_uploaded_photo_with_no_credit(blob: responses.Request
     slug = add(milo, {'title': CURRY, 'photo_url': photo['url']})
 
     assert milo.client.get(f'/api/recipes/{slug}/').json()['photo'] == photo
-    assert [recipe['photo'] for recipe in milo.client.get('/api/recipes/').json() if recipe['slug'] == slug] == [photo]
+    assert [
+        recipe['photo'] for recipe in milo.client.get('/api/recipes/').json()['results'] if recipe['slug'] == slug
+    ] == [photo]
 
 
 @pytest.mark.django_db

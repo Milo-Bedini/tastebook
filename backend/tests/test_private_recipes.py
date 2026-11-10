@@ -20,7 +20,7 @@ def add(browser: BrowserClient, body: dict[str, Any]) -> HttpResponse:
 
 
 def titles(browser: BrowserClient, query: str = '') -> list[str]:
-    return [recipe['title'] for recipe in browser.client.get(f'{RECIPES}{query}').json()]
+    return [recipe['title'] for recipe in browser.client.get(f'{RECIPES}{query}').json()['results']]
 
 
 @pytest.mark.django_db
@@ -241,7 +241,7 @@ def test_a_members_list_says_which_recipes_are_private() -> None:
     milo = signed_up(MILO, 'Milo')
     add(milo, {'title': "Grandma's curry"})
 
-    body = milo.client.get(RECIPES).json()
+    body = milo.client.get(RECIPES).json()['results']
 
     assert [(recipe['title'], recipe['visibility']) for recipe in body] == [
         ('Apple tart', 'public'),

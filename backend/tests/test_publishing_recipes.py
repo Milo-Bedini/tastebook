@@ -25,7 +25,7 @@ def visibility_of(slug: str) -> str:
 
 
 def titles(browser: BrowserClient, query: str = '') -> list[str]:
-    return [recipe['title'] for recipe in browser.client.get(f'{RECIPES}{query}').json()]
+    return [recipe['title'] for recipe in browser.client.get(f'{RECIPES}{query}').json()['results']]
 
 
 @pytest.mark.django_db
@@ -269,7 +269,7 @@ def test_only_a_public_household_recipe_names_its_author() -> None:
     milo, curry = public_curry()
     flatbreads = add(milo, {'title': 'Flatbreads'}).json()['slug']
 
-    listed = {recipe['title']: recipe['author'] for recipe in milo.client.get(RECIPES).json()}
+    listed = {recipe['title']: recipe['author'] for recipe in milo.client.get(RECIPES).json()['results']}
     opened = [milo.client.get(f'{RECIPES}{slug}/').json()['author'] for slug in ['apple-tart', curry, flatbreads]]
 
     assert listed == {'Apple tart': None, CURRY: 'Milo', 'Flatbreads': None}
@@ -327,7 +327,7 @@ def test_nobody_may_edit_or_publish_a_catalogue_recipe() -> None:
 
 
 @pytest.mark.django_db
-def test_lists_public_recipes_by_two_authors_in_three_queries(
+def test_lists_public_recipes_by_two_authors_in_four_queries(
     django_assert_num_queries: DjangoAssertNumQueries,
 ) -> None:
     public_curry()
@@ -336,7 +336,10 @@ def test_lists_public_recipes_by_two_authors_in_three_queries(
     Recipe.objects.filter(slug=dal).update(visibility='public')
     browser = BrowserClient()
 
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(4):
         response = browser.client.get(RECIPES)
 
-    assert [(recipe['title'], recipe['author']) for recipe in response.json()] == [(CURRY, 'Milo'), ("Jo's dal", 'Jo')]
+    assert [(recipe['title'], recipe['author']) for recipe in response.json()['results']] == [
+        (CURRY, 'Milo'),
+        ("Jo's dal", 'Jo'),
+    ]

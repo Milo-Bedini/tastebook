@@ -82,11 +82,13 @@ def test_nobody_else_sees_a_recipe_waiting_for_review() -> None:
 
     seen_by_jo = jo.client.get(f'{RECIPES}{slugs[3]}/').status_code
     seen_signed_out = stranger().client.get(f'{RECIPES}{slugs[3]}/').status_code
-    listed_for_jo = [recipe['slug'] for recipe in jo.client.get(RECIPES).json()]
+    listed_for_jo = [recipe['slug'] for recipe in jo.client.get(RECIPES).json()['results']]
 
     assert (seen_by_jo, seen_signed_out) == (404, 404)
     assert listed_for_jo == slugs[:3]
-    listed_for_milo = {recipe['slug']: recipe['waiting_for_review'] for recipe in milo.client.get(RECIPES).json()}
+    listed_for_milo = {
+        recipe['slug']: recipe['waiting_for_review'] for recipe in milo.client.get(RECIPES).json()['results']
+    }
     assert listed_for_milo == {slugs[0]: False, slugs[1]: False, slugs[2]: False, slugs[3]: True}
 
 

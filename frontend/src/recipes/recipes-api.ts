@@ -12,13 +12,24 @@ import type { components } from '../api/schema';
 import type { RecipeFilters } from './recipe-filters';
 
 type Recipe = components['schemas']['Recipe'];
+type RecipeSummary = components['schemas']['RecipeSummary'];
 type Visibility = components['schemas']['Visibility'];
 type NewReport = components['schemas']['NewReport'];
 
-export type RecipeQuery = { searchTerm: string; filters: RecipeFilters };
+// RecipePages in backend/recipes/views.py sets it; the list counts its range and pages from it.
+export const RECIPES_PAGE_SIZE = 24;
 
-// Leaves out what filters nothing, so an unfiltered list asks for /api/recipes/ with no query string.
-const toQuery = ({ searchTerm, filters }: RecipeQuery) => ({
+// page counts from 1.
+export type RecipeQuery = { searchTerm: string; filters: RecipeFilters; page: number };
+
+// recipes is null for a page the list hasn't got (past the last), which the page answers with the first.
+export type RecipeListing =
+  | { query: RecipeQuery; recipes: RecipeSummary[]; count: number }
+  | { query: RecipeQuery; recipes: null };
+
+// Leaves out what filters nothing, so an unfiltered first page asks for /api/recipes/ with no query string.
+const toQuery = ({ searchTerm, filters, page }: RecipeQuery) => ({
+  ...(page === 1 ? {} : { page }),
   ...(searchTerm === '' ? {} : { q: searchTerm }),
   ...(filters.cuisines.length === 0 ? {} : { cuisine: filters.cuisines }),
   ...(filters.courses.length === 0 ? {} : { course: filters.courses }),
@@ -38,13 +49,16 @@ const toQuery = ({ searchTerm, filters }: RecipeQuery) => ({
 export const useRecipes = (query: RecipeQuery) =>
   useQuery({
     queryKey: ['recipes', toQuery(query)],
-    queryFn: async () => {
-      const { data, error } = await api.GET('/api/recipes/', { params: { query: toQuery(query) } });
+    queryFn: async (): Promise<RecipeListing> => {
+      const { data, error, response } = await api.GET('/api/recipes/', { params: { query: toQuery(query) } });
+      if (response.status === 404) {
+        return { query, recipes: null };
+      }
       if (error || !data) {
         throw new Error('Recipes request failed');
       }
       // The query travels with its results, so previous results shown while loading keep their own empty message.
-      return { query, recipes: data };
+      return { query, recipes: data.results, count: data.count };
     },
     placeholderData: keepPreviousData
   });

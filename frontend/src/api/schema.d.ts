@@ -983,6 +983,21 @@ export interface components {
             /** @description The name of whoever wrote the original, by the rule the recipe's own "author" follows. */
             readonly author: string | null;
         };
+        PaginatedRecipeSummaryList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["RecipeSummary"][];
+        };
         PatchedAccountChanges: {
             name?: string;
             unit_system?: components["schemas"]["UnitSystem"];
@@ -2602,6 +2617,8 @@ export interface operations {
                 max_total?: number;
                 /** @description true means only one-pot recipes; false or missing means every recipe. */
                 one_pot?: boolean;
+                /** @description A page number within the paginated result set. */
+                page?: number;
                 /** @description Title, description, an ingredient's name or synonym, or a cuisine contains this text, ignoring case and accents. Title matches come first, then the others, alphabetically within each. */
                 q?: string;
             };
@@ -2616,11 +2633,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecipeSummary"][];
+                    "application/json": components["schemas"]["PaginatedRecipeSummaryList"];
                 };
             };
             /** @description A difficulty, a diet, an include_match or a time limit is not one the list accepts. */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The page is past the last one, or not a whole number from 1. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

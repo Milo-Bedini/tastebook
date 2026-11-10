@@ -13,6 +13,7 @@ type NewIngredient = components['schemas']['NewIngredient'];
 type RecipeLists = components['schemas']['RecipeLists'];
 type Recipe = components['schemas']['Recipe'];
 type RecipeSummary = components['schemas']['RecipeSummary'];
+type RecipePage = components['schemas']['PaginatedRecipeSummaryList'];
 type SavedList = components['schemas']['SavedList'];
 
 const cuisines: Cuisine[] = [
@@ -128,6 +129,14 @@ const recipes: Recipe[] = [
   }
 ];
 
+// A page of the recipe list as the API sends it: count is every match, more than results on a longer list.
+export const recipePage = (results: RecipeSummary[], count = results.length): RecipePage => ({
+  count,
+  next: null,
+  previous: null,
+  results
+});
+
 const toSummary = ({
   id,
   slug,
@@ -199,7 +208,7 @@ export const handlers = [
       saved_recipes: []
     })
   ),
-  http.get('/api/recipes/', () => HttpResponse.json<RecipeSummary[]>(recipes.map(toSummary))),
+  http.get('/api/recipes/', () => HttpResponse.json(recipePage(recipes.map(toSummary)))),
   http.get('/api/recipes/:slug/', ({ params }) => {
     const recipe = recipes.find(({ slug }) => slug === params.slug);
     return recipe === undefined ? new HttpResponse(null, { status: 404 }) : HttpResponse.json<Recipe>(recipe);

@@ -30,11 +30,13 @@ def write_curry(milo: BrowserClient) -> None:
 
 
 def private_titles(browser: BrowserClient) -> list[str]:
-    return [recipe['title'] for recipe in browser.client.get(RECIPES).json() if recipe['visibility'] == 'private']
+    return [
+        recipe['title'] for recipe in browser.client.get(RECIPES).json()['results'] if recipe['visibility'] == 'private'
+    ]
 
 
 def detail(browser: BrowserClient, title: str) -> dict[str, Any]:
-    slug = next(recipe['slug'] for recipe in browser.client.get(RECIPES).json() if recipe['title'] == title)
+    slug = next(recipe['slug'] for recipe in browser.client.get(RECIPES).json()['results'] if recipe['title'] == title)
     return browser.client.get(f'{RECIPES}{slug}/').json()
 
 

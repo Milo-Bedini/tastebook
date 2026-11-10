@@ -304,7 +304,7 @@ def test_a_seeded_member_has_a_recipe_staff_removed(test_accounts: Settings) -> 
 
     response = sam.put(f'{RECIPES}{dal["slug"]}/visibility/', {'visibility': 'public'}, format='json')
 
-    assert [recipe['title'] for recipe in sam.get(RECIPES).json() if recipe['title'][:3] == 'Sam'] == [
+    assert [recipe['title'] for recipe in sam.get(RECIPES).json()['results'] if recipe['title'][:3] == 'Sam'] == [
         "Sam's curry",
         "Sam's dal",
     ]

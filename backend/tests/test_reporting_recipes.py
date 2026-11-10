@@ -92,7 +92,7 @@ def test_the_author_is_told_their_recipe_is_hidden() -> None:
     report(signed_up('jo@example.com', 'Jo'), slug)
 
     page = milo.client.get(f'{RECIPES}{slug}/').json()
-    [card] = milo.client.get(RECIPES).json()
+    [card] = milo.client.get(RECIPES).json()['results']
 
     assert (before, page['hidden_for_review'], card['hidden_for_review']) == (False, True, True)
 
@@ -309,7 +309,11 @@ def test_a_seeded_member_reports_a_recipe_and_another_reports_a_restored_one(tes
         {'members': [{'key': 'jo', 'name': 'Jo', 'reports': ["Sam's curry", "Sam's dal"]}]},
     )
 
-    jos = [recipe['title'] for recipe in signed_in_as(body, 'jo').get(RECIPES).json() if recipe['title'][:3] == 'Sam']
+    jos = [
+        recipe['title']
+        for recipe in signed_in_as(body, 'jo').get(RECIPES).json()['results']
+        if recipe['title'][:3] == 'Sam'
+    ]
 
     assert jos == ["Sam's dal"]
     assert [(title, reporter) for title, reporter, _, _ in reports()] == [("Sam's curry", 'Jo'), ("Sam's dal", 'Jo')]
