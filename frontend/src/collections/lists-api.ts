@@ -63,8 +63,10 @@ const getList = async ({ scope, slug }: ListAddress) => {
     : api.GET('/api/lists/{slug}/', params);
 };
 
+type Enabled = { enabled?: boolean | (() => boolean) };
+
 // Null once the list has gone: deleted, renamed or never there.
-export const useList = (address: ListAddress, { enabled = true }: { enabled?: boolean } = {}) =>
+export const useList = (address: ListAddress, { enabled = true }: Enabled = {}) =>
   useQuery({
     queryKey: listKey(address),
     queryFn: async (): Promise<SavedList | null> => {
@@ -81,7 +83,7 @@ export const useList = (address: ListAddress, { enabled = true }: { enabled?: bo
   });
 
 // Only signed in: signed out there are no lists, and every heart shows unsaved.
-export const useFavourites = ({ enabled = true }: { enabled?: boolean } = {}) => useList(FAVOURITES, { enabled });
+export const useFavourites = ({ enabled = true }: Enabled = {}) => useList(FAVOURITES, { enabled });
 
 const newestFirst = (a: SavedRecipe, b: SavedRecipe) =>
   b.saved_at === a.saved_at ? b.id - a.id : b.saved_at.localeCompare(a.saved_at);
@@ -131,7 +133,7 @@ export const useSaveRecipe = () => {
 };
 
 // Every list you see, with the ones that hold the recipe: for its page's sheet and its "Saved in" line.
-export const useRecipeLists = (recipeSlug: string, { enabled = true }: { enabled?: boolean } = {}) =>
+export const useRecipeLists = (recipeSlug: string, { enabled = true }: Enabled = {}) =>
   useQuery({
     queryKey: recipeListsKey(recipeSlug),
     queryFn: async () => {

@@ -21,6 +21,15 @@ export const useSession = () => {
   return { account: data, isPending, isError, errorUpdatedAt, refetch };
 };
 
+// The `enabled` of a query only someone signed in may make. Signing out resets every query before the page re-renders
+// signed out, so it reads the session again when the query would be fetched; the account the page rendered with is
+// what makes the query fetch once someone signs in.
+export const useSignedInOnly = () => {
+  const { account } = useSession();
+  const queryClient = useQueryClient();
+  return () => Boolean(account) && Boolean(queryClient.getQueryData<Account | null>(SESSION_KEY));
+};
+
 // What every other area fetched depends on who's signed in (a household's private recipes), so it's fetched again.
 export const forgetSignedInData = (queryClient: QueryClient) => {
   forgetHousehold(queryClient);
