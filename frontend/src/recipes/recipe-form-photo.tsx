@@ -79,7 +79,8 @@ export const resizePhoto = async (file: File): Promise<Blob> => {
 
 type Upload =
   | { status: 'uploading'; file: File; progress: number }
-  | { status: 'failed'; file: File; message: string; whileSaving: boolean };
+  // retryable: sending the same file again could work; a photo too big to send can't.
+  | { status: 'failed'; file: File; message: string; whileSaving: boolean; retryable: boolean };
 
 // What an upload came to: cancelled leaves the recipe's photo as it was.
 export type UploadOutcome = { kind: 'stored'; photo: StoredPhoto } | { kind: 'failed' } | { kind: 'cancelled' };
@@ -93,8 +94,8 @@ export const usePhotoUpload = (onStored: (photo: StoredPhoto) => void) => {
   const [upload, setUpload] = useState<Upload | null>(null);
   const pending = useRef<Pending | null>(null);
 
-  const fail = (file: File, message: string): UploadOutcome => {
-    setUpload({ status: 'failed', file, message, whileSaving: false });
+  const fail = (file: File, message: string, retryable: boolean): UploadOutcome => {
+    setUpload({ status: 'failed', file, message, whileSaving: false, retryable });
     return { kind: 'failed' };
   };
 
@@ -108,7 +109,8 @@ export const usePhotoUpload = (onStored: (photo: StoredPhoto) => void) => {
       if (photo === file && file.size > MAX_SENT_BYTES) {
         return fail(
           file,
-          `That photo is ${(file.size / MB).toFixed(1)} MB and this browser can't make it smaller, so it's too big to upload. Choose one under 4 MB, or a JPEG of it.`
+          `That photo is ${(file.size / MB).toFixed(1)} MB and this browser can't make it smaller, so it's too big to upload. Choose one under 4 MB, or a JPEG of it.`,
+          false
         );
       }
       const name = photo === file ? file.name : `${file.name.replace(/\.[^.]*$/, '')}.${photo.type.split('/')[1]}`;
@@ -122,16 +124,16 @@ export const usePhotoUpload = (onStored: (photo: StoredPhoto) => void) => {
         return result;
       }
       if (result.kind === 'refused') {
-        return fail(file, result.message);
+        return fail(file, result.message, true);
       }
       if (result.kind === 'too-big') {
-        return fail(file, TOO_BIG_TO_UPLOAD);
+        return fail(file, TOO_BIG_TO_UPLOAD, false);
       }
       // Signed out meanwhile: the session's answer sends a visitor to sign-in.
       await checkSession();
-      return fail(file, COULDNT_UPLOAD);
+      return fail(file, COULDNT_UPLOAD, true);
     } catch {
-      return signal.aborted ? { kind: 'cancelled' } : fail(file, COULDNT_UPLOAD);
+      return signal.aborted ? { kind: 'cancelled' } : fail(file, COULDNT_UPLOAD, true);
     }
   };
 
@@ -158,12 +160,19 @@ export const usePhotoUpload = (onStored: (photo: StoredPhoto) => void) => {
     setUpload(null);
   };
 
-  // What the upload under way comes to, or the failure still showing; null when there's neither.
+  // What the upload under way comes to, or the failure still showing; null when there's neither. A failure that
+  // can't be retried keeps its reason, as Try again isn't on offer.
   const settle = async (): Promise<UploadOutcome | null> => {
     const outcome = pending.current === null ? null : await pending.current.outcome;
     if (outcome?.kind === 'failed') {
       setUpload((current) =>
-        current?.status === 'failed' ? { ...current, message: COULDNT_UPLOAD_WHILE_SAVING, whileSaving: true } : current
+        current?.status === 'failed'
+          ? {
+              ...current,
+              message: current.retryable ? COULDNT_UPLOAD_WHILE_SAVING : current.message,
+              whileSaving: true
+            }
+          : current
       );
     }
     return outcome;
@@ -201,7 +210,7 @@ export const PhotoSection = ({ photo, upload, title, error, ...handlers }: Photo
       return upload;
     }
     if (upload?.status === 'failed') {
-      return { status: 'failed', whileSaving: upload.whileSaving };
+      return { status: 'failed', whileSaving: upload.whileSaving, retryable: upload.retryable };
     }
     return photo === null ? null : { status: 'stored', photo };
   })();

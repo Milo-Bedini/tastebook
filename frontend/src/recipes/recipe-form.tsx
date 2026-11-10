@@ -406,7 +406,7 @@ export const RecipeForm = ({ recipe, submitLabel, isSaving, onSave }: RecipeForm
     const uploaded = await photoUpload.settle();
     setWaitingForPhoto(false);
     if (uploaded?.kind === 'failed') {
-      // The field's buttons say what to do next: Try again, or Remove photo.
+      // The field's buttons say what to do next: Try again (or Choose another), or Remove photo.
       focusField('photo_url');
       return;
     }

@@ -570,6 +570,42 @@ describe('NewRecipePage', () => {
       );
     });
 
+    it.each([
+      [
+        "the browser can't make it smaller",
+        photoOf('IMG_0412.heic', 'image/heic', 6 * 1024 * 1024),
+        "That photo is 6.0 MB and this browser can't make it smaller, so it's too big to upload. Choose one under 4 MB, or a JPEG of it."
+      ],
+      [
+        'Tastebook says it is too large',
+        photoOf('curry.jpg'),
+        'That photo is too big to upload. Choose a smaller one, or a JPEG of it.'
+      ]
+    ])('offers no Try again for a photo too big to send when %s, and keeps why on Save', async (_, file, reason) => {
+      const sent = answerAdding();
+      answerUploads(() => new HttpResponse(null, { status: 413 }));
+      await openForm();
+      await typeInto('Title', 'Curry');
+
+      await choose(file);
+
+      expect(await within(field()).findByRole('alert')).toHaveTextContent(reason);
+      expect(within(field()).getByRole('button', { name: 'Choose another' })).toBeVisible();
+      expect(within(field()).queryByRole('button', { name: 'Try again' })).toBeNull();
+
+      await save();
+
+      expect(within(field()).getByRole('alert')).toHaveTextContent(reason);
+      expect(within(field()).getByRole('button', { name: 'Choose another' })).toHaveFocus();
+      expect(within(field()).queryByRole('button', { name: 'Try again' })).toBeNull();
+      expect(sent).toEqual([]);
+
+      await userEvent.click(within(field()).getByRole('button', { name: 'Remove photo' }));
+      await save();
+
+      expect(await sentPhoto(sent)).toBe('');
+    });
+
     it("shows Tastebook's refusal of an upload, and tries again with the same photo", async () => {
       answerAdding();
       const uploads = answerUploads(
