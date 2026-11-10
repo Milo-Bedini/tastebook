@@ -69,7 +69,7 @@ export const ListPickerRow = ({ name, count, checked, onCheckedChange, saving, e
         />
       </label>
       {error && (
-        <p id={errorId} className="flex items-start gap-1.5 px-3 pt-1 text-danger text-small">
+        <p id={errorId} role="alert" className="flex items-start gap-1.5 px-3 pt-1 text-danger text-small">
           <CircleAlert aria-hidden="true" className="mt-px size-4 shrink-0" strokeWidth={2.25} />
           {error}
         </p>
