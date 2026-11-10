@@ -474,11 +474,16 @@ class PhotoUploadView(APIView):
             201: RecipePhotoSerializer,
             400: OpenApiResponse(description='The file is missing, over 10 MB, or not a JPEG, PNG, WebP or HEIC.'),
             403: OpenApiResponse(description='Signed out, or the account has no household yet.'),
+            413: OpenApiResponse(
+                description='Sent by the platform, not this view: Vercel refuses a request body over 4.5 MB '
+                'before Django sees it.'
+            ),
             503: OpenApiResponse(description="The photo store isn't set up here, or didn't answer."),
         },
         description="Stores a photo for a household's recipe and gives its address, which a recipe's photo_url "
         'takes. Its address is unguessable but not secret: anyone who has it can see the photo. '
-        '403 when signed out or for an account with no household yet.',
+        '403 when signed out or for an account with no household yet. 413 from the platform (Vercel) when the '
+        'request body is over 4.5 MB.',
     )
     def post(self, request: Request) -> Response:
         if not request.user.is_authenticated or request.user.household_id is None:
