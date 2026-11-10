@@ -16,7 +16,23 @@ type Violation = Awaited<ReturnType<AxeBuilder['analyze']>>['violations'][number
 const describeViolation = ({ id, impact, help, nodes }: Violation): string =>
   `${id} (${impact ?? 'unknown impact'}): ${help}, at ${nodes.map(({ target }) => target.join(' ')).join('; ')}`;
 
+// A test can end mid-transition (a client-side navigation fading a tab's colour), and axe would judge the half-drawn
+// frame. Infinite animations (a spinner) never settle, so they're left out. Not waitForLoadState('networkidle'): it
+// fires once per document, so a client-side navigation never waits for it, and it never came on a page that had thrown.
+const settle = async (page: Page): Promise<void> => {
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every(
+        (animation) =>
+          animation.playState !== 'running' ||
+          animation.effect?.getComputedTiming().iterations === Number.POSITIVE_INFINITY
+      )
+  );
+};
+
 const scan = async (page: Page): Promise<void> => {
+  await settle(page);
   // Under forced colours the system theme sets text contrast, and Chromium reports the unforced
   // -webkit-text-fill-color that axe reads, so color-contrast fails text painted in CanvasText on Canvas.
   const isForcedColours = await page.evaluate(() => window.matchMedia('(forced-colors: active)').matches);
