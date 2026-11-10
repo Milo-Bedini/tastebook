@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test } from './fixtures.ts';
+import { expect, failedLoad, test } from './fixtures.ts';
 import { busyDay, soleCook } from './setups.ts';
 import { readSignInCode } from './test-accounts.ts';
 import { totpCode } from './totp.ts';
@@ -111,7 +111,8 @@ test('staff remove a reported recipe, which its author then finds private', asyn
 test("an author's 4th recipe made public in a day waits until staff approve it", async ({
   page,
   seed,
-  accessibility
+  accessibility,
+  consoleErrors
 }) => {
   test.skip(Boolean(process.env.PREVIEW_URL), 'make_staff needs the database');
   const { sam, cy } = await seed(busyDay);
@@ -131,6 +132,7 @@ test("an author's 4th recipe made public in a day waits until staff approve it",
   await expect(sam.page.getByText('Waiting for review', { exact: true })).toBeVisible();
   await expect(publicSwitch).toBeChecked();
   await accessibility.check(sam.page);
+  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${address}/`));
   await page.goto(address);
   await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 

@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { expect, test } from './fixtures.ts';
+import { expect, failedLoad, test } from './fixtures.ts';
 import { newTestAccountEmail, readSignInCode } from './test-accounts.ts';
 
 type Accessibility = { check: () => Promise<void> };
@@ -30,7 +30,8 @@ const giveName = async (page: Page, accessibility: Accessibility, name: string):
 
 test('a new test account signs in from a recipe, gives its name, signs out and signs in again', async ({
   page,
-  accessibility
+  accessibility,
+  consoleErrors
 }) => {
   const email = newTestAccountEmail();
   await page.goto('/recipes/baguette');
@@ -43,6 +44,9 @@ test('a new test account signs in from a recipe, gives its name, signs out and s
   const account = page.getByRole('banner').getByRole('button', { name: 'Account for Sam' });
   await expect(account).toBeVisible();
 
+  // Signing out asks the recipe's lists and Favourites again before the page knows it's signed out, and is refused.
+  consoleErrors.expect(failedLoad('403 (Forbidden)', '/api/lists/favourites/'));
+  consoleErrors.expect(failedLoad('403 (Forbidden)', '/api/lists/recipes/baguette/'));
   await account.click();
   await page.getByRole('menuitem', { name: 'Sign out' }).click();
   await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible();

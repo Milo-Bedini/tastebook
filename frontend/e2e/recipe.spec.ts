@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import { expect, test } from './fixtures.ts';
+import { expect, failedLoad, test } from './fixtures.ts';
 
 type CatalogueRecipe = { slug: string; source: string; source_url?: string };
 
@@ -8,7 +8,8 @@ const catalogue: { recipes: CatalogueRecipe[] } = JSON.parse(
   readFileSync(new URL('../../backend/recipes/catalogue.json', import.meta.url), 'utf-8')
 );
 
-test('an unknown recipe shows "not found" through the real API', async ({ page, accessibility }) => {
+test('an unknown recipe shows "not found" through the real API', async ({ page, accessibility, consoleErrors }) => {
+  consoleErrors.expect(failedLoad('404 (Not Found)', '/api/recipes/no-such-recipe/'));
   await page.goto('/recipes/no-such-recipe');
 
   await expect(page.getByRole('heading', { name: 'Recipe not found' })).toBeVisible();

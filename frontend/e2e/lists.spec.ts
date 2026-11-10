@@ -1,7 +1,11 @@
-import { expect, test } from './fixtures.ts';
+import { expect, failedLoad, test } from './fixtures.ts';
 import { householdLists } from './setups.ts';
 
-test('making a list for the household, which everyone in it sees and changes', async ({ seed, accessibility }) => {
+test('making a list for the household, which everyone in it sees and changes', async ({
+  seed,
+  accessibility,
+  consoleErrors
+}) => {
   const { milo, ann, jo } = await seed(householdLists);
   const { page } = milo;
 
@@ -37,6 +41,7 @@ test('making a list for the household, which everyone in it sees and changes', a
 
   await page.goto('/lists/household/christmas-2026');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Christmas\s+2026/);
+  consoleErrors.expect(failedLoad('404 (Not Found)', '/api/lists/household/christmas-2026/'));
   await jo.page.goto('/lists/household/christmas-2026');
   await expect(jo.page.getByRole('heading', { level: 1, name: 'This list has gone' })).toBeVisible();
 
