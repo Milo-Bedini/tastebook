@@ -41,7 +41,7 @@ a{color:inherit}a:hover{color:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 </helmet>
-<div style="width: 1400px; height: 2140px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+<div style="width: 1400px; height: 2620px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
 
   <header style="display: flex; flex-direction: column; gap: 6px">
     <span class="cap">TAS-118 · new Dino component · drawn at a phone’s field width (350 px of a 390 px screen)</span>
@@ -132,6 +132,20 @@ a{color:inherit}a:hover{color:inherit}
     </div>
 
     <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Too big to send</b> · this browser can’t make it smaller, or Tastebook’s 413; sending it again can’t help, so Choose another takes Try again’s place and focus</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop bad">
+          <x-import component-from-global-scope="Dino.icons.ImageOff" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Choose another</x-import>
+          </div>
+        </div>
+        <p class="err" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>That photo is 6.2 MB and this browser can’t make it smaller, so it’s too big to upload. Choose one under 4 MB, or a JPEG of it.</span></p>
+      </div>
+    </div>
+
+    <div class="cell" style="max-width: 350px">
       <span class="cap"><b>Removed</b> · Remove photo pressed: the field is empty again, focus goes to Add a photo, and a toast offers Undo</span>
       <div class="fld">
         <span class="lbl">Photo</span>
@@ -171,17 +185,32 @@ a{color:inherit}a:hover{color:inherit}
       </div>
     </div>
 
+    <div class="cell" style="max-width: 350px">
+      <span class="cap"><b>Saved without the upload, too big</b> · Tastebook’s 413 while Save waited: Choose another and Remove photo, and the reason stays</span>
+      <div class="fld">
+        <span class="lbl">Photo</span>
+        <div class="drop bad">
+          <x-import component-from-global-scope="Dino.icons.ImageOff" aria-hidden="true" stroke-width="{{sw}}"></x-import>
+          <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px">
+            <x-import component-from-global-scope="Dino.Button" variant="secondary">Choose another</x-import>
+            <x-import component-from-global-scope="Dino.Button" variant="ghost">Remove photo</x-import>
+          </div>
+        </div>
+        <p class="err" role="alert"><x-import component-from-global-scope="Dino.icons.CircleAlert" aria-hidden="true" stroke-width="{{sw}}"></x-import><span>That photo is too big to upload. Choose a smaller one, or a JPEG of it.</span></p>
+      </div>
+    </div>
+
   </div>
 
   <div class="notes">
     <p><b>Props it should grow into:</b> <code>label</code>, <code>help</code>, <code>error</code> (as Field), <code>photo</code> (a Photo, a chosen file being uploaded with its progress, or none), <code>shape</code> (<code>hero</code> 7:5 here; <code>card</code> 4:3 if another form ever needs one), <code>onChoose(file)</code>, <code>onRemove()</code>, <code>onRetry()</code>, <code>onCancel()</code>. The upload itself lives in the recipes area’s API hook, not in Dino.</p>
-    <p><b>Checked on choosing:</b> the type and size are refused before any request, with the file’s own type and size in the words (NN/g 5 and 9). Tastebook checks them again on upload; its refusal shows as Couldn’t upload, with its message in place of the connection line.</p>
+    <p><b>Checked on choosing:</b> the type and size are refused before any request, with the file’s own type and size in the words (NN/g 5 and 9). Tastebook checks them again on upload; its refusal shows as Couldn’t upload, with its message in place of the connection line. A photo too big to send (this browser can’t make it smaller, or Tastebook answers 413) can’t change on a retry, so it shows as Too big to send, with no Try again.</p>
     <p><b>Screen readers:</b> the field is a group named “Photo” and described by its help or error. “Uploading the photo” and “Photo uploaded” are announced in a polite status; the percentage is visual only, so it doesn’t chatter. The preview’s alt text is “The photo for &lt;title&gt;”, falling back to “The photo for this recipe”.</p>
     <p><b>Not here:</b> no drag handle, crop, rotate or filters. HEIC can’t show in most browsers, so its preview waits for Tastebook’s first thumbnail; until then the faded box shows the place-setting filler.</p>
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2140}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":2620}}'>
 class Component extends DCLogic {
   renderVals() {
     return { icons: window.Dino.icons, yes: true, no: false, sw: 2.25 };
