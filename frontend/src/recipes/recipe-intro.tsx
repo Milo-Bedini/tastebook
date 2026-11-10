@@ -123,10 +123,11 @@ const RecipeCredit = ({ recipe }: RecipeProps) => {
 };
 
 // A private copy says where it was copied from; a public one credits the original as an adaptation. An original the
-// account can't see any more is named by nothing, so a copy says nothing of a recipe that's no longer public.
+// account can't see is named by nothing, and may have been deleted, made private or never public, so the line is
+// true of all three.
 const AdaptedFrom = ({ recipe }: RecipeProps) => {
   if (recipe.adapted_from === null) {
-    return recipe.is_copy ? <p className="text-muted">Adapted from a recipe that's no longer public</p> : null;
+    return recipe.is_copy ? <p className="text-muted">Adapted from a recipe that isn't public</p> : null;
   }
   const { slug, title, author } = recipe.adapted_from;
   const original = <Link to={`/recipes/${slug}`}>{title}</Link>;

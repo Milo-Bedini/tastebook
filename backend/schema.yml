@@ -2850,7 +2850,7 @@ components:
           readOnly: true
           description: 'Whether this recipe was made as a copy of another, which it
             stays once its original is deleted or made private: with adapted_from
-            null, it''s shown as "Adapted from a recipe that''s no longer public".'
+            null, it''s shown as "Adapted from a recipe that isn''t public".'
         courses:
           type: array
           items:
@@ -3384,8 +3384,8 @@ components:
             type: string
             maxLength: 200
           description: Titles of this member's own public recipes they make private
-            once every copy is made, so a copy of one is adapted from a recipe that's
-            no longer public.
+            once every copy is made, so a copy of one is adapted from a recipe that
+            isn't public.
           maxItems: 20
         shared:
           type: array
