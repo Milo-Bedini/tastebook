@@ -50,6 +50,58 @@ jobs:
       ['jobs.build.env']
     ],
     [
+      "a secret in a job container's env",
+      `
+jobs:
+  build:
+    container:
+      image: node:24
+      env:
+        DEBUG: "true"
+        TOKEN: \${{ secrets.TOKEN }}
+    steps:
+      - run: make
+`,
+      ['jobs.build.container.env.TOKEN']
+    ],
+    [
+      "a job container's whole env from the secrets",
+      `
+jobs:
+  build:
+    container:
+      image: node:24
+      env: \${{ fromJSON(secrets.BUILD_ENV) }}
+`,
+      ['jobs.build.container.env']
+    ],
+    [
+      'a job container given as an image name',
+      `
+jobs:
+  build:
+    container: node:24
+    steps:
+      - run: make
+`,
+      []
+    ],
+    [
+      "a secret only in a service container's env",
+      `
+jobs:
+  build:
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: \${{ secrets.POSTGRES_PASSWORD }}
+    steps:
+      - run: make
+`,
+      []
+    ],
+    [
       "a secret only in a step's env",
       `
 env:
