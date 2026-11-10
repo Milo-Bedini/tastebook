@@ -1557,6 +1557,24 @@ describe('Making a recipe public', () => {
     expect(publicSwitch()).toHaveFocus();
   });
 
+  it('makes a public recipe private even with something missing', async () => {
+    const shown = { recipe: { ...publicCurry, steps: [] } };
+    const sent = answerPublishing(shown, () => {
+      shown.recipe = { ...curry, steps: [] };
+      return HttpResponse.json<Recipe>(shown.recipe);
+    });
+    await openCurry();
+    expect(publicSwitch()).toBeChecked();
+    expect(publicSwitch()).not.toHaveAttribute('aria-disabled');
+
+    await userEvent.click(publicSwitch());
+
+    expect(await screen.findByText("Grandma's curry is private again")).toBeInTheDocument();
+    expect(sent).toEqual([{ visibility: 'private' }]);
+    expect(publicSwitch()).not.toBeChecked();
+    expect(await screen.findByText('No method yet')).toBeInTheDocument();
+  });
+
   it.each<[string, Partial<Recipe>, string | null]>([
     ['no method', { steps: [] }, "Add what's missing before making it public."],
     ['no servings', { servings: null }, "Add what's missing before making it public."],
