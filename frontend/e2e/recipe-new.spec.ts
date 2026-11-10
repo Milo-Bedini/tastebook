@@ -45,7 +45,7 @@ test('a cook adds a private recipe that only their household finds', async ({
   await accessibility.check(sam.page);
 
   // Someone signed out neither opens nor finds it.
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${new URL(address).pathname}/`));
+  consoleErrors.expect(failedLoad(404, `/api${new URL(address).pathname}/`));
   await page.goto(address);
   await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
   await page.goto('/recipes?q=Grandma');
@@ -66,7 +66,7 @@ test('only the household sees what a private recipe is missing', async ({ seed, 
   await expect(ben.page.getByText('No servings yet')).toBeVisible();
   await accessibility.check(ben.page);
 
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${address}/`));
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await cy.page.goto(address);
   await expect(cy.page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 });

@@ -53,7 +53,7 @@ test('the author shares a private recipe by link, anyone opens it, and turning i
   await expect(shareSwitch).not.toBeChecked();
   await expect(field).toHaveCount(0);
 
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${address}/`));
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');

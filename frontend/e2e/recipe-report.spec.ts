@@ -18,7 +18,7 @@ test('a cook reports a public recipe, which only its author sees until staff rev
   await sheet.getByRole('radio', { name: 'Copied without credit' }).check();
   await sheet.getByRole('textbox', { name: 'Note' }).fill("Word for word from Meera Sodha's Made in India.");
   // Milo's page asks for the recipe once more as it leaves it, since the report that hid it removed its query.
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${curry}/`));
+  consoleErrors.expect(failedLoad(404, `/api${curry}/`));
   await sheet.getByRole('button', { name: 'Send report' }).click();
 
   await expect(
@@ -27,7 +27,7 @@ test('a cook reports a public recipe, which only its author sees until staff rev
   await expect(milo.page).toHaveURL(/\/recipes$/);
   await expect(milo.page.getByRole('heading', { level: 1, name: /cook +tonight/ })).toBeFocused();
 
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${curry}/`));
+  consoleErrors.expect(failedLoad(404, `/api${curry}/`));
   await page.goto(curry);
   await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 

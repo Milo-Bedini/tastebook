@@ -8,7 +8,7 @@ test('the console errors a page logs are reported with where they came from, but
   page,
   consoleErrors
 }) => {
-  consoleErrors.expect(failedLoad('404 (Not Found)', '/api/recipes/no-such-recipe/'));
+  consoleErrors.expect(failedLoad(404, '/api/recipes/no-such-recipe/'));
   consoleErrors.expect(`A stray error (at ${UNKNOWN_RECIPE})`);
   consoleErrors.expect(`Uncaught Error: An uncaught error (at ${UNKNOWN_RECIPE})`);
 

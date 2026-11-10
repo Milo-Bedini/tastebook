@@ -9,7 +9,7 @@ const catalogue: { recipes: CatalogueRecipe[] } = JSON.parse(
 );
 
 test('an unknown recipe shows "not found" through the real API', async ({ page, accessibility, consoleErrors }) => {
-  consoleErrors.expect(failedLoad('404 (Not Found)', '/api/recipes/no-such-recipe/'));
+  consoleErrors.expect(failedLoad(404, '/api/recipes/no-such-recipe/'));
   await page.goto('/recipes/no-such-recipe');
 
   await expect(page.getByRole('heading', { name: 'Recipe not found' })).toBeVisible();

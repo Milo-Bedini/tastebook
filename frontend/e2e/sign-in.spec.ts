@@ -45,8 +45,8 @@ test('a new test account signs in from a recipe, gives its name, signs out and s
   await expect(account).toBeVisible();
 
   // Signing out asks the recipe's lists and Favourites again before the page knows it's signed out, and is refused.
-  consoleErrors.expect(failedLoad('403 (Forbidden)', '/api/lists/favourites/'));
-  consoleErrors.expect(failedLoad('403 (Forbidden)', '/api/lists/recipes/baguette/'));
+  consoleErrors.expect(failedLoad(403, '/api/lists/favourites/'));
+  consoleErrors.expect(failedLoad(403, '/api/lists/recipes/baguette/'));
   await account.click();
   await page.getByRole('menuitem', { name: 'Sign out' }).click();
   await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible();

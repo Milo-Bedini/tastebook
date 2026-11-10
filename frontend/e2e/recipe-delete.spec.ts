@@ -50,7 +50,7 @@ test('the author deletes their recipe, and another member is not offered to', as
   await expect(sam.page.locator(`a[href="${address}"]`)).toHaveCount(0);
   await accessibility.check(sam.page);
 
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${address}/`));
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await ben.page.reload();
   await expect(ben.page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 });

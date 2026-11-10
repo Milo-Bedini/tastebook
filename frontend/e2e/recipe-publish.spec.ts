@@ -51,7 +51,7 @@ test('the author makes their recipe public, everyone finds it credited, and it g
   await expect(publicSwitch).not.toBeChecked();
   await expect(sam.page.getByText('Private', { exact: true })).toBeVisible();
 
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${address}/`));
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await cy.page.reload();
   await expect(cy.page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 });

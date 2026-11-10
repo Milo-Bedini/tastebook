@@ -132,7 +132,7 @@ test("an author's 4th recipe made public in a day waits until staff approve it",
   await expect(sam.page.getByText('Waiting for review', { exact: true })).toBeVisible();
   await expect(publicSwitch).toBeChecked();
   await accessibility.check(sam.page);
-  consoleErrors.expect(failedLoad('404 (Not Found)', `/api${address}/`));
+  consoleErrors.expect(failedLoad(404, `/api${address}/`));
   await page.goto(address);
   await expect(page.getByRole('heading', { level: 1, name: 'Recipe not found' })).toBeVisible();
 

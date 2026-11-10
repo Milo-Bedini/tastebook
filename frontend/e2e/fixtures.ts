@@ -43,18 +43,22 @@ const expectedFailedLoads = new Set([
   `400 ${ALLAUTH_AUTH_PATH}/code/request`
 ]);
 
+// "…a status of 401 (Unauthorized)" over HTTP/1.1 locally, "…a status of 401 ()" over a preview's HTTP/2, which has no
+// reason phrase; at the request's address.
+const failedLoadStatus = (message: ConsoleMessage): string | undefined =>
+  message.text().startsWith(FAILED_LOAD) ? message.text().slice(FAILED_LOAD.length).split(' ')[1] : undefined;
+
 const isExpected = (message: ConsoleMessage): boolean => {
-  // "…a status of 401 (Unauthorized)", at the request's address.
-  const status = message.text().startsWith(FAILED_LOAD)
-    ? message.text().slice(FAILED_LOAD.length).split(' ')[1]
-    : undefined;
+  const status = failedLoadStatus(message);
   const { url } = message.location();
   return status !== undefined && URL.canParse(url) && expectedFailedLoads.has(`${status} ${new URL(url).pathname}`);
 };
 
-// What Chromium logs for a request the app's server answered with an error, as consoleErrors.expect() takes it.
-export const failedLoad = (status: '403 (Forbidden)' | '404 (Not Found)', path: string): string =>
-  `${FAILED_LOAD} ${status} (at ${path})`;
+// A failed load is reported by its status alone, so it reads the same locally and on a preview.
+const loggedFailedLoad = (status: string, path: string): string => `${FAILED_LOAD} ${status} (at ${path})`;
+
+// A request the app's server answered with an error, as consoleErrors.expect() takes it.
+export const failedLoad = (status: 403 | 404, path: string): string => loggedFailedLoad(String(status), path);
 
 const watchConsole = (context: BrowserContext, errors: string[], baseURL: string | undefined): void => {
   // The app's own addresses are given as paths, so a test reads the same locally and on a preview.
@@ -64,8 +68,12 @@ const watchConsole = (context: BrowserContext, errors: string[], baseURL: string
   context.on('console', (message) => {
     if (message.type() === 'error' && !isExpected(message)) {
       // A failed load is placed at the request's address, anything else at the page that logged it.
-      const at = message.text().startsWith(FAILED_LOAD) ? message.location().url : (message.page()?.url() ?? '');
-      errors.push(`${message.text()} (at ${where(at)})`);
+      const status = failedLoadStatus(message);
+      errors.push(
+        status === undefined
+          ? `${message.text()} (at ${where(message.page()?.url() ?? '')})`
+          : loggedFailedLoad(status, where(message.location().url))
+      );
     }
   });
   context.on('weberror', (webError) => {
