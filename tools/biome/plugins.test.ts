@@ -242,6 +242,10 @@ const fixtures: Fixture[] = [
       `.height {\n  @apply [line-height:1.1];\n}`,
       `.face {\n  @apply [font-family:Arial];\n}`,
       `.named {\n  @apply font-[family-name:Arial];\n}`,
+      `.margin {\n  @apply [margin:7px];\n}`,
+      `.between {\n  @apply [gap:7px];\n}`,
+      `.important-size {\n  @apply !text-[13px];\n}`,
+      `.important-face {\n  @apply !font-[Arial];\n}`,
       ''
     ].join('\n\n'),
     reports: [
@@ -251,6 +255,10 @@ const fixtures: Fixture[] = [
       message.lineHeight,
       message.lineHeight,
       message.fontFamily,
+      message.fontFamily,
+      message.spacing,
+      message.spacing,
+      message.fontSize,
       message.fontFamily
     ]
   },
