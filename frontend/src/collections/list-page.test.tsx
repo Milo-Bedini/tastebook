@@ -227,6 +227,18 @@ describe('unsaving from Favourites', () => {
     expect(sent).toEqual(['DELETE 13', 'RESTORE token-13']);
   });
 
+  it('moves focus to the new bottom heart when the bottom card goes', async () => {
+    signedIn();
+    answerFavourites([bibimbap, shakshuka, curry]);
+    answerUnsaving(unsaved);
+    renderRoute('/lists/favourites');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Favourite Grandma’s curry' }));
+
+    expect(captions()).toEqual(['Bibimbap', 'Shakshuka']);
+    expect(screen.getByRole('button', { name: 'Favourite Shakshuka' })).toHaveFocus();
+  });
+
   it('moves focus to the heading when the last card goes', async () => {
     signedIn();
     answerFavourites([curry]);
@@ -451,6 +463,18 @@ describe('removing from a list', () => {
 
     await waitFor(() => expect(captions()).toEqual(['Bibimbap', 'Shakshuka']));
     expect(sent).toEqual(['DELETE 14', 'RESTORE token-13']);
+  });
+
+  it('moves focus to the new bottom Remove when the bottom card goes', async () => {
+    signedIn();
+    answerList(sundayRoasts);
+    answerUnsaving(unsaved);
+    renderRoute(pathOf(sundayRoasts));
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove Shakshuka from Sunday roasts' }));
+
+    expect(captions()).toEqual(['Bibimbap']);
+    expect(screen.getByRole('button', { name: 'Remove Bibimbap from Sunday roasts' })).toHaveFocus();
   });
 
   it('moves focus to the heading when the last card goes', async () => {
