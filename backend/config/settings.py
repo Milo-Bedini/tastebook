@@ -131,7 +131,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default='postgres://tastebook:tastebook@localhost:5432/tastebook',
-        conn_max_age=600,
+        # runserver (DEBUG is on only locally and in CI) serves each request on a new thread, so a persistent
+        # connection is never reused and lingers until the thread is collected: the e2e suite filled Postgres's 100.
+        conn_max_age=0 if DEBUG else 600,
         conn_health_checks=True,
     )
 }
