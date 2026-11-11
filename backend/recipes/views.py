@@ -5,6 +5,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -67,9 +68,15 @@ def _refusals(error: DjangoValidationError) -> ValidationError:
     )
 
 
+class RecipePages(PageNumberPagination):
+    # Fills whole rows of the list's 2, 3 and 4 columns; the frontend's RECIPES_PAGE_SIZE matches it.
+    page_size = 24
+
+
 class RecipeListView(ListAPIView):
     permission_classes = []
     serializer_class = RecipeSummarySerializer
+    pagination_class = RecipePages
 
     @extend_schema(
         parameters=[RecipeFiltersSerializer],
@@ -78,6 +85,7 @@ class RecipeListView(ListAPIView):
             400: OpenApiResponse(
                 description='A difficulty, a diet, an include_match or a time limit is not one the list accepts.'
             ),
+            404: OpenApiResponse(description='The page is past the last one, or not a whole number from 1.'),
         },
     )
     def get(self, request: Request) -> Response:

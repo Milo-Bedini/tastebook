@@ -1,18 +1,18 @@
 import { Plus, SlidersHorizontal } from 'lucide-react';
 import type { RefObject } from 'react';
 import { useCallback, useRef, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router';
+import { Link, Navigate, useLocation, useSearchParams } from 'react-router';
 
 import type { components } from '../api/schema';
-import { Button, EmptyState, ErrorWithRetry, Loading, Page, Sheet, Squiggle } from '../dino';
+import { Button, EmptyState, ErrorWithRetry, Loading, Page, Pagination, Sheet, Spinner, Squiggle } from '../dino';
 import { ActiveFilters, countActiveFilters, useActiveFilters } from './active-filters';
 import { Favourite, FavouriteHearts } from './favourite-slot';
 import { RecipeCard } from './recipe-card';
 import { RecipeFilterPanel } from './recipe-filter-panel';
 import type { RecipeFilters } from './recipe-filters';
 import { hasFilters, noFilters, readFilters, writeFilters } from './recipe-filters';
-import type { RecipeQuery } from './recipes-api';
-import { useRecipes } from './recipes-api';
+import type { RecipeListing, RecipeQuery } from './recipes-api';
+import { RECIPES_PAGE_SIZE, useRecipes } from './recipes-api';
 import { useDebouncedValue } from './use-debounced-value';
 import { isLaptopQuery, useMediaQuery } from './use-media-query';
 
@@ -57,12 +57,36 @@ const NoRecipes = ({ query: { searchTerm, filters }, onClearFilters }: NoRecipes
   );
 };
 
-type RecipeCountProps = { count: number };
+type Listed = Extract<RecipeListing, { recipes: RecipeSummary[] }>;
+
+const pageCountOf = ({ count }: Listed) => Math.ceil(count / RECIPES_PAGE_SIZE);
+
+// Which recipes are on screen out of every match ("25–48 of 137 recipes"); with one page, how many there are.
+const countLine = (listed: Listed) => {
+  const { count, recipes, query } = listed;
+  const noun = count === 1 ? 'recipe' : 'recipes';
+  if (pageCountOf(listed) <= 1) {
+    return `${count} ${noun}`;
+  }
+  const first = (query.page - 1) * RECIPES_PAGE_SIZE + 1;
+  return `${first}–${first + recipes.length - 1} of ${count} ${noun}`;
+};
+
+type RecipeCountProps = { listed: Listed; turningTo: number | null };
 
 // A status message, so a screen reader hears the new count after each change; with none, the empty state says so.
-const RecipeCount = ({ count }: RecipeCountProps) => (
-  <p role="status" className={count === 0 ? 'sr-only' : 'text-muted text-small'}>
-    {`${count} ${count === 1 ? 'recipe' : 'recipes'}`}
+// While another page of the same list loads, the line keeps the page shown and says so after half a second.
+const RecipeCount = ({ listed, turningTo }: RecipeCountProps) => (
+  <p role="status" className={listed.count === 0 ? 'sr-only' : 'grid text-muted text-small tabular-nums'}>
+    <span className={turningTo === null ? undefined : 'col-start-1 row-start-1 animate-conceal'}>
+      {countLine(listed)}
+    </span>
+    {turningTo !== null && (
+      <span className="col-start-1 row-start-1 flex animate-reveal items-center gap-1.5">
+        <Spinner className="size-4" />
+        {`Finding page ${turningTo}…`}
+      </span>
+    )}
   </p>
 );
 
@@ -70,26 +94,33 @@ const RecipeCount = ({ count }: RecipeCountProps) => (
 // Four is the longest row, on a laptop.
 const FIRST_ROW_LENGTH = 4;
 
-type RecipesProps = { recipes: RecipeSummary[]; query: RecipeQuery; onClearFilters: () => void };
+type RecipesProps = { listed: Listed; onClearFilters: () => void; pageAddress: (page: number) => string };
 
-const Recipes = ({ recipes, query, onClearFilters }: RecipesProps) => {
+// The pager's links ask the page they open to take focus to its heading.
+const pagerState = { focus: 'heading' };
+
+const Recipes = ({ listed, onClearFilters, pageAddress }: RecipesProps) => {
+  const { recipes, query } = listed;
   if (recipes.length === 0) {
     return <NoRecipes query={query} onClearFilters={onClearFilters} />;
   }
   return (
-    <FavouriteHearts>
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
-        {recipes.map((recipe, index) => (
-          <RecipeCard
-            key={recipe.id}
-            recipe={recipe}
-            lean={index % 2 === 0 ? 'left' : 'right'}
-            eager={index < FIRST_ROW_LENGTH}
-            action={<Favourite recipe={recipe} label={`Favourite ${recipe.title}`} />}
-          />
-        ))}
-      </ul>
-    </FavouriteHearts>
+    <div className="flex flex-col gap-8 lg:gap-11">
+      <FavouriteHearts>
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-9 lg:gap-y-11 large-text:grid-cols-1">
+          {recipes.map((recipe, index) => (
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              lean={index % 2 === 0 ? 'left' : 'right'}
+              eager={index < FIRST_ROW_LENGTH}
+              action={<Favourite recipe={recipe} label={`Favourite ${recipe.title}`} />}
+            />
+          ))}
+        </ul>
+      </FavouriteHearts>
+      <Pagination page={query.page} pageCount={pageCountOf(listed)} to={pageAddress} state={pagerState} />
+    </div>
   );
 };
 
@@ -97,16 +128,16 @@ type RecipesResult = ReturnType<typeof useRecipes>;
 
 // A refetch resets a never-successful query to pending but leaves errorUpdatedAt, so the error stays up through its
 // retry, even when an earlier query's list would otherwise stand in as placeholder data. A list already shown stays
-// up if a background refetch fails.
-const shownRecipes = ({ data, isPlaceholderData, errorUpdatedAt }: RecipesResult) =>
-  data !== undefined && !(isPlaceholderData && errorUpdatedAt > 0) ? data : undefined;
+// up if a background refetch fails. A page the list hasn't got shows nothing while the address goes back to the first.
+const shownRecipes = ({ data, isPlaceholderData, errorUpdatedAt }: RecipesResult): Listed | undefined =>
+  data !== undefined && data.recipes !== null && !(isPlaceholderData && errorUpdatedAt > 0) ? data : undefined;
 
-type RecipeListProps = { result: RecipesResult; onClearFilters: () => void };
+type RecipeListProps = { result: RecipesResult; onClearFilters: () => void; pageAddress: (page: number) => string };
 
-const RecipeList = ({ result, onClearFilters }: RecipeListProps) => {
+const RecipeList = ({ result, onClearFilters, pageAddress }: RecipeListProps) => {
   const shown = shownRecipes(result);
   if (shown !== undefined) {
-    return <Recipes recipes={shown.recipes} query={shown.query} onClearFilters={onClearFilters} />;
+    return <Recipes listed={shown} onClearFilters={onClearFilters} pageAddress={pageAddress} />;
   }
   if (result.errorUpdatedAt > 0) {
     return (
@@ -122,10 +153,10 @@ const FILTER_PANEL_ID = 'recipe-filters';
 
 // The sheet's foot names the list it goes back to; while that list loads, it can't say how many.
 const showRecipesLabel = ({ data, isPlaceholderData }: RecipesResult) => {
-  if (data === undefined || isPlaceholderData) {
+  if (data === undefined || data.recipes === null || isPlaceholderData) {
     return 'Show recipes';
   }
-  const count = data.recipes.length;
+  const { count } = data;
   return `Show ${count} ${count === 1 ? 'recipe' : 'recipes'}`;
 };
 
@@ -164,7 +195,31 @@ const FiltersSheet = ({ filters, onChange, filterCount, result, buttonRef }: Fil
 const asksForHeading = (state: unknown) =>
   typeof state === 'object' && state !== null && 'focus' in state && state.focus === 'heading';
 
-const takeFocus = (element: HTMLElement | null) => element?.focus();
+// The pager's links leave the reader at the list's foot, so the page goes back to its top as the heading takes focus.
+const takeFocus = (element: HTMLElement | null) => {
+  if (element !== null) {
+    window.scrollTo({ top: 0 });
+    element.focus({ preventScroll: true });
+  }
+};
+
+// The address holds the page; anything but a whole number from 2 is the first.
+const readPage = (params: URLSearchParams) => {
+  const page = Number(params.get('page'));
+  return Number.isInteger(page) && page > 1 ? page : 1;
+};
+
+const PAGE_PARAM = 'page';
+
+// Another search or filter is another list, so it starts again at its first page.
+const withoutPage = (params: URLSearchParams) => {
+  params.delete(PAGE_PARAM);
+  return params;
+};
+
+// Two queries for the same list, perhaps on different pages.
+const sameList = (one: RecipeQuery, other: RecipeQuery) =>
+  JSON.stringify({ ...one, page: 0 }) === JSON.stringify({ ...other, page: 0 });
 
 export const RecipesPage = () => {
   const location = useLocation();
@@ -177,15 +232,29 @@ export const RecipesPage = () => {
   const changeFilters = useCallback(
     (next: RecipeFilters) => {
       // Each change builds on the filters last rendered, so it renders at once, not in a transition a second tap could overtake.
-      setSearchParams((params) => writeFilters(params, next), { replace: true, flushSync: true });
+      setSearchParams((params) => withoutPage(writeFilters(params, next)), { replace: true, flushSync: true });
     },
     [setSearchParams]
   );
 
-  const query = { searchTerm, filters };
+  const page = readPage(searchParams);
+  const pageAddress = (to: number) => {
+    const params = new URLSearchParams(searchParams);
+    if (to === 1) {
+      params.delete(PAGE_PARAM);
+    } else {
+      params.set(PAGE_PARAM, String(to));
+    }
+    const search = params.toString();
+    return search === '' ? location.pathname : `${location.pathname}?${search}`;
+  };
+
+  const query = { searchTerm, filters, page };
   // RecipeList's query too, so the count and the sheet's button need no request of their own.
   const result = useRecipes(query);
   const shown = shownRecipes(result);
+  const turningTo = shown !== undefined && result.isPlaceholderData && sameList(shown.query, query) ? page : null;
+  const isPastTheEnd = result.data?.recipes === null && !result.isPlaceholderData;
   const isLaptop = useMediaQuery(isLaptopQuery);
 
   // One of them is on screen: the Filters button below a laptop, the filters' column on one.
@@ -204,13 +273,16 @@ export const RecipesPage = () => {
   const shownFilters = useActiveFilters(filters);
   const filterCount = countActiveFilters(shownFilters);
   const activeFilters = <ActiveFilters activeFilters={shownFilters} onChange={removeFilters} />;
-  const recipeList = <RecipeList result={result} onClearFilters={clearFilters} />;
+  const recipeList = <RecipeList result={result} onClearFilters={clearFilters} pageAddress={pageAddress} />;
 
   return (
     <Page>
       <title>Recipes · Tastebook</title>
+      {/* An old or mistyped link past the last page shows the first, in its place in the history. */}
+      {isPastTheEnd && <Navigate to={pageAddress(1)} replace />}
       <div className="flex flex-col gap-3.5">
-        <h1 ref={asksForHeading(location.state) ? takeFocus : undefined} tabIndex={-1}>
+        {/* Keyed by the history entry, so each page the pager opens takes focus again. */}
+        <h1 key={location.key} ref={asksForHeading(location.state) ? takeFocus : undefined} tabIndex={-1}>
           What shall we <Squiggle emphasis>cook</Squiggle> tonight?
         </h1>
         {/* For everyone: signed out, the form sends you through sign-in and back. */}
@@ -220,7 +292,7 @@ export const RecipesPage = () => {
             Add a recipe
           </Link>
         </Button>
-        {shown !== undefined && <RecipeCount count={shown.recipes.length} />}
+        {shown !== undefined && <RecipeCount listed={shown} turningTo={turningTo} />}
       </div>
       {isLaptop ? (
         <div className="grid grid-cols-[16.25rem_minmax(0,1fr)] items-start gap-12">

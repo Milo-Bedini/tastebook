@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
 
 import type { components } from '../api/schema';
+import { recipePage } from '../test/handlers';
 import { renderRoute } from '../test/render-route';
 import { server } from '../test/server';
 
@@ -30,7 +31,7 @@ const appleTart: RecipeSummary = {
 const answerTartSearch = () =>
   server.use(
     http.get('/api/recipes/', ({ request }) =>
-      HttpResponse.json<RecipeSummary[]>(new URL(request.url).searchParams.get('q') === 'tart' ? [appleTart] : [])
+      HttpResponse.json(recipePage(new URL(request.url).searchParams.get('q') === 'tart' ? [appleTart] : []))
     )
   );
 

@@ -15,6 +15,8 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 Element.prototype.scrollIntoView ??= () => {};
+// jsdom has one, but it only logs that it isn't implemented; the recipes page's pager scrolls to the top.
+window.scrollTo = () => {};
 window.matchMedia ??= matchMedia;
 
 // For the check in vitest.documented-answers.ts that every documented error answer has a page test.

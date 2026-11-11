@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Moving between pages</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.url{font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:17px;color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.frame.foot{display:flex;flex-direction:column;justify-content:flex-end}
+.frame.foot .page{flex-shrink:0}
+.bar{border-bottom:1px solid var(--color-line)}
+.in{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:minmax(76px,auto);align-items:center;column-gap:8px;padding:0 20px}
+.wmk{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;font-size:34px;line-height:36px}
+.av{width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-ink);display:inline-grid;place-items:center;font-family:var(--font-sans);font-size:19px;line-height:24px;font-weight:800}
+.page{padding:24px 20px 0;display:flex;flex-direction:column;gap:24px}
+.page h1{margin:0}
+.page h1.focused{outline:3px solid var(--color-ink);outline-offset:0}
+.hd{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.count{margin:0;font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted);display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:32px}
+.clear{height:104px;flex-shrink:0}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:4px;padding:0 6px}
+.dtab{height:46px;box-sizing:border-box;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);font-size:15px;line-height:20px;font-weight:800}
+.dtab.cur{flex:1;background:var(--color-peach);color:var(--color-on-pastel);border:2px solid transparent}
+.dtab.ic{width:64px}
+.grid3{display:grid;grid-template-columns:repeat(3,390px);column-gap:40px;row-gap:40px}
+.col{display:flex;flex-direction:column;gap:10px}
+.say{margin:0;font-size:15px;line-height:22px;font-weight:600;max-width:390px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1900px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-228 · /recipes · phone, 390 px · Variant A · each frame after one step, at the top of the page unless it says otherwise</span>
+    <h1 class="ttl">Moving between pages</h1>
+    <span class="cap">The count above the list says which recipes are on screen out of every match: “25–48 of 137 recipes”, never the page’s 24 alone. With one page it stays “4 recipes”. The list keeps the page it has until the next one arrives, as it does for a filter today.</span>
+  </header>
+
+  <div class="grid3">
+    <sc-for list="{{frames}}" as="f" hint-placeholder-count="5">
+      <div class="col">
+        <span class="cap"><b>{{f.name}}</b> · <span class="url">{{f.url}}</span></span>
+        <div class="frame" style="height: 640px">
+          <header class="bar"><div class="in">
+            <a href="#" class="wmk"><x-import component-from-global-scope="Dino.Wordmark"></x-import></a>
+            <x-import component-from-global-scope="Dino.IconButton" icon="{{icons.Search}}" label="Search recipes"></x-import>
+            <button type="button" class="av" aria-label="Account for Sam Jones" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">S</span></button>
+          </div></header>
+          <main class="page">
+            <div class="hd">
+              <h1 class="{{f.headingClass}}" tabindex="-1">What shall we <x-import component-from-global-scope="Dino.Squiggle" emphasis="{{yes}}">cook</x-import> tonight?</h1>
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.Plus" aria-hidden="true" stroke-width="2.5"></x-import>Add a recipe</x-import>
+              <sc-if value="{{f.hasCount}}" hint-placeholder-val="{{yes}}">
+                <p class="count" role="status"><sc-if value="{{f.spins}}" hint-placeholder-val="{{no}}"><x-import component-from-global-scope="Dino.Spinner" class-name="size-4"></x-import></sc-if>{{f.count}}</p>
+              </sc-if>
+            </div>
+            <div class="filters">
+              <x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.SlidersHorizontal" aria-hidden="true"></x-import>{{f.filtersLabel}}</x-import>
+              <sc-if value="{{f.chip}}" hint-placeholder-val="{{no}}">
+                <x-import component-from-global-scope="Dino.RemovableChip" on-remove="{{noop}}">Vegetarian</x-import>
+              </sc-if>
+            </div>
+            <sc-if value="{{f.error}}" hint-placeholder-val="{{no}}">
+              <x-import component-from-global-scope="Dino.ErrorWithRetry" title="Couldn’t load recipes" on-retry="{{retry}}">Check your connection, then try again.</x-import>
+            </sc-if>
+            <sc-if value="{{f.hasCards}}" hint-placeholder-val="{{yes}}">
+              <ul class="cards">
+                <sc-for list="{{f.cards}}" as="r" hint-placeholder-count="2">
+                  <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{yes}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+                </sc-for>
+              </ul>
+            </sc-if>
+          </main>
+          <nav aria-label="Main" class="dock">
+            <span class="dtab cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="20" aria-hidden="true"></x-import>Recipes</span>
+            <span class="dtab ic" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="22" aria-hidden="true"></x-import></span>
+          </nav>
+        </div>
+        <p class="say">{{f.say}}</p>
+      </div>
+    </sc-for>
+
+    <div class="col">
+      <span class="cap"><b>One page of matches</b> · scrolled to the foot · <span class="url">?q=orzo</span></span>
+      <div class="frame foot" style="height: 640px">
+        <main class="page">
+          <ul class="cards">
+            <sc-for list="{{orzo}}" as="r" hint-placeholder-count="2">
+              <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{no}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+            </sc-for>
+          </ul>
+          <div class="clear"></div>
+        </main>
+        <nav aria-label="Main" class="dock">
+          <span class="dtab cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="20" aria-hidden="true"></x-import>Recipes</span>
+          <span class="dtab ic" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="22" aria-hidden="true"></x-import></span>
+        </nav>
+      </div>
+      <p class="say">“4 recipes” at the top; after the last card, nothing but the dock’s clear space. No pager for one page, and none with the empty state.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var D = window.Dino, h = window.React.createElement, noop = function () {};
+    var make = function (list) {
+      return list.map(function (r, i) {
+        return { id: r[0], title: r[1], meta: r[2], lean: i % 2 === 0 ? 'left' : 'right',
+          action: h(D.FavouriteButton, { saved: r[3] === true, onSavedChange: noop, label: 'Favourite ' + r[1] }) };
+      });
+    };
+    var page2 = make([[25, 'Aubergine parmigiana', '1 h 30 · Medium · Italian'], [26, 'Bombay potatoes', '35 min · Easy · Indian', true]]);
+    var page3 = make([[49, 'Butternut squash risotto', '50 min · Easy · Italian'], [50, 'Caponata', '1 h · Easy · Italian']]);
+    var page1 = make([[1, 'Chana masala', '1 h 45 · Easy · Indian', true], [2, 'Courgette and lemon orzo', '35 min · Easy · Italian']]);
+    var veg = make([[2, 'Courgette and lemon orzo', '35 min · Easy · Italian'], [5, 'Shakshuka', '40 min · Easy · Middle Eastern']]);
+    var frame = function (o) {
+      return Object.assign({ headingClass: '', hasCount: true, spins: false, count: '1–24 of 137 recipes', filtersLabel: 'Filters', chip: false, error: false, hasCards: true, cards: page1 }, o);
+    };
+    return {
+      nil: null, yes: true, no: false, noop: noop, icons: D.icons,
+      retry: function () { return Promise.resolve(); },
+      frames: [
+        frame({ name: 'Next pressed on page 2', url: '/recipes?page=3', headingClass: 'focused', spins: true, count: 'Finding page 3…', cards: page2,
+          say: 'At once: the address says page 3, the page scrolls to the top and focus moves to the heading. Page 2’s recipes stay until page 3 arrives; after half a second the count’s line says “Finding page 3…” beside a spinner, in place of “25–48 of 137 recipes”.' }),
+        frame({ name: 'Page 3 arrived', url: '/recipes?page=3', headingClass: 'focused', count: '49–72 of 137 recipes', cards: page3,
+          say: 'The new recipes replace the old, their first row loading eagerly, and the line says “49–72 of 137 recipes”, which a screen reader hears. Focus stays on the heading, so Tab goes on through the page from the top.' }),
+        frame({ name: 'A filter changed on page 3', url: 'page dropped', count: '1–24 of 52 recipes', filtersLabel: 'Filters · 1', chip: true, cards: veg,
+          say: 'Any change to the search or a filter starts again at page 1: the address drops page. “1–24 of 52”: 52 is every vegetarian recipe, and the sheet’s button said “Show 52 recipes”.' }),
+        frame({ name: 'Page 3 didn’t load', url: '/recipes?page=3', hasCount: false, error: true, hasCards: false,
+          say: 'As a first load that fails today: Error with retry in the list’s place, and no count or pager, as nothing on screen belongs to page 3 yet. Try again asks for page 3; Back returns to page 2.' }),
+        frame({ name: 'A page that isn’t there', url: '/recipes?page=99 → /recipes', cards: page1,
+          say: 'An old or mistyped link past the last page shows page 1, and the address is put right in place (no new history entry), so Back doesn’t lead to it again. Nothing says it went wrong: the person sees recipes either way, and the line says “1–24 of 137 recipes”.' })
+      ],
+      orzo: make([[2, 'Courgette and lemon orzo', '35 min · Easy · Italian'], [31, 'Orzo with roast tomatoes', '45 min · Easy · Greek'], [64, 'Prawn and pea orzo', '25 min · Easy · Italian'], [97, 'Orzo salad with feta', '20 min · Easy · Greek', true]])
+    };
+  }
+}
+</script>
+</body>
+</html>

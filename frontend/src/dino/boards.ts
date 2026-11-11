@@ -34,6 +34,7 @@ export const boardByTitle: Record<string, `docs/design/${string}.dc.png`> = {
   'Dino/RecipePhoto': 'docs/design/dino/polaroids.dc.png',
   'Dino/Sticker': 'docs/design/dino/polaroids.dc.png',
   'Dino/PrivateMark': 'docs/design/dino/private-mark.dc.png',
+  'Dino/Pagination': 'docs/design/dino/pagination.dc.png',
   'Dino/UnavailableRecipe': 'docs/design/dino/unavailable-recipe.dc.png',
   'Dino/Page': 'docs/design/dino/layout.dc.png',
   'Dino/TopBar': 'docs/design/dino/layout.dc.png',

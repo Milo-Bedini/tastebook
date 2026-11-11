@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Pagination (new Dino component)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.url{font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:17px;color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.tile{box-sizing:border-box;border:1px solid var(--color-line);border-radius:20px;padding:24px;background:var(--color-ground)}
+.pager{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:16px;align-items:center}
+.pager .at{grid-column:2;grid-row:1;margin:0;font-size:15px;line-height:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.pager .prev{grid-column:1;grid-row:1;justify-self:start}
+.pager .next{grid-column:3;grid-row:1;justify-self:end}
+.pager.narrow{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:12px}
+.pager.narrow .at{grid-column:1 / -1;justify-self:center}
+.pager.narrow .prev{grid-row:2;justify-self:stretch}
+.pager.narrow .next{grid-column:2;grid-row:2;justify-self:stretch}
+.hov button{background:var(--color-surface) !important;border-color:var(--color-ink) !important}
+.prs button{background:var(--color-line) !important;border-color:var(--color-ink) !important;transform:scale(0.97)}
+.foc button{outline:3px solid var(--color-ink) !important;outline-offset:0}
+.fc{background:Canvas;color:CanvasText;forced-color-adjust:none}
+.fc .lnk{height:44px;padding:0 20px;box-sizing:border-box;border:2px solid LinkText;border-radius:var(--radius-pill);color:LinkText;background:Canvas;display:inline-flex;align-items:center;gap:8px;font-size:15px;line-height:20px;font-weight:800}
+.fc .lnk.ring{outline:3px solid CanvasText;outline-offset:0}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.col{display:flex;flex-direction:column;gap:10px}
+.card{border:1px solid var(--color-line);border-radius:var(--radius-note);padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-size:15px;line-height:20px;font-weight:800}
+.card p,.card li{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.card ins{text-decoration:none;background:var(--color-surface);border-radius:4px;padding:0 3px}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1120px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 36px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-228 · new · <span class="url">frontend/src/dino/pagination.tsx</span>, exported from Dino’s index, with a story per state below</span>
+    <h1 class="ttl">Pagination</h1>
+    <span class="cap">Moves through a long list a page at a time. Built from Dino’s secondary Button as a link, so it takes the Button’s hover, pressed and focus unchanged; its own parts are the layout, the “Page X of Y” line and when each link shows.</span>
+  </header>
+
+  <div class="grid3">
+    <div class="col">
+      <span class="cap"><b>A middle page</b> · default</span>
+      <div class="tile"><nav aria-label="Pages" class="pager">
+        <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+        <p class="at">Page 2 of 6</p>
+        <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+      </nav></div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>The first page</b> · first-page · no Previous; Next keeps its end</span>
+      <div class="tile"><nav aria-label="Pages" class="pager">
+        <p class="at">Page 1 of 6</p>
+        <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+      </nav></div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>The last page</b> · last-page · no Next</span>
+      <div class="tile"><nav aria-label="Pages" class="pager">
+        <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+        <p class="at">Page 6 of 6</p>
+      </nav></div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>Next under the pointer</b> · is-hover · Surface fill, Ink border</span>
+      <div class="tile"><nav aria-label="Pages" class="pager">
+        <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+        <p class="at">Page 2 of 6</p>
+        <span class="next hov"><x-import component-from-global-scope="Dino.Button" variant="secondary">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+      </nav></div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>Next pressed</b> · is-pressed · Line fill, shrinks to 97%</span>
+      <div class="tile"><nav aria-label="Pages" class="pager">
+        <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+        <p class="at">Page 2 of 6</p>
+        <span class="next prs"><x-import component-from-global-scope="Dino.Button" variant="secondary">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+      </nav></div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>Next focused</b> · is-focus · the 3 px Ink ring, flush</span>
+      <div class="tile"><nav aria-label="Pages" class="pager">
+        <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+        <p class="at">Page 2 of 6</p>
+        <span class="next foc"><x-import component-from-global-scope="Dino.Button" variant="secondary">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+      </nav></div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start">
+    <div class="col">
+      <span class="cap"><b>Under 420 px of room</b> · narrow · two rows, the links half and half</span>
+      <div class="tile" style="width: 320px"><nav aria-label="Pages" class="pager narrow">
+        <p class="at">Page 12 of 40</p>
+        <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+        <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+      </nav></div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>Narrow, first page</b> · Next keeps the right half</span>
+      <div class="tile" style="width: 320px"><nav aria-label="Pages" class="pager narrow">
+        <p class="at">Page 1 of 40</p>
+        <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+      </nav></div>
+    </div>
+    <div class="col">
+      <span class="cap"><b>Forced colours</b> · links in LinkText with their outline; the focus ring in CanvasText</span>
+      <div class="tile fc" style="width: 560px"><div class="pager">
+        <span class="prev lnk"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true" size="20"></x-import>Previous</span>
+        <p class="at">Page 2 of 6</p>
+        <span class="next lnk ring">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true" size="20"></x-import></span>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="grid3" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+    <div class="card">
+      <h2>What the consumer provides</h2>
+      <ul>
+        <li><span class="url">page</span> and <span class="url">pageCount</span>, from 1; with one page or none it renders nothing.</li>
+        <li><span class="url">to(page)</span>: each link’s address, so the caller keeps its search and filters (<span class="url">?q=orzo&amp;page=3</span>; page 1 has no <span class="url">page</span>).</li>
+        <li><span class="url">label</span>: the <span class="url">nav</span>’s name, “Pages” by default.</li>
+        <li>Moving focus and scrolling after a page changes is the page’s job, not the component’s: it only links.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>How it behaves</h2>
+      <ul>
+        <li>A <span class="url">nav</span> holding, in order, Previous, “Page X of Y”, Next. Links named in words with a chevron (Lucide, 2 px stroke, hidden from screen readers).</li>
+        <li>No Previous on page 1, no Next on the last: hidden, not disabled. The other link keeps its place.</li>
+        <li>One row from 420 px of room (a container query); under it, the line above and the links half and half.</li>
+        <li>The range (“25–48 of 137 recipes”) is the list’s count line, above the list, not part of Pagination: the pager says the page, the count says the recipes.</li>
+        <li>Grows into page numbers (Variant B) if a list ever needs jumping; until then it stays this small.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Proposed docs/design.md row (Components)</h2>
+      <p><ins><b>Pagination</b> · Moves through a long list a page at a time (<span class="url">design/dino/pagination.dc.html</span>), under the list in a nav named “Pages”: Previous and Next are secondary buttons as links, named in words with their chevrons, and “Page 2 of 6” in Label between them. Page 1 has no Previous and the last page no Next; one page has no pager. One row from 420 px of room; narrower, the line sits above the two links, which share the row. The page is in the address.</ins></p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

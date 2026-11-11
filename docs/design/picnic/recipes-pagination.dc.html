@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Variant A: Previous, page, Next</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/dino/tokens.css">
+<link rel="stylesheet" href="ds/dino/components/bundle.css">
+<script src="ds/dino/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.cap{font-size:13px;line-height:17px;font-weight:700;color:var(--color-muted)}
+.cap b{color:var(--color-ink)}
+.url{font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:17px;color:var(--color-ink)}
+.ttl{margin:0;font-family:var(--font-serif);font-size:46px;line-height:44px;font-weight:400}
+.frame{position:relative;background:var(--color-ground);border:1px solid var(--color-line);border-radius:20px;overflow:hidden;flex-shrink:0;width:390px}
+.frame.narrow{width:320px}
+.frame.foot{display:flex;flex-direction:column;justify-content:flex-end}
+.frame.foot .page{flex-shrink:0}
+.page{padding:24px 20px 0;display:flex;flex-direction:column;gap:32px}
+.cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:32px}
+.pager{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:12px;align-items:center}
+.pager .at{grid-column:1 / -1;grid-row:1;justify-self:center;margin:0;font-size:15px;line-height:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.pager .prev{grid-column:1;grid-row:2}
+.pager .next{grid-column:2;grid-row:2}
+.clear{height:104px;flex-shrink:0}
+.dock{position:absolute;left:20px;right:20px;bottom:20px;height:62px;box-sizing:border-box;border:2px solid transparent;border-radius:var(--radius-pill);background:var(--color-dock);box-shadow:var(--shadow-lift);display:flex;align-items:center;gap:4px;padding:0 6px}
+.dtab{height:46px;box-sizing:border-box;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--color-on-dock);font-size:15px;line-height:20px;font-weight:800}
+.dtab.cur{flex:1;background:var(--color-peach);color:var(--color-on-pastel);border:2px solid transparent}
+.dtab.ic{width:64px}
+.row{display:flex;gap:40px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:10px}
+.notes{display:flex;flex-direction:column;gap:12px;max-width:1240px}
+.notes p{margin:0;font-size:15px;line-height:22px;font-weight:600;color:var(--color-ink)}
+.notes p b{font-weight:800}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1700px; box-sizing: border-box; padding: 56px; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <span class="cap">TAS-228 · /recipes · phone, 390 px · signed in · 137 recipes in the catalogue, 24 a page, so 6 pages</span>
+    <h1 class="ttl">Variant A: Previous, page, Next</h1>
+    <span class="cap">The list shows one page of 24 at a time. Under it, the new Dino Pagination: where you are, and a link each way. The page is in the address, so Back, reloading and sharing land on the same page.</span>
+  </header>
+
+  <div class="row">
+    <div class="col">
+      <span class="cap"><b>Page 2 of 6</b> · scrolled to the foot · <span class="url">/recipes?page=2</span></span>
+      <div class="frame foot" style="height: 640px">
+        <main class="page">
+          <ul class="cards">
+            <sc-for list="{{page2}}" as="r" hint-placeholder-count="2">
+              <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{no}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+            </sc-for>
+          </ul>
+          <nav aria-label="Pages" class="pager">
+            <p class="at">Page 2 of 6</p>
+            <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+            <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+          </nav>
+          <div class="clear"></div>
+        </main>
+        <nav aria-label="Main" class="dock">
+          <span class="dtab cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="20" aria-hidden="true"></x-import>Recipes</span>
+          <span class="dtab ic" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="22" aria-hidden="true"></x-import></span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Page 1</b> · no way back, so no Previous · <span class="url">/recipes</span></span>
+      <div class="frame foot" style="height: 640px">
+        <main class="page">
+          <ul class="cards">
+            <sc-for list="{{page1}}" as="r" hint-placeholder-count="2">
+              <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{no}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+            </sc-for>
+          </ul>
+          <nav aria-label="Pages" class="pager">
+            <p class="at">Page 1 of 6</p>
+            <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+          </nav>
+          <div class="clear"></div>
+        </main>
+        <nav aria-label="Main" class="dock">
+          <span class="dtab cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="20" aria-hidden="true"></x-import>Recipes</span>
+          <span class="dtab ic" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="22" aria-hidden="true"></x-import></span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="col">
+      <span class="cap"><b>Page 6, the last</b> · 17 recipes, so its last row has one · <span class="url">?page=6</span></span>
+      <div class="frame foot" style="height: 640px">
+        <main class="page">
+          <ul class="cards">
+            <sc-for list="{{page6}}" as="r" hint-placeholder-count="1">
+              <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{no}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+            </sc-for>
+          </ul>
+          <nav aria-label="Pages" class="pager">
+            <p class="at">Page 6 of 6</p>
+            <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+          </nav>
+          <div class="clear"></div>
+        </main>
+        <nav aria-label="Main" class="dock">
+          <span class="dtab cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="20" aria-hidden="true"></x-import>Recipes</span>
+          <span class="dtab ic" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="22" aria-hidden="true"></x-import></span>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <span class="cap"><b>At 320 px</b> · a longer list, two-digit pages · <span class="url">/recipes?page=12</span></span>
+      <div class="frame narrow foot" style="height: 600px">
+        <main class="page">
+          <ul class="cards">
+            <sc-for list="{{page12}}" as="r" hint-placeholder-count="2">
+              <li><x-import component-from-global-scope="Dino.PolaroidCard" title="{{r.title}}" to="#" recipe-id="{{r.id}}" photo="{{nil}}" lean="{{r.lean}}" eager="{{no}}" action="{{r.action}}">{{r.meta}}</x-import></li>
+            </sc-for>
+          </ul>
+          <nav aria-label="Pages" class="pager">
+            <p class="at">Page 12 of 40</p>
+            <span class="prev"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full"><x-import component-from-global-scope="Dino.icons.ChevronLeft" aria-hidden="true"></x-import>Previous</x-import></span>
+            <span class="next"><x-import component-from-global-scope="Dino.Button" variant="secondary" class-name="w-full">Next<x-import component-from-global-scope="Dino.icons.ChevronRight" aria-hidden="true"></x-import></x-import></span>
+          </nav>
+          <div class="clear"></div>
+        </main>
+        <nav aria-label="Main" class="dock">
+          <span class="dtab cur" aria-current="page"><x-import component-from-global-scope="Dino.icons.BookOpen" size="20" aria-hidden="true"></x-import>Recipes</span>
+          <span class="dtab ic" aria-label="Lists"><x-import component-from-global-scope="Dino.icons.Library" size="22" aria-hidden="true"></x-import></span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="col" style="max-width: 820px; gap: 14px; padding-top: 27px">
+      <div class="notes">
+        <p><b>Below the list, 32 px under its last row</b>, as the list’s own row gap, and above the 104 px the dock keeps clear. It’s where someone arrives having looked at every card on the page, so the way on is where their eyes already are (NN/g 6).</p>
+        <p><b>Two rows on a phone.</b> “Page 2 of 6” sits centred over Previous and Next, which share the row half and half. In one row, a two-digit page and both named buttons need about 360 px, more than a 390 px phone’s 350 px column; stacked, they fit 280 px at 320 px with nothing scrolling sideways (WCAG 1.4.10). From 420 px of room the three share one row (Tablet and laptop board).</p>
+        <p><b>Secondary buttons, as links.</b> Previous and Next go somewhere, so they’re links styled as Dino’s secondary Button (<span class="url">Button asChild</span>), named in words with a chevron beside them, never an icon alone. Neither is peach: the screen’s main action is still “Add a recipe”, and the current tab keeps “where you are”.</p>
+        <p><b>No Previous on page 1, no Next on the last.</b> A link can’t be disabled, and a disabled button would need a line under it saying why while “Page 1 of 6” already says it. The other button keeps its own half, so nothing moves under the thumb.</p>
+        <p><b>“Page 2 of 6” is plain text</b>, Label type with tabular figures, inside a <span class="url">nav</span> named “Pages”. One page of results, or none, and the whole pager goes.</p>
+        <p><b>Which recipes these are, at the top.</b> The count’s line above the list (States board) names the range and the total: “25–48 of 137 recipes” in Small Muted, so someone knows where they are before scrolling, and a screen reader hears it after each page. The pager at the foot keeps “Page 2 of 6”, the unit its links move by. One page of matches keeps today’s “4 recipes”.</p>
+        <p><b>Unchanged:</b> the cards, their hearts, the two-a-row grid and its eager first row, which is now each page’s first row.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var D = window.Dino, h = window.React.createElement, noop = function () {};
+    var make = function (list) {
+      return list.map(function (r, i) {
+        return { id: r[0], title: r[1], meta: r[2], lean: i % 2 === 0 ? 'left' : 'right',
+          action: h(D.FavouriteButton, { saved: r[3] === true, onSavedChange: noop, label: 'Favourite ' + r[1] }) };
+      });
+    };
+    return {
+      nil: null, no: false,
+      page1: make([[9, 'Chana masala', '1 h 45 · Easy · Indian'], [10, 'Shakshuka', '40 min · Easy · Middle Eastern'], [11, 'Leek and potato soup', '50 min · Easy · British'], [12, 'Spanakopita', '1 h 20 · Medium · Greek', true]]),
+      page2: make([[45, 'Mushroom stroganoff', '30 min · Easy · Russian'], [46, 'Dal makhani', '2 h · Medium · Indian', true], [47, 'Pea and mint risotto', '40 min · Easy · Italian'], [48, 'Black bean chilli', '1 h 10 · Easy · Mexican']]),
+      page6: make([[135, 'Tomato and butter bean bake', '45 min · Easy · Spanish'], [136, 'Courgette and lemon orzo', '35 min · Easy · Italian'], [137, 'Lemon drizzle cake', '1 h · Easy · British', true]]),
+      page12: make([[285, 'Halloumi traybake', '50 min · Easy · Greek'], [286, 'Ribollita', '1 h 30 · Easy · Italian'], [287, 'Miso aubergine', '45 min · Easy · Japanese'], [288, 'Pad see ew', '30 min · Medium · Thai']])
+    };
+  }
+}
+</script>
+</body>
+</html>

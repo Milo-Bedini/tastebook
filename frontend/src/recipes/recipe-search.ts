@@ -15,8 +15,9 @@ export const useRecipeSearch = (): RecipeSearch => {
 
   const changeSearchText = useCallback(
     (text: string) => {
-      // On the list the search keeps the filters, so the two combine.
+      // On the list the search keeps the filters, so the two combine, and starts again at the first page.
       const params = new URLSearchParams(onList ? search : '');
+      params.delete('page');
       if (text === '') {
         params.delete('q');
       } else {

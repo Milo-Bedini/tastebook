@@ -200,8 +200,8 @@ def test_a_reviewed_ingredient_is_offered_to_everyone(admin_client: Client) -> N
 
 def tags_seen_by(milo: BrowserClient, slug: str) -> dict[str, Any]:
     detail = milo.client.get(f'/api/recipes/{slug}/').json()
-    listed = milo.client.get('/api/recipes/').json()[0]
-    vegan = [recipe['slug'] for recipe in milo.client.get('/api/recipes/?diet=vegan').json()]
+    listed = milo.client.get('/api/recipes/').json()['results'][0]
+    vegan = [recipe['slug'] for recipe in milo.client.get('/api/recipes/?diet=vegan').json()['results']]
     return {
         'diet_tags': (detail['diet_tags'], listed['diet_tags']),
         'diet_tag_conflicts': detail['diet_tag_conflicts'],

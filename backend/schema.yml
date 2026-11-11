@@ -1052,6 +1052,12 @@ paths:
           default: false
         description: true means only one-pot recipes; false or missing means every
           recipe.
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
       - in: query
         name: q
         schema:
@@ -1070,13 +1076,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RecipeSummary'
+                $ref: '#/components/schemas/PaginatedRecipeSummaryList'
           description: ''
         '400':
           description: A difficulty, a diet, an include_match or a time limit is not
             one the list accepts.
+        '404':
+          description: The page is past the last one, or not a whole number from 1.
     post:
       operationId: recipes_create
       description: Adds a private recipe to the signed-in account's household. Only
@@ -2612,6 +2618,29 @@ components:
       - author
       - slug
       - title
+    PaginatedRecipeSummaryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeSummary'
     PatchedAccountChanges:
       type: object
       properties:

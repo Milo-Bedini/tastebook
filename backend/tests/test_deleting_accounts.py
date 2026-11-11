@@ -277,7 +277,7 @@ def test_deleting_removes_the_account_its_lists_and_private_recipes_and_signs_it
 
 def author_everywhere(slug: str, jo: BrowserClient, jos_copy: str) -> list[str | None]:
     stranger = BrowserClient()
-    listed = {recipe['slug']: recipe['author'] for recipe in stranger.client.get('/api/recipes/').json()}
+    listed = {recipe['slug']: recipe['author'] for recipe in stranger.client.get('/api/recipes/').json()['results']}
     [saved] = jo.client.get(FAVOURITES).json()['saved_recipes']
     return [
         stranger.client.get(f'/api/recipes/{slug}/').json()['author'],

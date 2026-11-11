@@ -153,7 +153,7 @@ test.beforeEach(async ({ page }) => {
 const routeRecipeList = (page: Page) =>
   page.route(
     (url) => url.pathname === '/api/recipes/',
-    (route) => route.fulfill({ json: [summary] })
+    (route) => route.fulfill({ json: { count: 1, next: null, previous: null, results: [summary] } })
   );
 
 test('the recipe list fits a 375 px phone screen without scrolling sideways', async ({ page }) => {
@@ -165,6 +165,23 @@ test('the recipe list fits a 375 px phone screen without scrolling sideways', as
   await expect(
     page.getByRole('heading', { name: 'Slow-roasted pork shoulder with crackling, apple sauce and Yorkshire puddings' })
   ).toBeVisible();
+  expect(await sidewaysScroll(page)).toBe(0);
+});
+
+test("the recipe list's pager fits a 320 px phone screen with two-digit pages", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  const results = Array.from({ length: 24 }, (_, index) => ({ ...summary, id: index + 1, slug: `pork-${index + 1}` }));
+  await page.route(
+    (url) => url.pathname === '/api/recipes/',
+    (route) => route.fulfill({ json: { count: 960, next: null, previous: null, results } })
+  );
+
+  await page.goto('/recipes?page=12');
+
+  const pager = page.getByRole('navigation', { name: 'Pages' });
+  await expect(pager.getByText('Page 12 of 40')).toBeVisible();
+  await expect(pager.getByRole('link', { name: 'Previous' })).toBeVisible();
+  await expect(pager.getByRole('link', { name: 'Next' })).toBeVisible();
   expect(await sidewaysScroll(page)).toBe(0);
 });
 

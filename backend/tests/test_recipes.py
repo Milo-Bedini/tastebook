@@ -59,7 +59,7 @@ def test_lists_recipes_alphabetically_ignoring_case_oldest_first_on_a_tie() -> N
     response = APIClient().get(reverse('recipe-list'))
 
     assert response.status_code == 200
-    assert [(recipe['title'], recipe['description']) for recipe in response.json()] == [
+    assert [(recipe['title'], recipe['description']) for recipe in response.json()['results']] == [
         ('apple pie', ''),
         ('Apple tart', 'Sharp apples.'),
         ('banana bread', ''),
@@ -83,7 +83,7 @@ def test_returns_a_summary_of_each_recipe_with_its_total_time_and_difficulty() -
 
     response = APIClient().get(reverse('recipe-list'))
 
-    assert response.json() == [
+    assert response.json()['results'] == [
         {
             'id': recipe.id,
             'slug': 'shakshuka',
@@ -107,7 +107,44 @@ def test_returns_an_empty_list_with_no_recipes() -> None:
     response = APIClient().get(reverse('recipe-list'))
 
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json() == {'count': 0, 'next': None, 'previous': None, 'results': []}
+
+
+@pytest.mark.django_db
+def test_lists_24_recipes_a_page_in_the_lists_order_with_ties_kept_apart() -> None:
+    # One title for all, so only the tie-breaker orders them.
+    ids = [make_recipe(title='Stew').id for _ in range(30)]
+
+    first = APIClient().get(reverse('recipe-list')).json()
+    second = APIClient().get(reverse('recipe-list'), {'page': 2}).json()
+
+    assert (first['count'], first['previous'], first['next']) == (30, None, 'http://testserver/api/recipes/?page=2')
+    assert (second['count'], second['previous'], second['next']) == (30, 'http://testserver/api/recipes/', None)
+    assert [recipe['id'] for recipe in first['results']] == ids[:24]
+    assert [recipe['id'] for recipe in second['results']] == ids[24:]
+
+
+@pytest.mark.django_db
+def test_filters_and_searches_before_paging() -> None:
+    for number in range(30):
+        make_recipe(title=f'Stew {number:02}', difficulty='hard' if number % 2 == 0 else 'easy')
+    make_recipe(title='Salad', difficulty='hard')
+
+    response = APIClient().get(reverse('recipe-list'), {'q': 'stew', 'difficulty': 'hard'})
+
+    assert response.json()['count'] == 15
+    assert response.json()['next'] is None
+    assert [recipe['title'] for recipe in response.json()['results']] == [f'Stew {n:02}' for n in range(0, 30, 2)]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('page', ['3', '0', 'two', '-1'])
+def test_answers_404_for_a_page_the_list_has_not_got(page: str) -> None:
+    for _ in range(30):
+        make_recipe(title='Stew')
+
+    assert APIClient().get(reverse('recipe-list'), {'page': 2}).status_code == 200
+    assert APIClient().get(reverse('recipe-list'), {'page': page}).status_code == 404
 
 
 @pytest.mark.django_db
@@ -239,7 +276,7 @@ def test_searches_titles_anywhere_ignoring_case_accents_and_surrounding_spaces(q
     response = APIClient().get(reverse('recipe-list'), {'q': q})
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == titles
+    assert [recipe['title'] for recipe in response.json()['results']] == titles
 
 
 def make_searchable_recipes() -> None:
@@ -282,19 +319,23 @@ def test_searches_descriptions_ingredients_their_synonyms_and_cuisines_with_titl
     response = APIClient().get(reverse('recipe-list'), {'q': q})
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == titles
+    assert [recipe['title'] for recipe in response.json()['results']] == titles
 
 
 @pytest.mark.django_db
-def test_searches_in_three_queries(django_assert_num_queries: DjangoAssertNumQueries) -> None:
+def test_searches_in_four_queries(django_assert_num_queries: DjangoAssertNumQueries) -> None:
     make_searchable_recipes()
 
     # The matching ingredients, synonyms and cuisines are subqueries of the list's one query.
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(4):
         response = APIClient().get(reverse('recipe-list'), {'q': 'aubergine'})
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == ['Stuffed aubergines', 'Baba ganoush', 'Moussaka']
+    assert [recipe['title'] for recipe in response.json()['results']] == [
+        'Stuffed aubergines',
+        'Baba ganoush',
+        'Moussaka',
+    ]
 
 
 @pytest.mark.django_db
@@ -440,7 +481,7 @@ def test_returns_each_recipes_cuisines_alphabetically() -> None:
 
     response = APIClient().get(reverse('recipe-list'))
 
-    assert response.json()[0]['cuisines'] == [
+    assert response.json()['results'][0]['cuisines'] == [
         {'slug': 'japanese', 'name': 'Japanese'},
         {'slug': 'mexican', 'name': 'Mexican'},
     ]
@@ -471,11 +512,11 @@ def test_filters_by_cuisine_and_combines_with_the_search(params: dict[str, str],
     response = APIClient().get(reverse('recipe-list'), params)
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == titles
+    assert [recipe['title'] for recipe in response.json()['results']] == titles
 
 
 @pytest.mark.django_db
-def test_lists_recipes_with_their_cuisines_and_diet_tags_in_three_queries(
+def test_lists_recipes_with_their_cuisines_and_diet_tags_in_four_queries(
     django_assert_num_queries: DjangoAssertNumQueries,
 ) -> None:
     for title in ['Apple tart', 'Ramen tacos', 'Sushi']:
@@ -484,11 +525,13 @@ def test_lists_recipes_with_their_cuisines_and_diet_tags_in_three_queries(
         add_line(recipe, 'rice')
         add_line(recipe, 'butter', optional=True)
 
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(4):
         response = APIClient().get(reverse('recipe-list'))
 
     assert response.status_code == 200
-    assert [(len(recipe['cuisines']), len(recipe['diet_tags'])) for recipe in response.json()] == [(2, 4)] * 3
+    assert [(len(recipe['cuisines']), len(recipe['diet_tags'])) for recipe in response.json()['results']] == [
+        (2, 4)
+    ] * 3
 
 
 ALL_FIVE = ['Apple tart', 'Greek salad', 'Pad thai', 'Ramen tacos', 'Risotto']
@@ -540,7 +583,7 @@ def test_filters_the_list_and_combines_the_filters(params: str, titles: list[str
     response = APIClient().get(f'{reverse("recipe-list")}?{params}')
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == titles
+    assert [recipe['title'] for recipe in response.json()['results']] == titles
 
 
 @pytest.mark.django_db
@@ -562,7 +605,7 @@ def test_refuses_a_malformed_filter(params: str, parameter: str) -> None:
 
 
 @pytest.mark.django_db
-def test_filters_with_cuisines_and_courses_in_five_queries(django_assert_num_queries: DjangoAssertNumQueries) -> None:
+def test_filters_with_cuisines_and_courses_in_six_queries(django_assert_num_queries: DjangoAssertNumQueries) -> None:
     for title, cuisine, course in [
         ('Apple tart', 'french', 'dessert'),
         ('Coq au vin', 'french', 'main'),
@@ -573,11 +616,11 @@ def test_filters_with_cuisines_and_courses_in_five_queries(django_assert_num_que
         recipe.courses.set(Course.objects.filter(slug=course))
 
     # One existence check each for the cuisines and the courses, the list, then the cuisines and diet tags prefetches.
-    with django_assert_num_queries(5):
+    with django_assert_num_queries(6):
         response = APIClient().get(reverse('recipe-list'), {'cuisine': 'french', 'course': 'main'})
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == ['Coq au vin']
+    assert [recipe['title'] for recipe in response.json()['results']] == ['Coq au vin']
 
 
 ALL_SIX = ['Bread pudding', 'Chana masala', 'Cheese on toast', 'Herb salad', 'Pad thai', 'Satay tofu']
@@ -655,7 +698,7 @@ def test_filters_by_diet_and_ingredients(params: str, titles: list[str]) -> None
     response = APIClient().get(f'{reverse("recipe-list")}?{params}')
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == titles
+    assert [recipe['title'] for recipe in response.json()['results']] == titles
 
 
 @pytest.mark.django_db
@@ -667,7 +710,7 @@ def test_the_vegetarian_filter_leaves_out_a_recipe_with_cheese_made_with_animal_
 
     response = APIClient().get(reverse('recipe-list'), {'diet': 'vegetarian'})
 
-    assert [recipe['title'] for recipe in response.json()] == ['Caprese salad']
+    assert [recipe['title'] for recipe in response.json()['results']] == ['Caprese salad']
 
 
 @pytest.mark.django_db
@@ -675,8 +718,8 @@ def test_the_vegetarian_filter_leaves_out_a_recipe_with_cheese_made_with_animal_
 def test_the_diet_filter_agrees_with_each_recipes_diet_tags(diet: str) -> None:
     make_diet_recipes()
 
-    every_recipe = APIClient().get(reverse('recipe-list')).json()
-    filtered = APIClient().get(reverse('recipe-list'), {'diet': diet}).json()
+    every_recipe = APIClient().get(reverse('recipe-list')).json()['results']
+    filtered = APIClient().get(reverse('recipe-list'), {'diet': diet}).json()['results']
 
     tagged = [recipe['title'] for recipe in every_recipe if diet in recipe['diet_tags']]
     assert tagged != []
@@ -684,35 +727,35 @@ def test_the_diet_filter_agrees_with_each_recipes_diet_tags(diet: str) -> None:
 
 
 @pytest.mark.django_db
-def test_filters_by_diet_and_ingredients_in_four_queries(django_assert_num_queries: DjangoAssertNumQueries) -> None:
+def test_filters_by_diet_and_ingredients_in_five_queries(django_assert_num_queries: DjangoAssertNumQueries) -> None:
     make_diet_recipes()
 
     # The included ingredients' existence check, the list, then the cuisines and diet tags prefetches.
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(5):
         response = APIClient().get(
             reverse('recipe-list'),
             {'diet': 'vegan', 'include_ingredient': 'peanuts', 'exclude_ingredient': 'bread'},
         )
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == ['Satay tofu']
+    assert [recipe['title'] for recipe in response.json()['results']] == ['Satay tofu']
 
 
 @pytest.mark.django_db
-def test_filters_by_all_included_ingredients_in_four_queries(
+def test_filters_by_all_included_ingredients_in_five_queries(
     django_assert_num_queries: DjangoAssertNumQueries,
 ) -> None:
     make_diet_recipes()
 
     # The included ingredients, the list, then the cuisines and diet tags prefetches.
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(5):
         response = APIClient().get(
             reverse('recipe-list'),
             {'include_ingredient': ['peanuts', 'tofu', 'soy-sauce'], 'include_match': 'all'},
         )
 
     assert response.status_code == 200
-    assert [recipe['title'] for recipe in response.json()] == ['Satay tofu']
+    assert [recipe['title'] for recipe in response.json()['results']] == ['Satay tofu']
 
 
 @pytest.mark.django_db
@@ -786,7 +829,7 @@ def test_total_time_is_prep_plus_cook_plus_extra(
     member = APIClient()
     member.force_login(User.objects.create_user('milo@example.com', name='Milo', household=household))
 
-    listed = member.get(reverse('recipe-list')).json()[0]
+    listed = member.get(reverse('recipe-list')).json()['results'][0]
     detail = member.get(reverse('recipe-detail', args=['shakshuka'])).json()
 
     assert (listed['total_minutes'], detail['total_minutes']) == (total_minutes, total_minutes)
@@ -929,7 +972,7 @@ def test_lists_and_returns_a_recipes_photo_with_its_thumbnails_and_credit_or_nul
     make_recipe(title='Shakshuka', **PHOTO)
     make_recipe(title='Apple tart')
 
-    listed = APIClient().get(reverse('recipe-list')).json()
+    listed = APIClient().get(reverse('recipe-list')).json()['results']
     details = [APIClient().get(reverse('recipe-detail', args=[slug])).json() for slug in ['apple-tart', 'shakshuka']]
 
     assert [(recipe['title'], recipe['photo']) for recipe in listed] == [
@@ -969,7 +1012,7 @@ def test_works_out_the_diet_tags_from_what_every_ingredient_contains(
     sauce = IngredientGroup.objects.create(recipe=recipe, name='For the sauce')
     IngredientLine.objects.create(recipe=recipe, group=sauce, ingredient=flagged('stock', *flags))
 
-    listed = APIClient().get(reverse('recipe-list')).json()[0]
+    listed = APIClient().get(reverse('recipe-list')).json()['results'][0]
     detail = APIClient().get(reverse('recipe-detail', args=['risotto'])).json()
 
     assert (listed['diet_tags'], detail['diet_tags']) == (diet_tags, diet_tags)
@@ -1013,7 +1056,7 @@ def test_optional_lines_keep_the_diet_tags_and_name_the_ones_they_would_take_awa
     )
     add_line(recipe, 'parsley', optional=True)
 
-    listed = APIClient().get(reverse('recipe-list')).json()[0]
+    listed = APIClient().get(reverse('recipe-list')).json()['results'][0]
     detail = APIClient().get(reverse('recipe-detail', args=['spaghetti-aglio-e-olio'])).json()
 
     assert listed['diet_tags'] == ['vegetarian', 'vegan', 'dairy_free']

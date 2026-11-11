@@ -124,6 +124,13 @@
       visibility: hidden;
     }
   }
+  /* What a loading line replaces stays until then. */
+  --animate-conceal: conceal 0s 500ms both;
+  @keyframes conceal {
+    to {
+      visibility: hidden;
+    }
+  }
 }
 
 :root {

@@ -29,7 +29,8 @@ test('the author makes their recipe public, everyone finds it credited, and it g
   await expect(sam.page.getByText('by Sam')).toBeVisible();
   await accessibility.check(sam.page);
 
-  await cy.page.goto('/recipes');
+  // The list shows a page at a time, so cy searches for it.
+  await cy.page.goto('/recipes?q=grandma');
   const card = cy.page.locator(`a[href="${address}"]`);
   await expect(card).toHaveAccessibleDescription(/^by Sam /);
   await accessibility.check(cy.page);

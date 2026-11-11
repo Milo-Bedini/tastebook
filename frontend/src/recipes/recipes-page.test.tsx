@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
 
 import type { components } from '../api/schema';
+import { recipePage } from '../test/handlers';
 import { setLaptop } from '../test/media';
 import { renderRoute } from '../test/render-route';
 import { server } from '../test/server';
@@ -76,7 +77,7 @@ const answerSearches = (results: Record<string, Recipe[]>) => {
     http.get('/api/recipes/', ({ request }) => {
       const q = new URL(request.url).searchParams.get('q');
       searches.push(q);
-      return HttpResponse.json<Recipe[]>(results[q ?? ''] ?? []);
+      return HttpResponse.json(recipePage(results[q ?? ''] ?? []));
     })
   );
   return searches;
@@ -103,7 +104,7 @@ const answerFilters = (results: Record<string, Recipe[]>) => {
       params.sort();
       const query = params.toString();
       queries.push(query);
-      return HttpResponse.json<Recipe[]>(results[query] ?? []);
+      return HttpResponse.json(recipePage(results[query] ?? []));
     })
   );
   return queries;
@@ -196,38 +197,40 @@ describe('RecipesPage', () => {
 
   it('shows a loading message, then the recipes in the order the API sends', async () => {
     const { release } = holdRecipes(() =>
-      HttpResponse.json<Recipe[]>([
-        {
-          id: 7,
-          slug: 'shakshuka',
-          visibility: 'public',
-          author: null,
-          title: 'Shakshuka',
-          description: 'Eggs in spiced tomatoes.',
-          cuisines: [],
-          difficulty: 'easy',
-          total_minutes: 35,
-          photo: null,
-          diet_tags: [],
-          hidden_for_review: false,
-          waiting_for_review: false
-        },
-        {
-          id: 3,
-          slug: 'apple-tart',
-          visibility: 'public',
-          author: null,
-          title: 'Apple tart',
-          description: '',
-          cuisines: [],
-          difficulty: 'hard',
-          total_minutes: 90,
-          photo: null,
-          diet_tags: [],
-          hidden_for_review: false,
-          waiting_for_review: false
-        }
-      ])
+      HttpResponse.json(
+        recipePage([
+          {
+            id: 7,
+            slug: 'shakshuka',
+            visibility: 'public',
+            author: null,
+            title: 'Shakshuka',
+            description: 'Eggs in spiced tomatoes.',
+            cuisines: [],
+            difficulty: 'easy',
+            total_minutes: 35,
+            photo: null,
+            diet_tags: [],
+            hidden_for_review: false,
+            waiting_for_review: false
+          },
+          {
+            id: 3,
+            slug: 'apple-tart',
+            visibility: 'public',
+            author: null,
+            title: 'Apple tart',
+            description: '',
+            cuisines: [],
+            difficulty: 'hard',
+            total_minutes: 90,
+            photo: null,
+            diet_tags: [],
+            hidden_for_review: false,
+            waiting_for_review: false
+          }
+        ])
+      )
     );
 
     renderRoute('/recipes');
@@ -253,27 +256,29 @@ describe('RecipesPage', () => {
   it("shows only each recipe's total time, difficulty and cuisines under its card", async () => {
     server.use(
       http.get('/api/recipes/', () =>
-        HttpResponse.json<Recipe[]>([
-          { ...appleTart, diet_tags: ['vegetarian', 'gluten_free'] },
-          {
-            id: 4,
-            slug: 'ramen-tacos',
-            visibility: 'public',
-            author: null,
-            title: 'Ramen tacos',
-            description: '',
-            cuisines: [
-              { slug: 'japanese', name: 'Japanese' },
-              { slug: 'mexican', name: 'Mexican' }
-            ],
-            difficulty: 'easy',
-            total_minutes: 25,
-            photo: null,
-            diet_tags: [],
-            hidden_for_review: false,
-            waiting_for_review: false
-          }
-        ])
+        HttpResponse.json(
+          recipePage([
+            { ...appleTart, diet_tags: ['vegetarian', 'gluten_free'] },
+            {
+              id: 4,
+              slug: 'ramen-tacos',
+              visibility: 'public',
+              author: null,
+              title: 'Ramen tacos',
+              description: '',
+              cuisines: [
+                { slug: 'japanese', name: 'Japanese' },
+                { slug: 'mexican', name: 'Mexican' }
+              ],
+              difficulty: 'easy',
+              total_minutes: 25,
+              photo: null,
+              diet_tags: [],
+              hidden_for_review: false,
+              waiting_for_review: false
+            }
+          ])
+        )
       )
     );
 
@@ -290,24 +295,26 @@ describe('RecipesPage', () => {
   it('leaves out of a card the total time and difficulty its recipe lacks', async () => {
     server.use(
       http.get('/api/recipes/', () =>
-        HttpResponse.json<Recipe[]>([
-          {
-            id: 5,
-            slug: 'grandmas-curry-k7m2qx',
-            visibility: 'private',
-            author: null,
-            title: "Grandma's curry",
-            description: '',
-            cuisines: [{ slug: 'italian', name: 'Italian' }],
-            difficulty: '',
-            total_minutes: null,
-            photo: null,
-            diet_tags: [],
-            hidden_for_review: false,
-            waiting_for_review: false
-          },
-          appleTart
-        ])
+        HttpResponse.json(
+          recipePage([
+            {
+              id: 5,
+              slug: 'grandmas-curry-k7m2qx',
+              visibility: 'private',
+              author: null,
+              title: "Grandma's curry",
+              description: '',
+              cuisines: [{ slug: 'italian', name: 'Italian' }],
+              difficulty: '',
+              total_minutes: null,
+              photo: null,
+              diet_tags: [],
+              hidden_for_review: false,
+              waiting_for_review: false
+            },
+            appleTart
+          ])
+        )
       )
     );
 
@@ -336,13 +343,15 @@ describe('RecipesPage', () => {
     });
     server.use(
       http.get('/api/recipes/', () =>
-        HttpResponse.json<Recipe[]>([
-          { ...appleTart, photo: photoOf('Tart') },
-          bananaBread,
-          { ...bananaBread, id: 5, slug: 'fig-roll', title: 'Fig roll' },
-          { ...appleTart, id: 6, slug: 'eccles-cake', title: 'Eccles cake', photo: photoOf('Eccles') },
-          { ...appleTart, id: 3, slug: 'carrot-cake', title: 'Carrot cake', photo: photoOf('Cake') }
-        ])
+        HttpResponse.json(
+          recipePage([
+            { ...appleTart, photo: photoOf('Tart') },
+            bananaBread,
+            { ...bananaBread, id: 5, slug: 'fig-roll', title: 'Fig roll' },
+            { ...appleTart, id: 6, slug: 'eccles-cake', title: 'Eccles cake', photo: photoOf('Eccles') },
+            { ...appleTart, id: 3, slug: 'carrot-cake', title: 'Carrot cake', photo: photoOf('Cake') }
+          ])
+        )
       )
     );
 
@@ -418,10 +427,12 @@ describe('RecipesPage', () => {
   it('marks a private recipe\'s card "Private", and not a public one\'s', async () => {
     server.use(
       http.get('/api/recipes/', () =>
-        HttpResponse.json<Recipe[]>([
-          { ...bananaBread, id: 5, slug: 'grandmas-curry-k7m2qx', visibility: 'private', title: "Grandma's curry" },
-          appleTart
-        ])
+        HttpResponse.json(
+          recipePage([
+            { ...bananaBread, id: 5, slug: 'grandmas-curry-k7m2qx', visibility: 'private', title: "Grandma's curry" },
+            appleTart
+          ])
+        )
       )
     );
 
@@ -442,16 +453,18 @@ describe('RecipesPage', () => {
     const privateRecipe = { ...bananaBread, visibility: 'private' } as const;
     server.use(
       http.get('/api/recipes/', () =>
-        HttpResponse.json<Recipe[]>([
-          {
-            ...privateRecipe,
-            id: 5,
-            slug: 'grandmas-curry-k7m2qx',
-            title: "Grandma's curry",
-            waiting_for_review: true
-          },
-          { ...privateRecipe, id: 6, slug: 'sams-dal-d4l9xz', title: "Sam's dal" }
-        ])
+        HttpResponse.json(
+          recipePage([
+            {
+              ...privateRecipe,
+              id: 5,
+              slug: 'grandmas-curry-k7m2qx',
+              title: "Grandma's curry",
+              waiting_for_review: true
+            },
+            { ...privateRecipe, id: 6, slug: 'sams-dal-d4l9xz', title: "Sam's dal" }
+          ])
+        )
       )
     );
 
@@ -466,10 +479,12 @@ describe('RecipesPage', () => {
   it('credits a public household recipe\'s card "by" its author, and not a catalogue one\'s', async () => {
     server.use(
       http.get('/api/recipes/', () =>
-        HttpResponse.json<Recipe[]>([
-          { ...bananaBread, id: 5, slug: 'grandmas-curry-k7m2qx', author: 'Sam', title: "Grandma's curry" },
-          appleTart
-        ])
+        HttpResponse.json(
+          recipePage([
+            { ...bananaBread, id: 5, slug: 'grandmas-curry-k7m2qx', author: 'Sam', title: "Grandma's curry" },
+            appleTart
+          ])
+        )
       )
     );
 
@@ -500,7 +515,7 @@ describe('RecipesPage', () => {
     [2, 'place-setting'],
     [4, 'place-setting']
   ])('draws the place setting or the rug for a recipe without a photo, by its ID (%i: %s)', async (id, filler) => {
-    server.use(http.get('/api/recipes/', () => HttpResponse.json<Recipe[]>([{ ...appleTart, id }])));
+    server.use(http.get('/api/recipes/', () => HttpResponse.json(recipePage([{ ...appleTart, id }]))));
 
     renderRoute('/recipes');
 
@@ -517,7 +532,7 @@ describe('RecipesPage', () => {
       'No recipes yet.'
     ]
   ])('at %s, says %s and why when there are no recipes', async (path, shown, why, absent) => {
-    server.use(http.get('/api/recipes/', () => HttpResponse.json<Recipe[]>([])));
+    server.use(http.get('/api/recipes/', () => HttpResponse.json(recipePage([]))));
 
     renderRoute(path);
 
@@ -533,7 +548,7 @@ describe('RecipesPage', () => {
     ['1 recipe', [appleTart]],
     ['2 recipes', [appleTart, bananaBread]]
   ])('says "%s" above the list', async (count, recipes) => {
-    server.use(http.get('/api/recipes/', () => HttpResponse.json<Recipe[]>(recipes)));
+    server.use(http.get('/api/recipes/', () => HttpResponse.json(recipePage(recipes))));
 
     renderRoute('/recipes');
 
@@ -623,7 +638,7 @@ describe('RecipesPage', () => {
   it('keeps the previous results while a search loads', async () => {
     renderRoute('/recipes');
     await screen.findByText('Banana bread');
-    const search = holdRecipes(() => HttpResponse.json<Recipe[]>([appleTart]));
+    const search = holdRecipes(() => HttpResponse.json(recipePage([appleTart])));
 
     await userEvent.type(searchBox(), 'tart');
     await search.requested;
@@ -657,23 +672,25 @@ describe('RecipesPage', () => {
     const tryAgain = await screen.findByRole('button', { name: 'Try again' });
 
     const { release } = holdRecipes(() =>
-      HttpResponse.json<Recipe[]>([
-        {
-          id: 7,
-          slug: 'shakshuka',
-          visibility: 'public',
-          author: null,
-          title: 'Shakshuka',
-          description: 'Eggs in spiced tomatoes.',
-          cuisines: [],
-          difficulty: 'easy',
-          total_minutes: 35,
-          photo: null,
-          diet_tags: [],
-          hidden_for_review: false,
-          waiting_for_review: false
-        }
-      ])
+      HttpResponse.json(
+        recipePage([
+          {
+            id: 7,
+            slug: 'shakshuka',
+            visibility: 'public',
+            author: null,
+            title: 'Shakshuka',
+            description: 'Eggs in spiced tomatoes.',
+            cuisines: [],
+            difficulty: 'easy',
+            total_minutes: 35,
+            photo: null,
+            diet_tags: [],
+            hidden_for_review: false,
+            waiting_for_review: false
+          }
+        ])
+      )
     );
     await userEvent.click(tryAgain);
 
@@ -814,7 +831,7 @@ describe('RecipesPage', () => {
     ['Show 1 recipe', [appleTart]],
     ['Show 2 recipes', [appleTart, bananaBread]]
   ])('says "Show recipes" at the sheet\'s foot while the list loads, then "%s"', async (label, recipes) => {
-    const { requested, release } = holdRecipes(() => HttpResponse.json<Recipe[]>(recipes));
+    const { requested, release } = holdRecipes(() => HttpResponse.json(recipePage(recipes)));
     renderRoute('/recipes');
     await requested;
     await userEvent.click(filtersButton());
@@ -994,7 +1011,7 @@ describe('RecipesPage', () => {
     ['/recipes?cuisine=italian', 'No recipes match these filters.', ''],
     ['/recipes?q=tart&cuisine=italian', 'No recipes match “tart” with these filters.', '?q=tart']
   ])('at %s, says %s and clears the filters from there', async (path, title, cleared) => {
-    server.use(http.get('/api/recipes/', () => HttpResponse.json<Recipe[]>([])));
+    server.use(http.get('/api/recipes/', () => HttpResponse.json(recipePage([]))));
     const { router } = renderRoute(path);
 
     const emptyState = (await screen.findByRole('heading', { name: title })).parentElement;
@@ -1312,5 +1329,159 @@ describe('RecipesPage', () => {
     release();
 
     await waitFor(() => expect(filtersOn()).toEqual(['Remove filter: Without crème fraîche']));
+  });
+});
+
+// `length` recipes numbered from `first`, in the list's order.
+const numbered = (first: number, length: number): Recipe[] =>
+  Array.from({ length }, (_, index) => ({
+    ...bananaBread,
+    id: first + index,
+    slug: `recipe-${first + index}`,
+    title: `Recipe ${first + index}`
+  }));
+
+// Answers each list request with the page it asks for out of `count` matches, 24 a page, or 404 past the last, as the
+// API does, and records each request's query string.
+const answerPages = (count: number) => {
+  const queries: string[] = [];
+  server.use(
+    http.get('/api/recipes/', ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      queries.push(params.toString());
+      const first = (Number(params.get('page') ?? '1') - 1) * 24;
+      if (first >= count) {
+        return new HttpResponse(null, { status: 404 });
+      }
+      return HttpResponse.json(recipePage(numbered(first + 1, Math.min(24, count - first)), count));
+    })
+  );
+  return queries;
+};
+
+const pager = () => within(screen.getByRole('navigation', { name: 'Pages' }));
+
+const pagerLinks = () =>
+  pager()
+    .getAllByRole('link')
+    .map((link) => [link.textContent, link.getAttribute('href')]);
+
+const pageHeading = () => screen.getByRole('heading', { level: 1, name: 'What shall we cook tonight?' });
+
+describe('RecipesPage, a page at a time', () => {
+  it.each([
+    ['/recipes', '1–24 of 137 recipes', 'Recipe 1', 'Page 1 of 6', [['Next', '/recipes?page=2']]],
+    [
+      '/recipes?page=2',
+      '25–48 of 137 recipes',
+      'Recipe 25',
+      'Page 2 of 6',
+      [
+        ['Previous', '/recipes'],
+        ['Next', '/recipes?page=3']
+      ]
+    ],
+    ['/recipes?page=6', '121–137 of 137 recipes', 'Recipe 121', 'Page 6 of 6', [['Previous', '/recipes?page=5']]]
+  ])('at %s, says "%s" above the list and the page below it', async (path, range, firstTitle, page, links) => {
+    answerPages(137);
+
+    renderRoute(path);
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(range));
+    expect(headings()[0]).toBe(firstTitle);
+    expect(pager().getByText(page)).toBeInTheDocument();
+    expect(pagerLinks()).toEqual(links);
+    expect(screen.getByRole('list').compareDocumentPosition(screen.getByRole('navigation', { name: 'Pages' }))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+  });
+
+  it('keeps the page shown until the next arrives, saying which it is finding, and takes focus to the heading', async () => {
+    const queries = answerPages(137);
+    const { router } = renderRoute('/recipes?page=2');
+    await screen.findByText('25–48 of 137 recipes');
+    const next = holdRecipes(() => HttpResponse.json(recipePage(numbered(49, 24), 137)));
+
+    await userEvent.click(pager().getByRole('link', { name: 'Next' }));
+    await next.requested;
+
+    expect(router.state.location.search).toBe('?page=3');
+    expect(pageHeading()).toHaveFocus();
+    expect(headings()[0]).toBe('Recipe 25');
+    expect(screen.getByRole('status')).toHaveTextContent('Finding page 3…');
+
+    next.release();
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('49–72 of 137 recipes'));
+    expect(screen.getByRole('status')).not.toHaveTextContent('Finding');
+    expect(headings()[0]).toBe('Recipe 49');
+    expect(pageHeading()).toHaveFocus();
+    expect(queries).toEqual(['page=2']);
+  });
+
+  it("keeps the search and filters in the pager's links", async () => {
+    answerPages(137);
+
+    renderRoute('/recipes?q=stew&cuisine=french&page=2');
+
+    await screen.findByText('25–48 of 137 recipes');
+    expect(pagerLinks()).toEqual([
+      ['Previous', '/recipes?q=stew&cuisine=french'],
+      ['Next', '/recipes?q=stew&cuisine=french&page=3']
+    ]);
+  });
+
+  it('starts again at the first page when a filter changes', async () => {
+    const queries = answerPages(137);
+    const { router } = renderRoute('/recipes?page=3');
+    await screen.findByText('49–72 of 137 recipes');
+    await userEvent.click(filtersButton());
+
+    await userEvent.click(await within(filterGroup('Difficulty')).findByRole('button', { name: 'Easy' }));
+
+    expect(router.state.location.search).toBe('?difficulty=easy');
+    await waitFor(() => expect(queries.at(-1)).toBe('difficulty=easy'));
+  });
+
+  it('starts again at the first page when the search changes', async () => {
+    const queries = answerPages(137);
+    const { router } = renderRoute('/recipes?page=3');
+    await screen.findByText('49–72 of 137 recipes');
+
+    await userEvent.type(searchBox(), 'stew');
+
+    expect(router.state.location.search).toBe('?q=stew');
+    await waitFor(() => expect(queries.at(-1)).toBe('q=stew'));
+  });
+
+  it('shows the first page in place of one past the last, putting the address right', async () => {
+    const queries = answerPages(137);
+
+    const { router } = renderRoute('/recipes?page=99');
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1–24 of 137 recipes'));
+    expect(router.state.location.search).toBe('');
+    expect(router.state.historyAction).toBe('REPLACE');
+    expect(queries).toEqual(['page=99', '']);
+  });
+
+  it('shows no pager and only the count when every match fits on one page', async () => {
+    answerPages(24);
+
+    const { queryClient } = renderRoute('/recipes?page=1');
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('24 recipes'));
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    expect(screen.queryByRole('navigation', { name: 'Pages' })).not.toBeInTheDocument();
+  });
+
+  it("counts every match on the filter sheet's button, not the page's", async () => {
+    answerPages(52);
+    renderRoute('/recipes');
+    await screen.findByText('1–24 of 52 recipes');
+
+    await userEvent.click(filtersButton());
+
+    expect(within(filtersSheet()).getByRole('button', { name: 'Show 52 recipes' })).toBeInTheDocument();
   });
 });

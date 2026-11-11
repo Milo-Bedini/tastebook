@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
 
 import type { components } from '../api/schema';
+import { recipePage } from '../test/handlers';
 import { renderRoute } from '../test/render-route';
 import { server } from '../test/server';
 
@@ -393,10 +394,12 @@ describe("The author's hidden recipe", () => {
     });
     server.use(
       http.get('/api/recipes/', () =>
-        HttpResponse.json<RecipeSummary[]>([
-          summary({ hidden_for_review: true }),
-          summary({ id: 8, slug: 'sams-dal-d4l9xz', title: "Sam's dal" })
-        ])
+        HttpResponse.json(
+          recipePage([
+            summary({ hidden_for_review: true }),
+            summary({ id: 8, slug: 'sams-dal-d4l9xz', title: "Sam's dal" })
+          ])
+        )
       )
     );
     renderRoute('/recipes');
