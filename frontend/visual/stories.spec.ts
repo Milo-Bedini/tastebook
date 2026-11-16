@@ -38,6 +38,18 @@ stories.map(({ id, title, name }) =>
     await page.evaluate(() => document.fonts.ready);
     // Play's clicks leave real focus on a control; Is Focus stories force their ring with a class instead.
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    // Playwright 1.65 loses forced colours when a full-page shot grows the viewport to fit the story, so grow it first.
+    const viewport = page.viewportSize();
+    const content = await page.evaluate(() => ({
+      width: document.documentElement.scrollWidth,
+      height: document.documentElement.scrollHeight
+    }));
+    if (viewport && (content.width > viewport.width || content.height > viewport.height)) {
+      await page.setViewportSize({
+        width: Math.max(viewport.width, content.width),
+        height: Math.max(viewport.height, content.height)
+      });
+    }
 
     // The whole page, not the story root, so portalled dialogs and toasts are in the shot.
     await expect(page).toHaveScreenshot(`${id}.png`, { fullPage: true });
