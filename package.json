@@ -36,8 +36,8 @@
     ]
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.4",
-    "concurrently": "10.0.6",
+    "@biomejs/biome": "2.6.6",
+    "concurrently": "10.0.7",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "typescript": "7.0.2"
