@@ -176,6 +176,8 @@ ACCOUNT_EMAIL_VERIFICATION_BY_CODE_MAX_ATTEMPTS = 5
 ACCOUNT_PREVENT_ENUMERATION = False
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+# Not 'code': an emailed code is how anyone signs in, so it mustn't stand in for staff's authenticator.
+ACCOUNT_REAUTHENTICATION_METHODS = ('password', 'mfa')
 ALLAUTH_USER_CODE_FORMAT = {'numeric': True, 'length': 6, 'dashed': False}
 if VERCEL_ENV:
     # Vercel sets X-Real-IP to the client's address and overwrites one the client sends.

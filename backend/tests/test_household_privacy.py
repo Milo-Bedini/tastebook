@@ -87,6 +87,11 @@ ENDPOINTS: dict[str, tuple[Probe, ...]] = {
     'api/_allauth/browser/v1/config': (get('/api/_allauth/browser/v1/config'),),
     'api/_allauth/browser/v1/auth/session': (get(f'{AUTH}/session'),),
     'api/_allauth/browser/v1/auth/reauthenticate': (post(f'{AUTH}/reauthenticate', {'password': 'guess'}),),
+    'api/_allauth/browser/v1/auth/reauthenticate/code/request': (post(f'{AUTH}/reauthenticate/code/request'),),
+    'api/_allauth/browser/v1/auth/reauthenticate/code/confirm': (
+        post(f'{AUTH}/reauthenticate/code/confirm', {'code': '000000'}),
+    ),
+    'api/_allauth/browser/v1/auth/reauthenticate/code/resend': (post(f'{AUTH}/reauthenticate/code/resend'),),
     'api/_allauth/browser/v1/auth/code/request': (post(f'{AUTH}/code/request', {'email': '{zebedee}'}),),
     'api/_allauth/browser/v1/auth/code/confirm': (post(f'{AUTH}/code/confirm', {'code': '000000'}),),
     'api/_allauth/browser/v1/auth/code/resend': (post(f'{AUTH}/code/resend'),),
