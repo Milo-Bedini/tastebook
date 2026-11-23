@@ -10,7 +10,7 @@ dependencies = [
     "drf-spectacular>=0.30.0",
     "pillow>=13.0.0",
     "pillow-heif>=1.8.1",
-    "psycopg[binary]>=3.3.8",
+    "psycopg[binary]>=3.3.9",
     "requests>=2.34.2",
     "sentry-sdk[django]>=2.74.0",
 ]
