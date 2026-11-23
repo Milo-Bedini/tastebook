@@ -271,6 +271,19 @@ def test_staff_sign_in_refuses_a_wrong_authenticator_code() -> None:
 
 
 @pytest.mark.django_db
+def test_an_emailed_code_cant_stand_in_for_the_authenticator() -> None:
+    _, key, _ = staff_with_authenticator()
+    browser = BrowserClient()
+    sign_in_with_email_code(browser, 'sam@example.com')
+    browser.post('2fa/authenticate', {'code': current_code(key)})
+    mail.outbox.clear()
+
+    requested = browser.post('reauthenticate/code/request', {})
+
+    assert (requested.status_code, mail.outbox) == (403, [])
+
+
+@pytest.mark.django_db
 def test_an_account_that_isnt_staff_signs_in_with_only_the_email_code() -> None:
     account('alex@example.com')
 

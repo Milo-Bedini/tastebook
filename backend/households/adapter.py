@@ -1,6 +1,8 @@
 from typing import Any
 
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.account.internal.flows.reauthentication import get_reauthentication_flows
+from allauth.core import context
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.models import SocialLogin
 from django.conf import settings
@@ -26,6 +28,12 @@ class AccountAdapter(DefaultAccountAdapter):
             store_sign_in_code(email, context['code'])
             return
         super().send_mail(template_prefix, email, context)
+
+    def is_reauthentication_required(self, *, app: str, **kwargs: Any) -> bool:
+        # An account with no way to reauthenticate (no password, no authenticator yet), such as staff setting up their
+        # first authenticator, isn't asked to, as allauth did before 65.22.
+        required = super().is_reauthentication_required(app=app, **kwargs)
+        return required and bool(get_reauthentication_flows(context.request.user))
 
 
 # What sign-in uses of a Google profile; the rest (photo, full name, locale) isn't stored.
